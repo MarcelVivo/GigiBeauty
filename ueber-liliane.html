@@ -8,19 +8,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-  html { font-size: 16px; }
+  html, body { height: 100%; font-size: 16px; }
 
   body {
     background: #180d08;
     color: #f5e6c8;
     font-family: 'Cormorant Garamond', 'Times New Roman', serif;
     font-weight: 300;
-    line-height: 1.75;
-    overflow-x: hidden;
-    min-height: 100vh;
+    overflow: hidden;          /* page itself doesn't scroll — right col does */
+    display: flex;
+    flex-direction: column;
   }
 
-  /* ── Particle canvas ──────────────────────────────────────────────────────── */
+  /* ── Particle canvas ─────────────────────────────────────────────────────── */
   #ul-particles {
     position: fixed;
     top: 0; left: 0;
@@ -33,6 +33,7 @@
   #ul-header {
     position: relative;
     z-index: 10;
+    flex-shrink: 0;
     padding: 1.2rem 2rem;
     border-bottom: 1px solid rgba(212,175,106,0.15);
     display: flex;
@@ -54,48 +55,55 @@
   }
   #ul-logo:hover { color: #d4af6a; }
 
-  /* ── Main layout ─────────────────────────────────────────────────────────── */
-  main {
+  /* ── Two-column wrapper ──────────────────────────────────────────────────── */
+  .ul-columns {
     position: relative;
     z-index: 1;
-    display: flex;
-    align-items: center;
-    min-height: calc(100vh - 62px);
-    padding: clamp(3rem, 5vw, 5rem) clamp(1.5rem, 6vw, 7rem);
-    gap: clamp(2.5rem, 5vw, 7rem);
-    max-width: 1260px;
-    margin: 0 auto;
+    flex: 1;
+    display: grid;
+    grid-template-columns: 42% 58%;
+    overflow: hidden;
   }
 
-  /* ── Photo ───────────────────────────────────────────────────────────────── */
-  .ul-photo-wrap {
-    flex: 0 0 clamp(200px, 36%, 420px);
-  }
-
-  .ul-photo-inner {
+  /* ── Left: sticky photo column ───────────────────────────────────────────── */
+  .ul-photo-col {
     position: relative;
-    width: 100%;
-    padding-bottom: 132%;
+    overflow: hidden;
   }
 
-  .ul-photo-inner img {
+  .ul-photo-col img {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: center top;
-    border-radius: 50% 50% 10px 10px / 36% 36% 10px 10px;
     display: block;
-    /* Subtle gold glow around photo */
-    filter: drop-shadow(0 0 24px rgba(212,175,106,0.18)) drop-shadow(0 8px 32px rgba(0,0,0,0.7));
   }
 
-  /* ── Text ────────────────────────────────────────────────────────────────── */
-  .ul-text { flex: 1; min-width: 0; }
+  /* Subtle vignette on the right edge of the photo to blend into content */
+  .ul-photo-col::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, transparent 60%, rgba(24,13,8,0.85) 100%);
+    pointer-events: none;
+  }
 
+  /* ── Right: scrollable text column ──────────────────────────────────────── */
+  .ul-text-col {
+    overflow-y: auto;
+    padding: clamp(2.5rem, 5vw, 5rem) clamp(2rem, 4vw, 4.5rem) 4rem;
+    /* Hide scrollbar visually but keep functional */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(212,175,106,0.2) transparent;
+  }
+  .ul-text-col::-webkit-scrollbar { width: 4px; }
+  .ul-text-col::-webkit-scrollbar-track { background: transparent; }
+  .ul-text-col::-webkit-scrollbar-thumb { background: rgba(212,175,106,0.2); border-radius: 2px; }
+
+  /* ── Text content ────────────────────────────────────────────────────────── */
   .ul-eyebrow {
-    font-family: 'Cormorant Garamond', serif;
     font-size: 0.68rem;
     letter-spacing: 0.35em;
     text-transform: uppercase;
@@ -103,19 +111,19 @@
     margin-bottom: 1rem;
   }
 
-  .ul-text h1 {
+  .ul-text-col h1 {
     font-family: 'Playfair Display', Georgia, serif;
-    font-size: clamp(2.6rem, 5.5vw, 5rem);
+    font-size: clamp(2.4rem, 4vw, 4rem);
     font-weight: 400;
     color: #f5e6c8;
     letter-spacing: 0.01em;
     line-height: 1.08;
-    margin-bottom: 0.55rem;
+    margin-bottom: 0.5rem;
   }
 
-  .ul-text h2 {
+  .ul-text-col h2 {
     font-family: 'Playfair Display', Georgia, serif;
-    font-size: clamp(1.05rem, 2vw, 1.5rem);
+    font-size: clamp(1.0rem, 1.8vw, 1.4rem);
     font-weight: 400;
     font-style: italic;
     color: #d4af6a;
@@ -125,22 +133,47 @@
 
   .ul-divider {
     width: 44px; height: 1px;
-    background: linear-gradient(to right, #d4af6a, rgba(212,175,106,0.15));
+    background: linear-gradient(to right, #d4af6a, rgba(212,175,106,0.1));
     margin-bottom: 1.8rem;
   }
 
-  .ul-text p {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(1.0rem, 1.55vw, 1.18rem);
+  .ul-text-col p {
+    font-size: clamp(1.0rem, 1.4vw, 1.12rem);
     font-weight: 300;
     color: rgba(245,230,200,0.78);
     line-height: 1.9;
-    margin-bottom: 1.15rem;
+    margin-bottom: 1.1rem;
+  }
+
+  /* ── Section divider between blocks ─────────────────────────────────────── */
+  .ul-section {
+    margin-top: 3rem;
+    padding-top: 2.8rem;
+    border-top: 1px solid rgba(212,175,106,0.14);
+  }
+
+  .ul-section-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(1.3rem, 2.2vw, 1.9rem);
+    font-weight: 400;
+    color: #f5e6c8;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
+
+  .ul-section-quote {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(0.9rem, 1.3vw, 1.05rem);
+    font-style: italic;
+    color: #d4af6a;
+    letter-spacing: 0.02em;
+    margin-bottom: 1.8rem;
+    line-height: 1.5;
   }
 
   .ul-cta {
     display: inline-block;
-    margin-top: 2.2rem;
+    margin-top: 2.4rem;
     background: linear-gradient(135deg, #c8a06a 0%, #d4af6a 50%, #b8903a 100%);
     color: #1a0a0a;
     font-family: 'Cormorant Garamond', serif;
@@ -152,6 +185,7 @@
     padding: 14px 40px;
     border-radius: 2px;
     transition: background 0.25s ease, letter-spacing 0.25s ease;
+    margin-bottom: 3rem;
   }
   .ul-cta:hover {
     background: linear-gradient(135deg, #d4af6a 0%, #e8c87a 50%, #c8a04a 100%);
@@ -159,22 +193,27 @@
   }
 
   /* ── Footer ──────────────────────────────────────────────────────────────── */
-  #main-footer {
-    position: relative;
-    z-index: 10;
+  /* Footer is INSIDE the scrollable right column so it scrolls with content */
+  .ul-footer {
+    margin-top: 1rem;
+    border-top: 1px solid rgba(212,175,106,0.12);
+    padding-top: 2.5rem;
     background: #f0ece4;
     color: #2c1f0e;
-    font-family: 'Cormorant Garamond', 'Times New Roman', serif;
-    font-weight: 400;
+    /* Negative margin to break out of column padding */
+    margin-left: calc(-1 * clamp(2rem, 4vw, 4.5rem));
+    margin-right: calc(-1 * clamp(2rem, 4vw, 4.5rem));
+    padding-left: clamp(2rem, 4vw, 4.5rem);
+    padding-right: clamp(2rem, 4vw, 4.5rem);
+    padding-bottom: 0;
   }
 
   .footer-inner {
-    max-width: 1100px;
-    margin: 0 auto;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 2.5rem;
-    padding: 3rem 2rem 2rem;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    font-family: 'Cormorant Garamond', serif;
   }
 
   .footer-heading {
@@ -184,30 +223,23 @@
     letter-spacing: 0.28em;
     text-transform: uppercase;
     color: rgba(44,31,14,0.45);
-    margin-bottom: 1.1rem;
+    margin-bottom: 1rem;
   }
 
-  .footer-col { font-size: 0.92rem; color: #3a2810; }
-  .footer-col p { margin-bottom: 0.35rem; }
+  .footer-col { font-size: 0.9rem; color: #3a2810; }
+  .footer-col p { margin-bottom: 0.32rem; }
   .footer-col a { color: #3a2810; text-decoration: none; transition: color 0.2s; }
   .footer-col a:hover { color: #b8903a; }
-  .footer-gap { margin-top: 1rem !important; }
+  .footer-gap { margin-top: 0.9rem !important; }
 
-  .footer-hours {
-    display: grid;
-    grid-template-columns: auto auto;
-    gap: 0.3rem 1.5rem;
-    font-size: 0.92rem;
-  }
+  .footer-hours { display: grid; grid-template-columns: auto auto; gap: 0.28rem 1.2rem; font-size: 0.9rem; }
 
-  .footer-icons { display: flex; gap: 0.75rem; margin-top: 0.2rem; }
+  .footer-icons { display: flex; gap: 0.65rem; margin-top: 0.2rem; }
   .footer-icon-link {
     display: flex; align-items: center; justify-content: center;
-    width: 44px; height: 44px;
+    width: 40px; height: 40px;
     background: linear-gradient(135deg, #c8a06a 0%, #d4af6a 50%, #b8903a 100%);
-    color: #1a0a0a;
-    border-radius: 6px;
-    text-decoration: none;
+    color: #1a0a0a; border-radius: 6px; text-decoration: none;
     transition: background 0.25s ease, transform 0.2s ease;
   }
   .footer-icon-link:hover {
@@ -216,42 +248,53 @@
   }
 
   .footer-bar {
-    max-width: 1100px;
-    margin: 0 auto;
     border-top: 1px solid rgba(44,31,14,0.12);
-    padding: 1.2rem 2rem 1.8rem;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem 1rem;
-    font-size: 0.8rem;
-    color: rgba(44,31,14,0.45);
-    letter-spacing: 0.03em;
+    padding: 1rem 0 1.5rem;
+    display: flex; flex-wrap: wrap;
+    align-items: center; gap: 0.5rem 1rem;
+    font-size: 0.78rem; color: rgba(44,31,14,0.45);
+    font-family: 'Cormorant Garamond', serif;
   }
   .footer-bar a { color: rgba(44,31,14,0.55); text-decoration: none; transition: color 0.2s; }
   .footer-bar a:hover { color: #b8903a; }
   .footer-bar-sep { opacity: 0.4; }
 
-  /* ── Responsive ──────────────────────────────────────────────────────────── */
+  /* ── Mobile: stack vertically, page scrolls normally ─────────────────────── */
   @media (max-width: 820px) {
-    main {
-      flex-direction: column;
-      padding: 2.5rem 1.5rem 4rem;
-      gap: 2.5rem;
-      min-height: unset;
+    html, body { height: auto; overflow: auto; }
+    body { overflow-x: hidden; }
+
+    .ul-columns {
+      grid-template-columns: 1fr;
+      overflow: visible;
     }
-    .ul-photo-wrap { flex: none; width: min(300px, 75vw); margin: 0 auto; }
-    .ul-photo-inner { padding-bottom: 128%; }
-    .ul-text { text-align: center; }
-    .ul-divider { margin-left: auto; margin-right: auto; }
-    .footer-inner { grid-template-columns: 1fr; gap: 2rem; padding: 2.5rem 1.5rem 1.5rem; }
-    .footer-bar { padding: 1rem 1.5rem 1.5rem; }
+
+    .ul-photo-col {
+      height: 65vw;
+      max-height: 380px;
+    }
+    .ul-photo-col::after {
+      background: linear-gradient(to bottom, transparent 60%, rgba(24,13,8,0.9) 100%);
+    }
+
+    .ul-text-col {
+      overflow-y: visible;
+      padding: 2rem 1.5rem 3rem;
+    }
+
+    .footer-inner { grid-template-columns: 1fr; gap: 1.8rem; }
+
+    .ul-footer {
+      margin-left: -1.5rem;
+      margin-right: -1.5rem;
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
   }
 </style>
 </head>
 <body>
 
-<!-- Floating gold particle canvas -->
 <canvas id="ul-particles"></canvas>
 
 <!-- Header -->
@@ -265,18 +308,17 @@
   </a>
 </header>
 
-<!-- Main content -->
-<main>
+<!-- Two columns -->
+<div class="ul-columns">
 
-  <!-- Photo -->
-  <div class="ul-photo-wrap">
-    <div class="ul-photo-inner">
-      <img src="public/images/Gallery/Liliane.png" alt="Liliane Serrano — GiGi Beauty">
-    </div>
+  <!-- Left: fixed photo -->
+  <div class="ul-photo-col">
+    <img src="public/images/Gallery/Liliane.png" alt="Liliane Serrano — GiGi Beauty">
   </div>
 
-  <!-- Text -->
-  <div class="ul-text">
+  <!-- Right: scrollable text -->
+  <div class="ul-text-col">
+
     <p class="ul-eyebrow">GiGi Beauty · Bern</p>
     <h1>GiGi Beauty</h1>
     <h2>Ihr Schönheitssalon in Bern</h2>
@@ -288,92 +330,101 @@
 
     <p>Entdecken Sie mein umfangreiches Angebot und buchen Sie noch heute Ihren Termin. Ich freue mich darauf, Sie verwöhnen zu dürfen!</p>
 
+    <!-- Second text block -->
+    <div class="ul-section">
+      <h3 class="ul-section-title">Seit 2008 das „It" Beautystudio von Bern</h3>
+      <p class="ul-section-quote">„Die Begeisterung des Herzens ist die Quelle jeder großen Unternehmung" — Giuseppe Mazzini</p>
+
+      <p>Seit 2008 bin ich eines der führenden Beautystudios im Herzen von Bern. Diese Leidenschaft treibt mich an und sie spiegelt sich in jedem Aspekt meiner Arbeit wider.</p>
+
+      <p>Meine Expertise liegt in den Bereichen Kosmetik, Permanent Make-up (PMU) und Nageldesign. Durch jahrelange Erfahrung habe ich mich zu einer vertrauenswürdigen Anlaufstelle für Schönheitsdienstleistungen entwickelt, sowohl hier in Bern als auch international. Durch kontinuierliche Aus- und Weiterbildungen erweitere ich ständig mein Wissen, um meinen Service zu verbessern.</p>
+
+      <p>In meinem Studio erwartet Sie eine Atmosphäre von Luxus und Glamour, in der Sie sich wie in einer Wohlfühloase fühlen können. Meine Dienstleistungen umfassen die Pflege von Händen und Füßen, einschließlich der Behandlung von brüchigen Nägeln, „Nagelbeißerproblemen" und dem Aufbau der Nagelstruktur sowie des Nagelbettes. Bei mir erhalten Sie nicht nur eine Standardbehandlung, sondern eine individuelle Betreuung, die auf Ihre spezifischen Anliegen abgestimmt ist.</p>
+
+      <p>Wenn Sie nach einem neuen Schönheitserlebnis suchen und sich schöne, gepflegte Hände wünschen, dann sind Sie bei mir genau richtig. Besuchen Sie mein Studio und lassen Sie sich von meinem Fachwissen und meiner Leidenschaft für Schönheit überzeugen. Ich freue mich darauf, Sie zu verwöhnen und Ihnen ein unvergessliches Erlebnis zu bereiten.</p>
+    </div>
+
     <a href="index.html#section-booking" class="ul-cta">Termin buchen</a>
-  </div>
 
-</main>
+    <!-- Footer inside scrollable column -->
+    <div class="ul-footer">
+      <div class="footer-inner">
 
-<!-- Footer -->
-<footer id="main-footer">
-  <div class="footer-inner">
+        <div class="footer-col">
+          <h3 class="footer-heading">Standort</h3>
+          <p>GiGi Beauty</p>
+          <p>Zeughausgasse 24</p>
+          <p>3011 Bern</p>
+          <p class="footer-gap">Telefon: <a href="tel:+41762220663">076 222 06 63</a></p>
+          <p>E-Mail: <a href="mailto:info@gigibeauty.ch">info@gigibeauty.ch</a></p>
+        </div>
 
-    <div class="footer-col">
-      <h3 class="footer-heading">Standort</h3>
-      <p>GiGi Beauty</p>
-      <p>Zeughausgasse 24</p>
-      <p>3011 Bern</p>
-      <p class="footer-gap">Telefon: <a href="tel:+41762220663">076 222 06 63</a></p>
-      <p>E-Mail: <a href="mailto:info@gigibeauty.ch">info@gigibeauty.ch</a></p>
-    </div>
+        <div class="footer-col">
+          <h3 class="footer-heading">Öffnungszeiten</h3>
+          <div class="footer-hours">
+            <span>Montag – Freitag</span><span>09.00 – 20.30 Uhr</span>
+            <span>Samstag</span><span>09.00 – 18.00 Uhr</span>
+            <span>Sonntag</span><span>Geschlossen</span>
+          </div>
+        </div>
 
-    <div class="footer-col">
-      <h3 class="footer-heading">Öffnungszeiten</h3>
-      <div class="footer-hours">
-        <span>Montag – Freitag</span><span>09.00 – 20.30 Uhr</span>
-        <span>Samstag</span><span>09.00 – 18.00 Uhr</span>
-        <span>Sonntag</span><span>Geschlossen</span>
+        <div class="footer-col">
+          <h3 class="footer-heading">Folge mir</h3>
+          <div class="footer-icons">
+            <a href="https://www.instagram.com/gigibeauty0820" target="_blank" rel="noopener" aria-label="Instagram" class="footer-icon-link">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+              </svg>
+            </a>
+            <a href="tel:+41762220663" aria-label="Telefon" class="footer-icon-link">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+              </svg>
+            </a>
+            <a href="https://wa.me/41762220663" target="_blank" rel="noopener" aria-label="WhatsApp" class="footer-icon-link">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="footer-bar">
+        <span>© Alle Rechte vorbehalten</span>
+        <span class="footer-bar-sep">|</span>
+        <a href="impressum.html">Impressum</a>
+        <span class="footer-bar-sep">|</span>
+        <a href="datenschutz.html">Datenschutz</a>
       </div>
     </div>
 
-    <div class="footer-col">
-      <h3 class="footer-heading">Folge mir</h3>
-      <div class="footer-icons">
-        <a href="https://www.instagram.com/gigibeauty0820" target="_blank" rel="noopener" aria-label="Instagram" class="footer-icon-link">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
-            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-          </svg>
-        </a>
-        <a href="tel:+41762220663" aria-label="Telefon" class="footer-icon-link">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
-            <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-          </svg>
-        </a>
-        <a href="https://wa.me/41762220663" target="_blank" rel="noopener" aria-label="WhatsApp" class="footer-icon-link">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-          </svg>
-        </a>
-      </div>
-    </div>
+  </div><!-- end .ul-text-col -->
+</div><!-- end .ul-columns -->
 
-  </div>
-
-  <div class="footer-bar">
-    <span>© Alle Rechte vorbehalten</span>
-    <span class="footer-bar-sep">|</span>
-    <a href="impressum.html">Impressum</a>
-    <span class="footer-bar-sep">|</span>
-    <a href="datenschutz.html">Datenschutz</a>
-  </div>
-</footer>
-
-<!-- ── Floating gold particles ─────────────────────────────────────────────── -->
+<!-- Floating gold particles -->
 <script>
 (function() {
   var cv  = document.getElementById('ul-particles');
   var ctx = cv.getContext('2d');
   var W, H;
-
-  function resize() {
-    W = cv.width  = window.innerWidth;
-    H = cv.height = window.innerHeight;
-  }
+  function resize() { W = cv.width = window.innerWidth; H = cv.height = window.innerHeight; }
   resize();
   window.addEventListener('resize', resize);
 
-  // Create particles
-  var COUNT = window.innerWidth < 768 ? 90 : 200;
+  var COUNT = window.innerWidth < 768 ? 80 : 190;
   var pts = [];
   for (var i = 0; i < COUNT; i++) {
     pts.push({
-      x:     Math.random() * window.innerWidth,
-      y:     Math.random() * window.innerHeight,
-      r:     0.5 + Math.random() * 2.2,
-      vy:    0.10 + Math.random() * 0.40,
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      r: 0.5 + Math.random() * 2.2,
+      vy: 0.10 + Math.random() * 0.40,
       drift: (Math.random() - 0.5) * 0.16,
-      op:    0.04 + Math.random() * 0.20,
+      op: 0.04 + Math.random() * 0.20,
       phase: Math.random() * Math.PI * 2,
-      spd:   0.5 + Math.random() * 1.1,
+      spd: 0.5 + Math.random() * 1.1,
     });
   }
 
@@ -382,25 +433,20 @@
     requestAnimationFrame(loop);
     t += 0.016;
     ctx.clearRect(0, 0, W, H);
-
     for (var i = 0; i < pts.length; i++) {
       var p = pts[i];
       p.y -= p.vy;
       p.x += Math.sin(t * 0.38 + p.phase) * p.drift;
-      if (p.y < -p.r * 3) {
-        p.y = H + p.r * 2;
-        p.x = Math.random() * W;
-      }
-
-      var twinkle = 0.5 + 0.5 * Math.abs(Math.sin(t * p.spd + p.phase));
-      var alpha   = p.op * twinkle;
-      var grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 2.4);
-      grd.addColorStop(0.0, 'rgba(255,220,120,' + alpha + ')');
-      grd.addColorStop(0.4, 'rgba(212,175,106,' + (alpha * 0.55) + ')');
-      grd.addColorStop(1.0, 'rgba(212,175,106,0)');
+      if (p.y < -p.r * 3) { p.y = H + p.r * 2; p.x = Math.random() * W; }
+      var tw = 0.5 + 0.5 * Math.abs(Math.sin(t * p.spd + p.phase));
+      var al = p.op * tw;
+      var g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 2.4);
+      g.addColorStop(0.0, 'rgba(255,220,120,' + al + ')');
+      g.addColorStop(0.4, 'rgba(212,175,106,' + (al * 0.55) + ')');
+      g.addColorStop(1.0, 'rgba(212,175,106,0)');
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r * 2.4, 0, Math.PI * 2);
-      ctx.fillStyle = grd;
+      ctx.fillStyle = g;
       ctx.fill();
     }
   }
