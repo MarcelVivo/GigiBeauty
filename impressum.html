@@ -6,7 +6,6 @@
 <title>Impressum — GiGi Beauty</title>
 <meta name="description" content="Impressum von GiGi Beauty / Soho Cosmetis, Liliane Serrano, Zeughausgasse 24, 3011 Bern.">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/pages/nav.css">
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -21,26 +20,26 @@
     overflow-x: hidden;
   }
 
-  /* ── Nav override for light background */
-  #site-nav {
-    background: rgba(240,236,228,0.95) !important;
+  /* ── Minimal header */
+  #imp-header {
+    padding: 1.5rem 2rem;
     border-bottom: 1px solid rgba(44,31,14,0.12);
-    backdrop-filter: blur(12px);
   }
-  #site-nav .nav-logo { color: #2c1f0e !important; }
-  #site-nav .nav-links a { color: #3d2b14 !important; }
-  #site-nav .nav-links a:hover { color: #b8903a !important; }
-  #site-nav .nav-cta-btn {
-    background: #2c1f0e !important;
-    color: #f0ece4 !important;
+  #imp-logo {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.1rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: #2c1f0e;
+    text-decoration: none;
   }
-  #site-nav .nav-cta-btn:hover { background: #b8903a !important; }
+  #imp-logo:hover { color: #b8903a; }
 
   /* ── Page content */
   .imp-wrap {
     max-width: 860px;
     margin: 0 auto;
-    padding: calc(80px + 3rem) 2rem 5rem;
+    padding: 3rem 2rem 5rem;
   }
 
   .imp-wrap h1 {
@@ -107,16 +106,9 @@
 </head>
 <body>
 
-<nav id="site-nav">
-  <a class="nav-logo" href="/">GiGi Beauty</a>
-  <ul class="nav-links">
-    <li><a href="/pages/services/">Leistungen</a></li>
-    <li><a href="/pages/galerie.html">Galerie</a></li>
-    <li><a href="/pages/ueber-uns.html">Über uns</a></li>
-    <li><a href="/pages/kontakt.html">Kontakt</a></li>
-  </ul>
-  <a class="nav-cta-btn" href="/#section-booking" onclick="window.location.href='/#section-booking';return false;">Termin buchen</a>
-</nav>
+<header id="imp-header">
+  <a href="index.html" id="imp-logo">GiGi Beauty</a>
+</header>
 
 <main class="imp-wrap">
 
