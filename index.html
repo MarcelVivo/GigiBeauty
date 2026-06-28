@@ -1490,7 +1490,7 @@
   function getHelixPos(index, totalItems, rotationOffset) {
     const t = index / totalItems;
     const angle = t * Math.PI * 2 + rotationOffset;
-    const y = (t - 0.5) * HELIX_HEIGHT_SPAN - 1.1;
+    const y = (t - 0.5) * HELIX_HEIGHT_SPAN + (IS_MOBILE ? -1.1 : 0.0);
     return new THREE.Vector3(
       Math.cos(angle) * HELIX_RADIUS,
       y,
