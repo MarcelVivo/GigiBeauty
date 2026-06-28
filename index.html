@@ -1538,7 +1538,7 @@
 
     // Hide scroll hint: desktop → after 60 px; mobile → only once past hero
     const hint = document.getElementById('scroll-hint');
-    hint.style.opacity = (IS_MOBILE ? isPastHero : window.scrollY > 60) ? '0' : '1';
+    hint.style.opacity = isPastHero ? '0' : '1';
   }, { passive: true });
 
   // ─── Project 3D to 2D ─────────────────────────────────────────────────────
