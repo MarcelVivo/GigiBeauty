@@ -180,7 +180,13 @@
       gap: 0;
     }
     #top-nav.menu-open .nav-links { display: flex; }
-    .nav-links a { padding: 13px 32px; font-size: 0.88rem; border-radius: 0; }
+    .nav-links li  { display: block; }
+    .nav-links a {
+      display: block;      /* block prevents inline padding from overlapping siblings */
+      padding: 13px 32px;
+      font-size: 0.88rem;
+      border-radius: 0;
+    }
     .nav-links .mobile-cta a {
       color: #d4af6a;
       border-top: 1px solid rgba(212,175,106,0.15);
@@ -191,7 +197,7 @@
     #top-nav { padding: 0 20px; }
     /* Reset desktop-only spacing adjustments */
     .nav-links .nav-about-li { margin-left: 0; }
-    .nav-links .nav-about-btn { padding: 13px 32px; border-radius: 0; }
+    .nav-links .nav-about-btn { display: block; padding: 13px 32px; border-radius: 0; }
   }
 
   /* ── Main two-column layout ── */
