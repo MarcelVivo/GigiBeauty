@@ -1456,7 +1456,7 @@
     }
 
     // Smooth scroll progress
-    scrollProgress = lerp(scrollProgress, targetScrollProgress, IS_MOBILE ? 0.13 : 0.07);
+    scrollProgress = lerp(scrollProgress, targetScrollProgress, IS_MOBILE ? 0.26 : 0.07);
     const eased = easeInOut(scrollProgress);
 
     // ── Lipstick rotation (full 360° over scroll)
@@ -1613,7 +1613,7 @@
 
     // ── Update service card positions in helix
     const helixRot = eased * Math.PI * 2;
-    smoothedHelixRot = lerp(smoothedHelixRot, helixRot, 0.05);
+    smoothedHelixRot = lerp(smoothedHelixRot, helixRot, IS_MOBILE ? 0.10 : 0.05);
 
     SERVICES.forEach((svc, i) => {
       const pos3d = getHelixPos(i, SERVICES.length, smoothedHelixRot);
