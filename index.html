@@ -840,6 +840,7 @@
     <li><a href="#section-lashes"                  onclick="navTo('section-lashes');closeNav();return false;">Lashes</a></li>
     <li><a href="#section-korean-cosmetics"        onclick="navTo('section-korean-cosmetics');closeNav();return false;">Korean</a></li>
     <li><a href="#section-natural-make-up"         onclick="navTo('section-natural-make-up');closeNav();return false;">Natural MU</a></li>
+    <li><a href="ueber-liliane.html">Über Liliane</a></li>
     <li class="mobile-cta"><a href="#section-booking" onclick="navTo('section-booking');closeNav();return false;">Termin buchen</a></li>
   </ul>
 
@@ -2771,6 +2772,7 @@
       // Nav
       navGel:'Gel & Acryl', navPmu:'Permanent MU', navPedicure:'Pedicure',
       navFillers:'Fillers', navLashes:'Lashes', navKorean:'Korean', navNatural:'Natural MU',
+      navLiliane:'Über Liliane',
       navBook:'Termin buchen',
       // Hero
       heroTitle:'Entdecke unsere Welt', heroSub:'Schönheit. Leidenschaft. Perfektion.', heroCta:'Termin buchen',
@@ -2827,6 +2829,7 @@
       // Nav
       navGel:'Gel & Acrílico', navPmu:'Maquilh. Perm.', navPedicure:'Pedicure',
       navFillers:'Fillers', navLashes:'Pestanas', navKorean:'Korean', navNatural:'Maquilh. Natural',
+      navLiliane:'Sobre Liliane',
       navBook:'Agendar',
       // Hero
       heroTitle:'Descubra o nosso mundo', heroSub:'Beleza. Paixão. Perfeição.', heroCta:'Agendar',
@@ -2890,7 +2893,7 @@
 
     // ── Nav ──────────────────────────────────────────────────────────────────
     var nl = qa('#nav-links li:not(.mobile-cta) a');
-    ['navGel','navPmu','navPedicure','navFillers','navLashes','navKorean','navNatural']
+    ['navGel','navPmu','navPedicure','navFillers','navLashes','navKorean','navNatural','navLiliane']
       .forEach(function(k,i){ if(nl[i]) nl[i].textContent = t[k]; });
     qa('.nav-cta-btn, .mobile-cta a').forEach(function(el){ el.textContent = t.navBook; });
 
