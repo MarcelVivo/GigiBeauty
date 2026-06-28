@@ -20,6 +20,7 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    padding-top: 62px; /* fixed navbar height */
   }
 
   /* ── Particle canvas ── */
@@ -31,33 +32,136 @@
     pointer-events: none;
   }
 
-  /* ── Header ── */
-  #ul-header {
-    position: relative;
-    z-index: 10;
-    flex-shrink: 0;
-    padding: 1.2rem 2.5rem;
-    border-bottom: 1px solid rgba(212,175,106,0.15);
+  /* ── Navbar (identical to index.html) ── */
+  #top-nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 200;
     display: flex;
     align-items: center;
-    background: rgba(24,13,8,0.6);
-    backdrop-filter: blur(8px);
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 40px;
+    height: 62px;
+    background: rgba(24, 13, 8, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(212,175,106,0.13);
   }
 
-  #ul-logo {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 0.72rem;
-    font-weight: 400;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: rgba(212,175,106,0.7);
+  .nav-logo {
     text-decoration: none;
+    flex-shrink: 0;
+    display: block;
+    line-height: 0;
+    transition: opacity 0.2s ease;
+  }
+  .nav-logo:hover { opacity: 0.78; }
+  .nav-logo img { display: block; height: 40px; width: auto; }
+
+  .nav-links {
+    list-style: none;
     display: flex;
     align-items: center;
-    gap: 10px;
-    transition: color 0.2s ease;
+    gap: 4px;
+    margin: 0; padding: 0;
+    flex-wrap: nowrap;
   }
-  #ul-logo:hover { color: #d4af6a; }
+
+  .nav-links a {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #d4af6a;
+    text-decoration: none;
+    padding: 6px 11px;
+    border-radius: 2px;
+    transition: color 0.2s ease, background 0.2s ease;
+    white-space: nowrap;
+  }
+  .nav-links a:hover { color: #f5e6c8; background: rgba(212,175,106,0.07); }
+
+  .nav-links .mobile-cta { display: none; }
+
+  .nav-cta-btn {
+    display: inline-block;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: #1a0a0a;
+    background: linear-gradient(135deg, #c8a06a 0%, #d4af6a 50%, #b8903a 100%);
+    padding: 9px 20px;
+    border-radius: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all 0.25s ease;
+  }
+  .nav-cta-btn:hover {
+    background: linear-gradient(135deg, #d4af6a 0%, #e8c87a 50%, #c8a04a 100%);
+    color: #1a0a0a;
+    letter-spacing: 0.27em;
+  }
+
+  .nav-links .nav-about-btn {
+    background: linear-gradient(135deg, #c8a06a 0%, #d4af6a 50%, #b8903a 100%);
+    color: #1a0a0a;
+    padding: 9px 20px;
+  }
+  .nav-links .nav-about-btn:hover {
+    background: linear-gradient(135deg, #d4af6a 0%, #e8c87a 50%, #c8a04a 100%);
+    color: #1a0a0a;
+    letter-spacing: 0.27em;
+  }
+
+  .nav-hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px 4px;
+    flex-shrink: 0;
+  }
+  .nav-hamburger span {
+    display: block;
+    width: 22px; height: 1px;
+    background: #d4af6a;
+    transition: transform 0.25s ease, opacity 0.2s ease;
+  }
+  #top-nav.menu-open .nav-hamburger span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  #top-nav.menu-open .nav-hamburger span:nth-child(2) { opacity: 0; }
+  #top-nav.menu-open .nav-hamburger span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  @media (max-width: 960px) {
+    .nav-hamburger { display: flex; }
+    .nav-cta-btn   { display: none; }
+    .nav-links {
+      display: none;
+      position: fixed;
+      top: 62px; left: 0; right: 0;
+      flex-direction: column;
+      align-items: stretch;
+      background: rgba(24, 13, 8, 0.97);
+      padding: 12px 0 24px;
+      border-bottom: 1px solid rgba(212,175,106,0.15);
+      gap: 0;
+    }
+    #top-nav.menu-open .nav-links { display: flex; }
+    .nav-links a { padding: 13px 32px; font-size: 0.88rem; border-radius: 0; }
+    .nav-links .mobile-cta a {
+      color: #d4af6a;
+      border-top: 1px solid rgba(212,175,106,0.15);
+      margin-top: 8px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+    }
+    #top-nav { padding: 0 20px; }
+  }
 
   /* ── Main two-column layout ── */
   .ul-main {
@@ -264,16 +368,30 @@
 
 <canvas id="ul-particles"></canvas>
 
-<!-- Header -->
-<header id="ul-header">
-  <a href="index.html" id="ul-logo">
-    <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
-      <polyline points="5 1 1 5 5 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      <line x1="1" y1="5" x2="13" y2="5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-    </svg>
-    GiGi Beauty
+<!-- Navigation (same as index.html) -->
+<nav id="top-nav">
+  <a class="nav-logo" href="index.html" aria-label="GiGi Beauty">
+    <img src="public/images/logo/GiGiBeautySchmetterling.png" alt="GiGi Beauty">
   </a>
-</header>
+
+  <ul class="nav-links" id="nav-links">
+    <li><a href="index.html#section-gel-acryl-nails">Gel &amp; Acryl</a></li>
+    <li><a href="index.html#section-permanent-make-up">Permanent MU</a></li>
+    <li><a href="index.html#section-kosmetische-pedicure">Pedicure</a></li>
+    <li><a href="index.html#section-fillers">Fillers</a></li>
+    <li><a href="index.html#section-lashes">Lashes</a></li>
+    <li><a href="index.html#section-korean-cosmetics">Korean</a></li>
+    <li><a href="index.html#section-natural-make-up">Natural MU</a></li>
+    <li><a href="ueber-liliane.html" class="nav-about-btn">Über GiGi Beauty</a></li>
+    <li class="mobile-cta"><a href="index.html#section-booking">Termin buchen</a></li>
+  </ul>
+
+  <a class="nav-cta-btn" href="index.html#section-booking">Termin buchen</a>
+
+  <button class="nav-hamburger" aria-label="Menü" onclick="document.getElementById('top-nav').classList.toggle('menu-open')">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
 
 <!-- Main content -->
 <main class="ul-main">
