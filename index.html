@@ -1409,18 +1409,24 @@
   }
 
   // ─── Resize handler ───────────────────────────────────────────────────────
-  // Debounced: on mobile the URL bar animating in/out fires rapid resize events.
-  // Without debounce, renderer.setSize() runs mid-animation, making the lipstick
-  // jump ~35 px because the same NDC-y maps to a different pixel in a taller canvas.
+  // On mobile, the address bar animating in/out changes only the height.
+  // Calling renderer.setSize() on those events makes the lipstick jump ~35 px
+  // (same NDC-y maps to a different pixel in the taller canvas).
+  // Fix: ignore height-only resize events on mobile; only react to width changes
+  // (i.e. orientation changes). Desktop gets a short debounce against drag-resize spam.
+  let _prevRszW = window.innerWidth;
   let _rszTimer;
   window.addEventListener('resize', () => {
+    const w = window.innerWidth, h = window.innerHeight;
+    if (IS_MOBILE && w === _prevRszW) return; // address-bar height change — skip
+    _prevRszW = w;
     clearTimeout(_rszTimer);
     _rszTimer = setTimeout(() => {
-      const w = window.innerWidth, h = window.innerHeight;
-      camera.aspect = w / h;
+      const ww = window.innerWidth, hh = window.innerHeight;
+      camera.aspect = ww / hh;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-    }, IS_MOBILE ? 250 : 50);
+      renderer.setSize(ww, hh);
+    }, IS_MOBILE ? 0 : 50);
   });
 
   // ─── Animate loop ─────────────────────────────────────────────────────────
