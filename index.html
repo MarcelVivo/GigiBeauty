@@ -1745,15 +1745,15 @@
   }, { passive: true });
 
   // ─── Mouse X → helix rotation ─────────────────────────────────────────────
-  const heroScrollEl = document.getElementById('hero-scroll');
-  heroScrollEl.addEventListener('mousemove', (e) => {
-    if (isPastHero) return;
+  // #hero-scroll has pointer-events:none, so listen on window instead
+  window.addEventListener('mousemove', (e) => {
+    if (isPastHero) {
+      targetMouseRot = 0;
+      return;
+    }
     const normalizedX = e.clientX / window.innerWidth;   // 0 (left) → 1 (right)
     targetMouseRot = (normalizedX - 0.5) * Math.PI * 2; // ±π rotation range
-  });
-  heroScrollEl.addEventListener('mouseleave', () => {
-    targetMouseRot = 0; // smoothly return to neutral when mouse leaves
-  });
+  }, { passive: true });
 
   // ─── Project 3D to 2D ─────────────────────────────────────────────────────
   const _v3 = new THREE.Vector3();
