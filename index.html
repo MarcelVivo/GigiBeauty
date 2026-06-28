@@ -318,18 +318,31 @@
   }
 
   .nav-logo {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.0rem;
-    font-weight: 700;
-    letter-spacing: 0.22em;
-    color: #d4af6a;
     text-decoration: none;
-    text-transform: uppercase;
-    white-space: nowrap;
     flex-shrink: 0;
-    transition: color 0.2s ease;
+    display: block;
+    line-height: 0;
+    transition: opacity 0.2s ease;
   }
-  .nav-logo:hover { color: #f5e6c8; }
+  .nav-logo:hover { opacity: 0.8; }
+
+  /* Crop just the butterfly from GiGiBeautyLogo.jpg */
+  .nav-logo-crop {
+    display: block;
+    width: 36px;
+    height: 42px;
+    overflow: hidden;
+    position: relative;
+  }
+  .nav-logo-crop img {
+    position: absolute;
+    width: 162px;
+    height: auto;
+    left: -13px;
+    top: -1px;
+    mix-blend-mode: screen;
+    display: block;
+  }
 
   .nav-links {
     list-style: none;
@@ -762,7 +775,11 @@
 
 <!-- ── Top navigation ─────────────────────────────────────────────────── -->
 <nav id="top-nav">
-  <a class="nav-logo" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">GiGi Beauty</a>
+  <a class="nav-logo" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;" aria-label="GiGi Beauty">
+    <span class="nav-logo-crop">
+      <img src="public/images/logo/GiGiBeautyLogo.jpg" alt="GiGi Beauty">
+    </span>
+  </a>
 
   <ul class="nav-links" id="nav-links">
     <li><a href="#section-gel-acryl-nails"        onclick="navTo('section-gel-acryl-nails');closeNav();return false;">Gel &amp; Acryl</a></li>
