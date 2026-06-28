@@ -1403,8 +1403,13 @@
   function toScreen(pos3d) {
     _v3.copy(pos3d);
     _v3.project(camera);
-    const x = (_v3.x * 0.5 + 0.5) * window.innerWidth;
-    const y = (-_v3.y * 0.5 + 0.5) * window.innerHeight;
+    // Use canvas CSS dimensions (not window.innerHeight) so that the address-bar
+    // animating in/out — which changes window.innerHeight but not the canvas size —
+    // does not jump the butterfly overlay positions.
+    const cw = renderer.domElement.clientWidth;
+    const ch = renderer.domElement.clientHeight;
+    const x = (_v3.x * 0.5 + 0.5) * cw;
+    const y = (-_v3.y * 0.5 + 0.5) * ch;
     return { x, y, z: _v3.z };
   }
 
@@ -1490,10 +1495,10 @@
     lipstickGroup.rotation.x = idleSway;
     lipstickGroup.rotation.z = Math.cos(elapsed * 0.3) * 0.008;
 
-    // ── Camera subtle float
-    const camTargY = IS_MOBILE ? 1.2 - eased * 0.2 : 1.2 - eased * 0.4;
+    // ── Camera subtle float (mobile: fixed position — no drift during scroll)
+    const camTargY = IS_MOBILE ? 1.2 : 1.2 - eased * 0.4;
     camera.position.y = lerp(camera.position.y, camTargY, 0.03);
-    camera.lookAt(0, smoothedTipY * 0.25 + (IS_MOBILE ? -0.8 : -0.4), 0);
+    camera.lookAt(0, IS_MOBILE ? -0.8 : smoothedTipY * 0.25 - 0.4, 0);
 
     // ── Gold sparkle flight — individual drift + twinkle per particle
     const posArr = sparkleGeo.attributes.position.array;
@@ -1613,8 +1618,9 @@
     SERVICES.forEach((svc, i) => {
       const pos3d = getHelixPos(i, SERVICES.length, smoothedHelixRot);
 
-      // Shift helix upward as scroll progresses
-      pos3d.y += smoothedTipY * 0.5;
+      // On desktop the helix rises gently with the tip; on mobile keep Y fixed
+      // so butterflies stay anchored around the lipstick and only rotate.
+      if (!IS_MOBILE) pos3d.y += smoothedTipY * 0.5;
 
       const screen = toScreen(pos3d);
       const card = cardEls[i];
