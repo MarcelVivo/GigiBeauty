@@ -517,12 +517,31 @@
     gap: 28px;
   }
 
+  /* Smoke wrapper — positions the canvas behind the butterfly */
+  .svc-butterfly-wrap {
+    position: relative;
+    flex-shrink: 0;
+    width: 216px;
+    height: 216px;
+  }
+
+  /* Smoke canvas injected by JS — sits behind the img */
+  .svc-butterfly-wrap canvas {
+    position: absolute;
+    inset: -40px;         /* extend beyond the img so smoke spills out */
+    width: calc(100% + 80px);
+    height: calc(100% + 80px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
   .svc-butterfly {
+    position: relative;
+    z-index: 1;           /* float above the smoke canvas */
     width: 216px;
     height: 216px;
     object-fit: contain;
     filter: drop-shadow(0 0 14px rgba(212,175,106,0.28));
-    flex-shrink: 0;
   }
 
   .svc-title {
@@ -813,6 +832,7 @@
     .svc-content { grid-template-columns: 1fr; gap: 40px; }
     .svc-inner   { padding: 44px 24px 64px; }
     .svc-head-left { gap: 18px; }
+    .svc-butterfly-wrap { width: 110px; height: 110px; }
     .svc-butterfly { width: 110px; height: 110px; }
   }
 
@@ -821,6 +841,7 @@
     .svc-inner     { padding: 32px 18px 56px; }
     .svc-header    { margin-bottom: 36px; padding-bottom: 24px; }
     .svc-head-left { gap: 14px; }
+    .svc-butterfly-wrap { width: 80px; height: 80px; }
     .svc-butterfly { width: 80px; height: 80px; }
     .svc-title     { font-size: clamp(1.3rem, 5vw, 1.8rem); }
     .svc-description p { font-size: 0.95rem; }
@@ -2022,7 +2043,7 @@
   <div class="svc-inner">
     <div class="svc-header">
       <div class="svc-head-left">
-        <img src="public/images/Butterfly/Gel&AcrylNails.png" alt="" class="svc-butterfly">
+        <div class="svc-butterfly-wrap"><img src="public/images/Butterfly/Gel&AcrylNails.png" alt="" class="svc-butterfly"></div>
         <h2 class="svc-title">Gel &amp; Acryl Nails</h2>
       </div>
       <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">∧</button>
@@ -2058,7 +2079,7 @@
   <div class="svc-inner">
     <div class="svc-header">
       <div class="svc-head-left">
-        <img src="public/images/Butterfly/PermamentMakeUp.png" alt="" class="svc-butterfly">
+        <div class="svc-butterfly-wrap"><img src="public/images/Butterfly/PermamentMakeUp.png" alt="" class="svc-butterfly"></div>
         <h2 class="svc-title">Permanent Make Up</h2>
       </div>
       <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">∧</button>
@@ -2094,7 +2115,7 @@
   <div class="svc-inner">
     <div class="svc-header">
       <div class="svc-head-left">
-        <img src="public/images/Butterfly/KosmetischePedicure.png" alt="" class="svc-butterfly">
+        <div class="svc-butterfly-wrap"><img src="public/images/Butterfly/KosmetischePedicure.png" alt="" class="svc-butterfly"></div>
         <h2 class="svc-title">Kosmetische Pedicure</h2>
       </div>
       <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">∧</button>
@@ -2129,7 +2150,7 @@
   <div class="svc-inner">
     <div class="svc-header">
       <div class="svc-head-left">
-        <img src="public/images/Butterfly/Filler.png" alt="" class="svc-butterfly">
+        <div class="svc-butterfly-wrap"><img src="public/images/Butterfly/Filler.png" alt="" class="svc-butterfly"></div>
         <h2 class="svc-title">Fillers</h2>
       </div>
       <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">∧</button>
@@ -2164,7 +2185,7 @@
   <div class="svc-inner">
     <div class="svc-header">
       <div class="svc-head-left">
-        <img src="public/images/Butterfly/Lashes.png" alt="" class="svc-butterfly">
+        <div class="svc-butterfly-wrap"><img src="public/images/Butterfly/Lashes.png" alt="" class="svc-butterfly"></div>
         <h2 class="svc-title">Lashes</h2>
       </div>
       <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">∧</button>
@@ -2200,7 +2221,7 @@
   <div class="svc-inner">
     <div class="svc-header">
       <div class="svc-head-left">
-        <img src="public/images/Butterfly/KoreanCosmetics.png" alt="" class="svc-butterfly">
+        <div class="svc-butterfly-wrap"><img src="public/images/Butterfly/KoreanCosmetics.png" alt="" class="svc-butterfly"></div>
         <h2 class="svc-title">Korean Cosmetics</h2>
       </div>
       <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">∧</button>
@@ -2235,7 +2256,7 @@
   <div class="svc-inner">
     <div class="svc-header">
       <div class="svc-head-left">
-        <img src="public/images/Butterfly/NaturalMakeUp.png" alt="" class="svc-butterfly">
+        <div class="svc-butterfly-wrap"><img src="public/images/Butterfly/NaturalMakeUp.png" alt="" class="svc-butterfly"></div>
         <h2 class="svc-title">Natural Make Up</h2>
       </div>
       <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">∧</button>
@@ -3080,6 +3101,94 @@
 
   document.addEventListener('click', close);
   document.addEventListener('keydown', function(e) { if (e.key === 'Escape') close(); });
+})();
+</script>
+
+<!-- ── Golden smoke behind service butterflies ──────────────────────────────── -->
+<script>
+(function() {
+  var wrappers = document.querySelectorAll('.svc-butterfly-wrap');
+  var systems  = [];
+
+  wrappers.forEach(function(wrap) {
+    var cvs = document.createElement('canvas');
+    wrap.insertBefore(cvs, wrap.firstChild);
+
+    var ctx = cvs.getContext('2d');
+    var PCOUNT = 22;
+    var particles = [];
+
+    function spawn() {
+      var W = cvs.width, H = cvs.height;
+      return {
+        x:  W * (0.20 + Math.random() * 0.60),
+        y:  H * (0.55 + Math.random() * 0.30),
+        vx: (Math.random() - 0.5) * 0.55,
+        vy: -(0.25 + Math.random() * 0.55),
+        r:  (W * 0.06) + Math.random() * (W * 0.10),
+        a:  0.08 + Math.random() * 0.18,
+        da: 0.0012 + Math.random() * 0.0022,
+        gr: 0.08 + Math.random() * 0.14,
+        hue: 32 + Math.random() * 18          /* warm gold hue variation */
+      };
+    }
+
+    /* Stagger initial spawn across the canvas lifetime */
+    for (var i = 0; i < PCOUNT; i++) {
+      var p = spawn();
+      p.y -= p.vy * (Math.random() * 80); /* pre-age some particles */
+      p.a  = Math.random() * 0.15;
+      particles.push(p);
+    }
+
+    systems.push({ cvs: cvs, ctx: ctx, particles: particles, wrap: wrap, spawn: spawn });
+  });
+
+  function loop() {
+    requestAnimationFrame(loop);
+    systems.forEach(function(sys) {
+      var wrap = sys.wrap;
+      var cvs  = sys.cvs;
+      var W    = wrap.offsetWidth  + 80;   /* +80 for the -40px inset overflow */
+      var H    = wrap.offsetHeight + 80;
+      if (cvs.width !== W || cvs.height !== H) {
+        cvs.width  = W;
+        cvs.height = H;
+      }
+
+      var ctx = sys.ctx;
+      ctx.clearRect(0, 0, W, H);
+
+      sys.particles.forEach(function(p, idx) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.r += p.gr;
+        p.a -= p.da;
+
+        if (p.a <= 0 || p.y + p.r < 0) {
+          sys.particles[idx] = sys.spawn();
+          sys.particles[idx].x = W * (0.20 + Math.random() * 0.60);
+          sys.particles[idx].y = H * (0.60 + Math.random() * 0.25);
+          return;
+        }
+
+        var g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+        var c1 = 'rgba(255,' + (195 + Math.round(p.hue)) + ',80,' + p.a + ')';
+        var c2 = 'rgba(212,175,106,' + (p.a * 0.45) + ')';
+        var c3 = 'rgba(180,130,50,0)';
+        g.addColorStop(0,   c1);
+        g.addColorStop(0.4, c2);
+        g.addColorStop(1,   c3);
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = g;
+        ctx.fill();
+      });
+    });
+  }
+
+  loop();
 })();
 </script>
 
