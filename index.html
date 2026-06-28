@@ -104,7 +104,7 @@
     transition: filter 0.35s ease;
   }
   @media (max-width: 767px) {
-    .service-card img { width: 120px; height: 120px; }
+    .service-card img { width: 80px; height: 80px; }
   }
 
   /* Subtle pre-glow on hover */
@@ -163,7 +163,7 @@
   }
 
   #cta a {
-    pointer-events: auto;
+    pointer-events: inherit;
     display: inline-block;
     background: linear-gradient(135deg, #c8a06a 0%, #d4af6a 50%, #b8903a 100%);
     color: #1a0a0a;
@@ -765,10 +765,10 @@
   const W = window.innerWidth, H = window.innerHeight;
   const IS_MOBILE = W < 768;
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  const renderer = new THREE.WebGLRenderer({ antialias: !IS_MOBILE, alpha: false });
+  renderer.setPixelRatio(IS_MOBILE ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2));
   renderer.setSize(W, H);
-  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.enabled = !IS_MOBILE;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ReinhardToneMapping;
   renderer.toneMappingExposure = 1.0;
@@ -1039,7 +1039,7 @@
     return new THREE.CanvasTexture(cv);
   }
 
-  const PARTICLE_COUNT = 840;
+  const PARTICLE_COUNT = IS_MOBILE ? 280 : 840;
   const pPos   = new Float32Array(PARTICLE_COUNT * 3);  // x,y,z positions
   const pVel   = new Float32Array(PARTICLE_COUNT * 3);  // drift velocities
   const pPhase = new Float32Array(PARTICLE_COUNT);       // twinkle phase offset
@@ -1361,7 +1361,7 @@
     }
 
     // Smooth scroll progress
-    scrollProgress = lerp(scrollProgress, targetScrollProgress, 0.07);
+    scrollProgress = lerp(scrollProgress, targetScrollProgress, IS_MOBILE ? 0.13 : 0.07);
     const eased = easeInOut(scrollProgress);
 
     // ── Lipstick rotation (full 360° over scroll)
@@ -1554,7 +1554,7 @@
       card.style.zIndex = Math.round(depth * 10 + 50);
 
       // ── Floating label: trails butterfly, sits bottom-left over the butterfly
-      const CARD_PX = IS_MOBILE ? 120 : 195;
+      const CARD_PX = IS_MOBILE ? 80 : 195;
       const halfSize = (CARD_PX / 2) * scaleFactor;
       const rawLblX  = screen.x - halfSize + 10;
       const rawLblY  = screen.y + halfSize * 0.52;
