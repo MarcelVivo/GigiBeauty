@@ -594,22 +594,38 @@
     padding: 0;
   }
   .price-list li {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
     align-items: baseline;
     padding: 11px 0;
     border-bottom: 1px solid rgba(212,175,106,0.09);
     font-family: 'Cormorant Garamond', serif;
     font-size: 1.0rem;
-    gap: 12px;
+    column-gap: 10px;
   }
   .price-list li:last-child { border-bottom: none; }
   .price-name { color: rgba(245,230,200,0.72); }
-  .price-value {
+  .price-chf {
     color: #d4af6a;
-    white-space: nowrap;
     letter-spacing: 0.04em;
     font-weight: 400;
+  }
+  .price-amount {
+    color: #d4af6a;
+    letter-spacing: 0.04em;
+    font-weight: 400;
+    text-align: right;
+    min-width: 2.5ch;
+  }
+  /* "kostenlos" and any non-CHF values span both right columns */
+  .price-value {
+    color: #d4af6a;
+    letter-spacing: 0.04em;
+    font-weight: 400;
+  }
+  .price-free {
+    grid-column: 2 / -1;
+    text-align: right;
   }
 
   /* Termin buchen button */
@@ -2020,12 +2036,12 @@
       <div class="svc-prices">
         <h3>Preisliste</h3>
         <ul class="price-list">
-          <li><span class="price-name">Basis Gelnägel</span><span class="price-value">CHF 80</span></li>
-          <li><span class="price-name">Acryl Verlängerung</span><span class="price-value">CHF 90</span></li>
-          <li><span class="price-name">Gel Verlängerung</span><span class="price-value">CHF 95</span></li>
-          <li><span class="price-name">French Manicure</span><span class="price-value">CHF 100</span></li>
-          <li><span class="price-name">Nageldesign (ab)</span><span class="price-value">CHF 20</span></li>
-          <li><span class="price-name">Auffüllen</span><span class="price-value">CHF 70</span></li>
+          <li><span class="price-name">Basis Gelnägel</span><span class="price-chf">CHF</span><span class="price-amount">80</span></li>
+          <li><span class="price-name">Acryl Verlängerung</span><span class="price-chf">CHF</span><span class="price-amount">90</span></li>
+          <li><span class="price-name">Gel Verlängerung</span><span class="price-chf">CHF</span><span class="price-amount">95</span></li>
+          <li><span class="price-name">French Manicure</span><span class="price-chf">CHF</span><span class="price-amount">100</span></li>
+          <li><span class="price-name">Nageldesign (ab)</span><span class="price-chf">CHF</span><span class="price-amount">20</span></li>
+          <li><span class="price-name">Auffüllen</span><span class="price-chf">CHF</span><span class="price-amount">70</span></li>
         </ul>
       </div>
     </div>
@@ -2056,12 +2072,12 @@
       <div class="svc-prices">
         <h3>Preisliste</h3>
         <ul class="price-list">
-          <li><span class="price-name">Ombré Augenbrauen</span><span class="price-value">CHF 350</span></li>
-          <li><span class="price-name">Microblading</span><span class="price-value">CHF 380</span></li>
-          <li><span class="price-name">Aquarell Lippen</span><span class="price-value">CHF 380</span></li>
-          <li><span class="price-name">Eyeliner oben</span><span class="price-value">CHF 280</span></li>
-          <li><span class="price-name">Eyeliner unten</span><span class="price-value">CHF 250</span></li>
-          <li><span class="price-name">Auffrischen (ab)</span><span class="price-value">CHF 150</span></li>
+          <li><span class="price-name">Ombré Augenbrauen</span><span class="price-chf">CHF</span><span class="price-amount">350</span></li>
+          <li><span class="price-name">Microblading</span><span class="price-chf">CHF</span><span class="price-amount">380</span></li>
+          <li><span class="price-name">Aquarell Lippen</span><span class="price-chf">CHF</span><span class="price-amount">380</span></li>
+          <li><span class="price-name">Eyeliner oben</span><span class="price-chf">CHF</span><span class="price-amount">280</span></li>
+          <li><span class="price-name">Eyeliner unten</span><span class="price-chf">CHF</span><span class="price-amount">250</span></li>
+          <li><span class="price-name">Auffrischen (ab)</span><span class="price-chf">CHF</span><span class="price-amount">150</span></li>
         </ul>
       </div>
     </div>
@@ -2092,11 +2108,11 @@
       <div class="svc-prices">
         <h3>Preisliste</h3>
         <ul class="price-list">
-          <li><span class="price-name">Basis Pedicure</span><span class="price-value">CHF 65</span></li>
-          <li><span class="price-name">Spa Pedicure</span><span class="price-value">CHF 85</span></li>
-          <li><span class="price-name">Pedicure inkl. Gelnägel</span><span class="price-value">CHF 120</span></li>
-          <li><span class="price-name">Hornhautentfernung</span><span class="price-value">CHF 45</span></li>
-          <li><span class="price-name">Nagelkorrektur</span><span class="price-value">CHF 30</span></li>
+          <li><span class="price-name">Basis Pedicure</span><span class="price-chf">CHF</span><span class="price-amount">65</span></li>
+          <li><span class="price-name">Spa Pedicure</span><span class="price-chf">CHF</span><span class="price-amount">85</span></li>
+          <li><span class="price-name">Pedicure inkl. Gelnägel</span><span class="price-chf">CHF</span><span class="price-amount">120</span></li>
+          <li><span class="price-name">Hornhautentfernung</span><span class="price-chf">CHF</span><span class="price-amount">45</span></li>
+          <li><span class="price-name">Nagelkorrektur</span><span class="price-chf">CHF</span><span class="price-amount">30</span></li>
         </ul>
       </div>
     </div>
@@ -2127,11 +2143,11 @@
       <div class="svc-prices">
         <h3>Preisliste</h3>
         <ul class="price-list">
-          <li><span class="price-name">Lippen Filler</span><span class="price-value">CHF 350</span></li>
-          <li><span class="price-name">Wangen Filler</span><span class="price-value">CHF 450</span></li>
-          <li><span class="price-name">Nasolabialfalten</span><span class="price-value">CHF 380</span></li>
-          <li><span class="price-name">Kinnkontur</span><span class="price-value">CHF 420</span></li>
-          <li><span class="price-name">Beratungsgespräch</span><span class="price-value">kostenlos</span></li>
+          <li><span class="price-name">Lippen Filler</span><span class="price-chf">CHF</span><span class="price-amount">350</span></li>
+          <li><span class="price-name">Wangen Filler</span><span class="price-chf">CHF</span><span class="price-amount">450</span></li>
+          <li><span class="price-name">Nasolabialfalten</span><span class="price-chf">CHF</span><span class="price-amount">380</span></li>
+          <li><span class="price-name">Kinnkontur</span><span class="price-chf">CHF</span><span class="price-amount">420</span></li>
+          <li><span class="price-name">Beratungsgespräch</span><span class="price-value price-free">kostenlos</span></li>
         </ul>
       </div>
     </div>
@@ -2162,12 +2178,12 @@
       <div class="svc-prices">
         <h3>Preisliste</h3>
         <ul class="price-list">
-          <li><span class="price-name">Classic Lashes</span><span class="price-value">CHF 120</span></li>
-          <li><span class="price-name">Volume Lashes</span><span class="price-value">CHF 150</span></li>
-          <li><span class="price-name">Mega Volume</span><span class="price-value">CHF 180</span></li>
-          <li><span class="price-name">Lash Lifting</span><span class="price-value">CHF 90</span></li>
-          <li><span class="price-name">Auffüllen (2 Wochen)</span><span class="price-value">CHF 60</span></li>
-          <li><span class="price-name">Auffüllen (3 Wochen)</span><span class="price-value">CHF 75</span></li>
+          <li><span class="price-name">Classic Lashes</span><span class="price-chf">CHF</span><span class="price-amount">120</span></li>
+          <li><span class="price-name">Volume Lashes</span><span class="price-chf">CHF</span><span class="price-amount">150</span></li>
+          <li><span class="price-name">Mega Volume</span><span class="price-chf">CHF</span><span class="price-amount">180</span></li>
+          <li><span class="price-name">Lash Lifting</span><span class="price-chf">CHF</span><span class="price-amount">90</span></li>
+          <li><span class="price-name">Auffüllen (2 Wochen)</span><span class="price-chf">CHF</span><span class="price-amount">60</span></li>
+          <li><span class="price-name">Auffüllen (3 Wochen)</span><span class="price-chf">CHF</span><span class="price-amount">75</span></li>
         </ul>
       </div>
     </div>
@@ -2198,11 +2214,11 @@
       <div class="svc-prices">
         <h3>Preisliste</h3>
         <ul class="price-list">
-          <li><span class="price-name">Glass Skin Treatment</span><span class="price-value">CHF 120</span></li>
-          <li><span class="price-name">Brightening Facial</span><span class="price-value">CHF 100</span></li>
-          <li><span class="price-name">Anti-Aging Ritual</span><span class="price-value">CHF 130</span></li>
-          <li><span class="price-name">Deep Cleansing</span><span class="price-value">CHF 85</span></li>
-          <li><span class="price-name">Hyaluron Boost</span><span class="price-value">CHF 110</span></li>
+          <li><span class="price-name">Glass Skin Treatment</span><span class="price-chf">CHF</span><span class="price-amount">120</span></li>
+          <li><span class="price-name">Brightening Facial</span><span class="price-chf">CHF</span><span class="price-amount">100</span></li>
+          <li><span class="price-name">Anti-Aging Ritual</span><span class="price-chf">CHF</span><span class="price-amount">130</span></li>
+          <li><span class="price-name">Deep Cleansing</span><span class="price-chf">CHF</span><span class="price-amount">85</span></li>
+          <li><span class="price-name">Hyaluron Boost</span><span class="price-chf">CHF</span><span class="price-amount">110</span></li>
         </ul>
       </div>
     </div>
@@ -2233,12 +2249,12 @@
       <div class="svc-prices">
         <h3>Preisliste</h3>
         <ul class="price-list">
-          <li><span class="price-name">Tages Make-up</span><span class="price-value">CHF 80</span></li>
-          <li><span class="price-name">Evening Look</span><span class="price-value">CHF 100</span></li>
-          <li><span class="price-name">Event Make-up</span><span class="price-value">CHF 120</span></li>
-          <li><span class="price-name">Hochzeits Make-up</span><span class="price-value">CHF 200</span></li>
-          <li><span class="price-name">Probe Make-up</span><span class="price-value">CHF 80</span></li>
-          <li><span class="price-name">Make-up Kurs</span><span class="price-value">CHF 150</span></li>
+          <li><span class="price-name">Tages Make-up</span><span class="price-chf">CHF</span><span class="price-amount">80</span></li>
+          <li><span class="price-name">Evening Look</span><span class="price-chf">CHF</span><span class="price-amount">100</span></li>
+          <li><span class="price-name">Event Make-up</span><span class="price-chf">CHF</span><span class="price-amount">120</span></li>
+          <li><span class="price-name">Hochzeits Make-up</span><span class="price-chf">CHF</span><span class="price-amount">200</span></li>
+          <li><span class="price-name">Probe Make-up</span><span class="price-chf">CHF</span><span class="price-amount">80</span></li>
+          <li><span class="price-name">Make-up Kurs</span><span class="price-chf">CHF</span><span class="price-amount">150</span></li>
         </ul>
       </div>
     </div>
@@ -2953,8 +2969,8 @@
       pair[1].forEach(function(k,i){ if(items[i]) items[i].textContent = t[k]; });
     });
     // Filler "kostenlos" price value
-    var fv = qa('#section-fillers .price-value');
-    if(fv[4]) fv[4].textContent = t.fillV5;
+    var fv = document.querySelector('#section-fillers .price-free');
+    if(fv) fv.textContent = t.fillV5;
 
     // ── Booking ───────────────────────────────────────────────────────────────
     var bTitle=q('#section-booking .svc-title'); if(bTitle) bTitle.textContent = t.bookTitle;
