@@ -1706,6 +1706,10 @@
   let smoothedCameraY = 0;
   let isPastHero = false;
 
+  // ─── Mouse-driven rotation offset ─────────────────────────────────────────
+  let targetMouseRot   = 0;   // desired rotation based on mouse X (±π)
+  let smoothedMouseRot = 0;   // lerped version applied in animate()
+
   // ─── Freeze state (click-to-pause) ────────────────────────────────────────
   let heroFrozen = false;
   let lastScrollY = window.scrollY;
@@ -1739,6 +1743,17 @@
     const hint = document.getElementById('scroll-hint');
     hint.style.opacity = isPastHero ? '0' : '1';
   }, { passive: true });
+
+  // ─── Mouse X → helix rotation ─────────────────────────────────────────────
+  const heroScrollEl = document.getElementById('hero-scroll');
+  heroScrollEl.addEventListener('mousemove', (e) => {
+    if (isPastHero) return;
+    const normalizedX = e.clientX / window.innerWidth;   // 0 (left) → 1 (right)
+    targetMouseRot = (normalizedX - 0.5) * Math.PI * 2; // ±π rotation range
+  });
+  heroScrollEl.addEventListener('mouseleave', () => {
+    targetMouseRot = 0; // smoothly return to neutral when mouse leaves
+  });
 
   // ─── Project 3D to 2D ─────────────────────────────────────────────────────
   const _v3 = new THREE.Vector3();
@@ -1803,7 +1818,7 @@
     const eased = easeInOut(scrollProgress);
 
     // ── Lipstick rotation (full 360° over scroll)
-    const targetRotY = eased * Math.PI * 2;
+    const targetRotY = eased * Math.PI * 2 + smoothedMouseRot * 0.5;
     smoothedRotY = lerp(smoothedRotY, targetRotY, 0.05);
     lipstickGroup.rotation.y = smoothedRotY;
 
@@ -1977,8 +1992,11 @@
     goldLight.position.x = Math.cos(elapsed * 0.7 + Math.PI) * 3;
     goldLight.position.z = Math.sin(elapsed * 0.7 + Math.PI) * 3;
 
+    // ── Mouse rotation offset (lerped separately so it can return to 0)
+    smoothedMouseRot = lerp(smoothedMouseRot, targetMouseRot, 0.04);
+
     // ── Update service card positions in helix
-    const helixRot = eased * Math.PI * 2;
+    const helixRot = eased * Math.PI * 2 + smoothedMouseRot;
     smoothedHelixRot = lerp(smoothedHelixRot, helixRot, IS_MOBILE ? 0.10 : 0.05);
 
     SERVICES.forEach((svc, i) => {
