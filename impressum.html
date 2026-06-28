@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Impressum — GiGi Beauty</title>
+<meta name="description" content="Impressum von GiGi Beauty / Soho Cosmetis, Liliane Serrano, Zeughausgasse 24, 3011 Bern.">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/pages/nav.css">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { font-size: 16px; scroll-behavior: smooth; }
+
+  body {
+    background: #f0ece4;
+    color: #2c1f0e;
+    font-family: 'Cormorant Garamond', 'Times New Roman', serif;
+    font-weight: 400;
+    line-height: 1.75;
+    overflow-x: hidden;
+  }
+
+  /* ── Nav override for light background */
+  #site-nav {
+    background: rgba(240,236,228,0.95) !important;
+    border-bottom: 1px solid rgba(44,31,14,0.12);
+    backdrop-filter: blur(12px);
+  }
+  #site-nav .nav-logo { color: #2c1f0e !important; }
+  #site-nav .nav-links a { color: #3d2b14 !important; }
+  #site-nav .nav-links a:hover { color: #b8903a !important; }
+  #site-nav .nav-cta-btn {
+    background: #2c1f0e !important;
+    color: #f0ece4 !important;
+  }
+  #site-nav .nav-cta-btn:hover { background: #b8903a !important; }
+
+  /* ── Page content */
+  .imp-wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: calc(80px + 3rem) 2rem 5rem;
+  }
+
+  .imp-wrap h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(2.8rem, 7vw, 5rem);
+    font-weight: 400;
+    color: #2c1f0e;
+    text-align: center;
+    letter-spacing: 0.01em;
+    margin-bottom: 3rem;
+  }
+
+  .imp-block {
+    margin-bottom: 2.5rem;
+  }
+
+  .imp-block h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(1.5rem, 3.5vw, 2.4rem);
+    font-weight: 400;
+    color: #2c1f0e;
+    margin-bottom: 0.6rem;
+    letter-spacing: 0.01em;
+  }
+
+  .imp-block p,
+  .imp-block address {
+    font-style: normal;
+    font-size: 0.95rem;
+    color: #3d2b14;
+    line-height: 1.8;
+  }
+
+  .imp-block a {
+    color: #3d2b14;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(61,43,20,0.25);
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .imp-block a:hover { color: #b8903a; border-color: #b8903a; }
+
+  /* ── Footer */
+  #imp-footer {
+    background: #e8e2d8;
+    color: #5c4020;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-align: center;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  #imp-footer a { color: #5c4020; text-decoration: none; }
+  #imp-footer a:hover { color: #b8903a; }
+  #imp-footer .sep { opacity: 0.4; }
+
+  @media (max-width: 600px) {
+    .imp-wrap { padding-top: calc(70px + 2rem); }
+  }
+</style>
+</head>
+<body>
+
+<nav id="site-nav">
+  <a class="nav-logo" href="/">GiGi Beauty</a>
+  <ul class="nav-links">
+    <li><a href="/pages/services/">Leistungen</a></li>
+    <li><a href="/pages/galerie.html">Galerie</a></li>
+    <li><a href="/pages/ueber-uns.html">Über uns</a></li>
+    <li><a href="/pages/kontakt.html">Kontakt</a></li>
+  </ul>
+  <a class="nav-cta-btn" href="/#section-booking" onclick="window.location.href='/#section-booking';return false;">Termin buchen</a>
+</nav>
+
+<main class="imp-wrap">
+
+  <h1>Impressum</h1>
+
+  <div class="imp-block">
+    <address>
+      GiGi Beauty / Soho Cosmetis<br>
+      Liliane Serrano<br>
+      Zeughausgasse 24<br>
+      3011 Bern
+    </address>
+  </div>
+
+  <div class="imp-block">
+    <h2>Kontakt</h2>
+    <p>
+      Telefon: <a href="tel:+41762220663">+41 76 222 06 63</a><br>
+      E-Mail: <a href="mailto:info@gigibeauty.ch">info@gigibeauty.ch</a>
+    </p>
+  </div>
+
+  <div class="imp-block">
+    <h2>Verbraucherstreitbeilegung / Universalschlichtungsstelle</h2>
+    <p>Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
+  </div>
+
+</main>
+
+<footer id="imp-footer">
+  <span>© Alle Rechte vorbehalten</span>
+  <span class="sep">|</span>
+  <a href="/impressum.html">Impressum</a>
+  <span class="sep">|</span>
+  <a href="/datenschutz.html">Datenschutz</a>
+</footer>
+
+</body>
+</html>
