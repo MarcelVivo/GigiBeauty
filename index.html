@@ -1364,6 +1364,7 @@
 
   // ─── Freeze state (click-to-pause) ────────────────────────────────────────
   let heroFrozen = false;
+  let lastScrollY = window.scrollY;
 
   function freezeHero() {
     if (heroFrozen || isPastHero) return;
@@ -1371,11 +1372,20 @@
   }
 
   window.addEventListener('scroll', () => {
-    if (heroFrozen) return;   // animation frozen — ignore scroll updates
+    const currentScrollY = window.scrollY;
+
+    // Unfreeze when user intentionally scrolls again
+    if (heroFrozen && Math.abs(currentScrollY - lastScrollY) > 2) {
+      heroFrozen = false;
+      cardEls.forEach(c => { c._armed = false; c.classList.remove('card-armed'); });
+    }
+    lastScrollY = currentScrollY;
+
+    if (heroFrozen) return;   // still frozen — ignore scroll updates
     const heroEl = document.getElementById('hero-scroll');
     const maxScroll = heroEl.offsetHeight - window.innerHeight;
-    targetScrollProgress = Math.max(0, Math.min(1, window.scrollY / maxScroll));
-    isPastHero = window.scrollY > maxScroll + 40;
+    targetScrollProgress = Math.max(0, Math.min(1, currentScrollY / maxScroll));
+    isPastHero = currentScrollY > maxScroll + 40;
 
     // Show global dust when in service sections
     const gd = document.getElementById('global-dust');
