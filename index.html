@@ -1520,14 +1520,24 @@
     labelEls.push(lbl);
   });
 
-  // ─── Background click → freeze hero animation ─────────────────────────────
-  // Click on canvas (empty background) or overlay (between butterflies)
-  renderer.domElement.addEventListener('click', () => {
+  // ─── Tap / click anywhere → freeze rotation immediately ───────────────────
+  // Canvas and overlay both have pointer-events:none so we listen at document
+  // level. Butterfly touchend/click call stopPropagation(), so those reach
+  // _doCardTap() and never bubble here — only empty-space interactions do.
+  document.addEventListener('click', () => {
     if (!heroFrozen && !isPastHero) freezeHero();
   });
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay && !heroFrozen && !isPastHero) freezeHero();
-  });
+  let _docTx = 0, _docTy = 0;
+  document.addEventListener('touchstart', (e) => {
+    _docTx = e.touches[0].clientX;
+    _docTy = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', (e) => {
+    const t = e.changedTouches[0];
+    if (Math.abs(t.clientX - _docTx) < 15 && Math.abs(t.clientY - _docTy) < 15) {
+      if (!heroFrozen && !isPastHero) freezeHero();
+    }
+  }, { passive: true });
 
   // ─── 3D positions for service cards (helix) ────────────────────────────────
   // Base helix coordinates — offset from lipstick center
@@ -1561,6 +1571,9 @@
   function freezeHero() {
     if (heroFrozen || isPastHero) return;
     heroFrozen = true;
+    // Snap lerp values so rotation stops immediately instead of slowly converging
+    scrollProgress = targetScrollProgress;
+    smoothedHelixRot = easeInOut(targetScrollProgress) * Math.PI * 2;
   }
 
   window.addEventListener('scroll', () => {
