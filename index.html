@@ -104,7 +104,7 @@
     transition: filter 0.35s ease;
   }
   @media (max-width: 767px) {
-    .service-card img { width: 80px; height: 80px; }
+    .service-card img { width: 65px; height: 65px; }
   }
 
   /* Subtle pre-glow on hover */
@@ -220,63 +220,6 @@
   @keyframes scrollPulse {
     0%, 100% { opacity: 0.3; transform: scaleY(0.8); }
     50% { opacity: 1; transform: scaleY(1); }
-  }
-
-  /* ── Mobile butterfly grid (replaces chaotic 3D helix on small screens) ── */
-  #mobile-grid {
-    display: none;
-  }
-  @media (max-width: 767px) {
-    /* Hide 3D butterfly overlay & floating labels on mobile */
-    #services-overlay { display: none !important; }
-    #scroll-hint      { display: none; }
-
-    #mobile-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 4px 10px;
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      z-index: 8;
-      padding: 14px 18px 38px;
-      background: linear-gradient(to top, rgba(24,13,8,0.97) 55%, rgba(24,13,8,0) 100%);
-      opacity: 1;
-      transition: opacity 0.5s ease;
-      pointer-events: auto;
-    }
-    #mobile-grid.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-    .mb-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      padding: 6px 4px;
-      text-decoration: none;
-      border-radius: 6px;
-      cursor: pointer;
-      -webkit-tap-highlight-color: rgba(212,175,106,0.15);
-      transition: background 0.2s ease;
-    }
-    .mb-card:active { background: rgba(212,175,106,0.12); }
-    .mb-card img {
-      width: 62px;
-      height: 62px;
-      object-fit: contain;
-      filter: brightness(0.95) drop-shadow(0 0 6px rgba(212,175,106,0.3));
-    }
-    .mb-card span {
-      font-family: 'Playfair Display', serif;
-      font-size: 0.48rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: #f5e6c8;
-      text-align: center;
-      line-height: 1.3;
-    }
   }
 
   /* Page transition overlay */
@@ -772,38 +715,6 @@
 
 <div id="services-overlay"></div>
 
-<!-- Mobile butterfly grid: shown only on ≤767px, replaces 3D helix -->
-<div id="mobile-grid">
-  <a class="mb-card" href="#section-gel-acryl-nails"       onclick="navTo('section-gel-acryl-nails');return false;">
-    <img src="public/images/Butterfly/Gel&AcrylNails.png"       alt="Gel &amp; Acryl Nails">
-    <span>Gel &amp; Acryl</span>
-  </a>
-  <a class="mb-card" href="#section-permanent-make-up"     onclick="navTo('section-permanent-make-up');return false;">
-    <img src="public/images/Butterfly/PermamentMakeUp.png"      alt="Permanent Make Up">
-    <span>Permanent Make Up</span>
-  </a>
-  <a class="mb-card" href="#section-kosmetische-pedicure"  onclick="navTo('section-kosmetische-pedicure');return false;">
-    <img src="public/images/Butterfly/KosmetischePedicure.png"  alt="Kosmetische Pedicure">
-    <span>Kosm. Pedicure</span>
-  </a>
-  <a class="mb-card" href="#section-fillers"               onclick="navTo('section-fillers');return false;">
-    <img src="public/images/Butterfly/Filler.png"               alt="Fillers">
-    <span>Fillers</span>
-  </a>
-  <a class="mb-card" href="#section-lashes"                onclick="navTo('section-lashes');return false;">
-    <img src="public/images/Butterfly/Lashes.png"               alt="Lashes">
-    <span>Lashes</span>
-  </a>
-  <a class="mb-card" href="#section-korean-cosmetics"      onclick="navTo('section-korean-cosmetics');return false;">
-    <img src="public/images/Butterfly/KoreanCosmetics.png"      alt="Korean Cosmetics">
-    <span>Korean Cosmetics</span>
-  </a>
-  <a class="mb-card" href="#section-natural-make-up"       onclick="navTo('section-natural-make-up');return false;">
-    <img src="public/images/Butterfly/NaturalMakeUp.png"        alt="Natural Make Up">
-    <span>Natural Make Up</span>
-  </a>
-</div>
-
 <div id="cta">
   <h2>Entdecke unsere Welt</h2>
   <p>Schönheit. Leidenschaft. Perfektion.</p>
@@ -869,7 +780,7 @@
   scene.fog = new THREE.FogExp2(0x180d08, 0.05);
 
   const camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 100);
-  camera.position.set(0, 1.2, IS_MOBILE ? 13 : 11);
+  camera.position.set(0, 1.2, IS_MOBILE ? 15 : 11);
   camera.lookAt(0, IS_MOBILE ? -0.8 : -0.4, 0);
 
   // ─── Lighting ─────────────────────────────────────────────────────────────
@@ -1372,8 +1283,8 @@
 
   // ─── 3D positions for service cards (helix) ────────────────────────────────
   // Base helix coordinates — offset from lipstick center
-  const HELIX_RADIUS      = IS_MOBILE ? 2.0 : 3.2;
-  const HELIX_HEIGHT_SPAN = IS_MOBILE ? 3.0 : 4.0;
+  const HELIX_RADIUS      = IS_MOBILE ? 1.25 : 3.2;
+  const HELIX_HEIGHT_SPAN = IS_MOBILE ? 2.0  : 4.0;
 
   function getHelixPos(index, totalItems, rotationOffset) {
     const t = index / totalItems;
@@ -1466,13 +1377,11 @@
 
     // ── CTA + overlay + 3D hero objects: hide when in service sections
     const ctaEl = document.getElementById('cta');
-    const mobileGrid = document.getElementById('mobile-grid');
     if (isPastHero) {
       ctaEl.style.opacity = '0';
       ctaEl.style.pointerEvents = 'none';
       overlay.style.opacity = '0';
       overlay.style.pointerEvents = 'none';
-      if (mobileGrid) mobileGrid.classList.add('hidden');
       lipstickGroup.visible  = false;
       spiralParticles.visible = false;
       groundMesh.visible     = false;
@@ -1482,7 +1391,6 @@
       groundMesh.visible     = true;
       overlay.style.opacity = '';
       overlay.style.pointerEvents = '';
-      if (mobileGrid) mobileGrid.classList.remove('hidden');
       const ctaOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.80) / 0.12));
       ctaEl.style.opacity = ctaOpacity;
       ctaEl.style.pointerEvents = ctaOpacity > 0.3 ? 'auto' : 'none';
@@ -1646,26 +1554,32 @@
       card.style.pointerEvents = finalOpacity > 0.3 ? 'auto' : 'none';
       card.style.zIndex = Math.round(depth * 10 + 50);
 
-      // ── Floating label: trails butterfly, sits bottom-left over the butterfly
-      const CARD_PX = IS_MOBILE ? 80 : 195;
+      // ── Floating label
+      const CARD_PX = IS_MOBILE ? 65 : 195;
       const halfSize = (CARD_PX / 2) * scaleFactor;
-      const rawLblX  = screen.x - halfSize + 10;
-      const rawLblY  = screen.y + halfSize * 0.52;
-      // Clamp so labels never bleed off screen edges
-      const lblTargX = Math.max(4, Math.min(window.innerWidth - 160, rawLblX));
-      const lblTargY = rawLblY;
 
-      // Lerp slower than the card → creates spring trailing delay
-      lblCurX[i] = lerp(lblCurX[i], lblTargX, 0.07);
-      lblCurY[i] = lerp(lblCurY[i], lblTargY, 0.07);
+      let lblTargX, lblTargY;
+      if (IS_MOBILE) {
+        // Centered below butterfly, never clips edges
+        lblTargX = Math.max(50, Math.min(window.innerWidth - 50, screen.x));
+        lblTargY = screen.y + halfSize + 4;
+      } else {
+        const rawLblX = screen.x - halfSize + 10;
+        lblTargX = Math.max(4, Math.min(window.innerWidth - 160, rawLblX));
+        lblTargY = screen.y + halfSize * 0.52;
+      }
+
+      lblCurX[i] = lerp(lblCurX[i], lblTargX, IS_MOBILE ? 0.12 : 0.07);
+      lblCurY[i] = lerp(lblCurY[i], lblTargY, IS_MOBILE ? 0.12 : 0.07);
 
       const lbl = labelEls[i];
-      lbl.style.left     = lblCurX[i] + 'px';
-      lbl.style.top      = lblCurY[i] + 'px';
-      lbl.style.opacity  = finalOpacity;
-      lbl.style.zIndex   = Math.round(depth * 10 + 51);
-      lbl.style.fontSize = IS_MOBILE
-        ? `${Math.max(0.34, 0.44 * scaleFactor)}rem`
+      lbl.style.left      = lblCurX[i] + 'px';
+      lbl.style.top       = lblCurY[i] + 'px';
+      lbl.style.transform = IS_MOBILE ? 'translate(-50%, 0)' : '';
+      lbl.style.opacity   = finalOpacity;
+      lbl.style.zIndex    = Math.round(depth * 10 + 51);
+      lbl.style.fontSize  = IS_MOBILE
+        ? `${Math.max(0.38, 0.48 * scaleFactor)}rem`
         : `${Math.max(0.95, 1.24 * scaleFactor)}rem`;
     });
 
