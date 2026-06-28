@@ -1641,7 +1641,7 @@
       // visibly "comes toward" the user (up to 2× base size).
       const depth = pos3d.z;
       const scaleFactor = IS_MOBILE
-        ? Math.min(2.0, 1.0 + Math.max(0, depth) * 0.50)  // only scale UP for front butterfly; side/back stay at 1×
+        ? 1.0 + Math.pow(Math.max(0, Math.min(1, depth / HELIX_RADIUS)), 3)
         : Math.max(0.55, Math.min(1.1, 1.0 + depth * 0.06));
       card.style.transform = `translate(-50%, -50%) scale(${scaleFactor})`;
 
