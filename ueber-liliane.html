@@ -3,72 +3,79 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Über Liliane — GiGi Beauty</title>
+<title>Über GiGi Beauty — Liliane Serrano</title>
 <meta name="description" content="Lerne Liliane Serrano kennen — Inhaberin von GiGi Beauty, Ihrem Schönheitssalon in Bern.">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-  html { font-size: 16px; scroll-behavior: smooth; }
+  html { font-size: 16px; }
 
   body {
-    background: #f0ece4;
-    color: #2c1f0e;
+    background: #180d08;
+    color: #f5e6c8;
     font-family: 'Cormorant Garamond', 'Times New Roman', serif;
-    font-weight: 400;
+    font-weight: 300;
     line-height: 1.75;
     overflow-x: hidden;
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+  }
+
+  /* ── Particle canvas ──────────────────────────────────────────────────────── */
+  #ul-particles {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: 0;
+    pointer-events: none;
   }
 
   /* ── Header ──────────────────────────────────────────────────────────────── */
   #ul-header {
-    padding: 1.4rem 2rem;
-    border-bottom: 1px solid rgba(44,31,14,0.12);
+    position: relative;
+    z-index: 10;
+    padding: 1.2rem 2rem;
+    border-bottom: 1px solid rgba(212,175,106,0.15);
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
   }
 
   #ul-logo {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 1.1rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.72rem;
     font-weight: 400;
-    letter-spacing: 0.08em;
-    color: #2c1f0e;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgba(212,175,106,0.7);
     text-decoration: none;
     display: flex;
     align-items: center;
     gap: 10px;
     transition: color 0.2s ease;
   }
-  #ul-logo:hover { color: #b8903a; }
-  #ul-logo svg { opacity: 0.5; transition: opacity 0.2s ease; }
-  #ul-logo:hover svg { opacity: 0.8; }
+  #ul-logo:hover { color: #d4af6a; }
 
   /* ── Main layout ─────────────────────────────────────────────────────────── */
   main {
-    flex: 1;
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
-    padding: clamp(3rem, 6vw, 6rem) clamp(1.5rem, 5vw, 5rem);
-    max-width: 1200px;
+    min-height: calc(100vh - 62px);
+    padding: clamp(3rem, 5vw, 5rem) clamp(1.5rem, 6vw, 7rem);
+    gap: clamp(2.5rem, 5vw, 7rem);
+    max-width: 1260px;
     margin: 0 auto;
-    width: 100%;
-    gap: clamp(2.5rem, 5vw, 6rem);
   }
 
-  /* ── Photo column ────────────────────────────────────────────────────────── */
+  /* ── Photo ───────────────────────────────────────────────────────────────── */
   .ul-photo-wrap {
-    flex: 0 0 clamp(220px, 38%, 440px);
+    flex: 0 0 clamp(200px, 36%, 420px);
   }
 
   .ul-photo-inner {
     position: relative;
     width: 100%;
-    padding-bottom: 130%; /* portrait ratio */
+    padding-bottom: 132%;
   }
 
   .ul-photo-inner img {
@@ -78,79 +85,87 @@
     height: 100%;
     object-fit: cover;
     object-position: center top;
-    border-radius: 50% 50% 12px 12px / 38% 38% 12px 12px;
+    border-radius: 50% 50% 10px 10px / 36% 36% 10px 10px;
     display: block;
+    /* Subtle gold glow around photo */
+    filter: drop-shadow(0 0 24px rgba(212,175,106,0.18)) drop-shadow(0 8px 32px rgba(0,0,0,0.7));
   }
 
-  /* ── Text column ─────────────────────────────────────────────────────────── */
-  .ul-text {
-    flex: 1;
-    min-width: 0;
+  /* ── Text ────────────────────────────────────────────────────────────────── */
+  .ul-text { flex: 1; min-width: 0; }
+
+  .ul-eyebrow {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: rgba(212,175,106,0.55);
+    margin-bottom: 1rem;
   }
 
   .ul-text h1 {
     font-family: 'Playfair Display', Georgia, serif;
-    font-size: clamp(2.4rem, 5.5vw, 4.5rem);
+    font-size: clamp(2.6rem, 5.5vw, 5rem);
     font-weight: 400;
-    color: #2c1f0e;
+    color: #f5e6c8;
     letter-spacing: 0.01em;
-    line-height: 1.1;
-    margin-bottom: 0.6rem;
+    line-height: 1.08;
+    margin-bottom: 0.55rem;
   }
 
   .ul-text h2 {
     font-family: 'Playfair Display', Georgia, serif;
-    font-size: clamp(1.1rem, 2.2vw, 1.55rem);
+    font-size: clamp(1.05rem, 2vw, 1.5rem);
     font-weight: 400;
-    color: #b8903a;
+    font-style: italic;
+    color: #d4af6a;
     letter-spacing: 0.02em;
-    line-height: 1.3;
     margin-bottom: 1.8rem;
   }
 
   .ul-divider {
-    width: 48px;
-    height: 1px;
-    background: linear-gradient(to right, #b8903a, rgba(184,144,58,0.2));
+    width: 44px; height: 1px;
+    background: linear-gradient(to right, #d4af6a, rgba(212,175,106,0.15));
     margin-bottom: 1.8rem;
   }
 
   .ul-text p {
     font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(1.0rem, 1.6vw, 1.15rem);
-    color: #3a2810;
-    line-height: 1.85;
-    margin-bottom: 1.1rem;
+    font-size: clamp(1.0rem, 1.55vw, 1.18rem);
+    font-weight: 300;
+    color: rgba(245,230,200,0.78);
+    line-height: 1.9;
+    margin-bottom: 1.15rem;
   }
-  .ul-text p:last-of-type { margin-bottom: 0; }
 
   .ul-cta {
     display: inline-block;
-    margin-top: 2.4rem;
-    background: #2c1f0e;
-    color: #f0ece4;
+    margin-top: 2.2rem;
+    background: linear-gradient(135deg, #c8a06a 0%, #d4af6a 50%, #b8903a 100%);
+    color: #1a0a0a;
     font-family: 'Cormorant Garamond', serif;
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     letter-spacing: 0.3em;
     text-transform: uppercase;
     text-decoration: none;
-    padding: 16px 44px;
+    padding: 14px 40px;
     border-radius: 2px;
-    transition: background 0.25s ease, color 0.25s ease, letter-spacing 0.25s ease;
+    transition: background 0.25s ease, letter-spacing 0.25s ease;
   }
   .ul-cta:hover {
-    background: #b8903a;
-    color: #f0ece4;
-    letter-spacing: 0.35em;
+    background: linear-gradient(135deg, #d4af6a 0%, #e8c87a 50%, #c8a04a 100%);
+    letter-spacing: 0.36em;
   }
 
   /* ── Footer ──────────────────────────────────────────────────────────────── */
-  footer {
+  #main-footer {
+    position: relative;
+    z-index: 10;
     background: #f0ece4;
-    border-top: 1px solid rgba(44,31,14,0.12);
-    padding: 3rem 2rem 2rem;
-    flex-shrink: 0;
+    color: #2c1f0e;
+    font-family: 'Cormorant Garamond', 'Times New Roman', serif;
+    font-weight: 400;
   }
 
   .footer-inner {
@@ -159,17 +174,17 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 2.5rem;
-    margin-bottom: 2.5rem;
+    padding: 3rem 2rem 2rem;
   }
 
   .footer-heading {
     font-family: 'Playfair Display', Georgia, serif;
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-weight: 600;
     letter-spacing: 0.28em;
     text-transform: uppercase;
     color: rgba(44,31,14,0.45);
-    margin-bottom: 1rem;
+    margin-bottom: 1.1rem;
   }
 
   .footer-col { font-size: 0.92rem; color: #3a2810; }
@@ -178,28 +193,33 @@
   .footer-col a:hover { color: #b8903a; }
   .footer-gap { margin-top: 1rem !important; }
 
-  .footer-hours { display: grid; grid-template-columns: auto auto; gap: 0.3rem 1.5rem; font-size: 0.92rem; }
+  .footer-hours {
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 0.3rem 1.5rem;
+    font-size: 0.92rem;
+  }
 
-  .footer-icons { display: flex; gap: 1.1rem; align-items: center; margin-top: 0.25rem; }
   .footer-icons { display: flex; gap: 0.75rem; margin-top: 0.2rem; }
   .footer-icon-link {
     display: flex; align-items: center; justify-content: center;
     width: 44px; height: 44px;
     background: linear-gradient(135deg, #c8a06a 0%, #d4af6a 50%, #b8903a 100%);
     color: #1a0a0a;
-    border-radius: 6px; text-decoration: none;
+    border-radius: 6px;
+    text-decoration: none;
     transition: background 0.25s ease, transform 0.2s ease;
   }
   .footer-icon-link:hover {
     background: linear-gradient(135deg, #d4af6a 0%, #e8c87a 50%, #c8a04a 100%);
-    transform: translateY(-2px); color: #1a0a0a;
+    transform: translateY(-2px);
   }
 
   .footer-bar {
     max-width: 1100px;
     margin: 0 auto;
     border-top: 1px solid rgba(44,31,14,0.12);
-    padding-top: 1.2rem;
+    padding: 1.2rem 2rem 1.8rem;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -213,21 +233,26 @@
   .footer-bar-sep { opacity: 0.4; }
 
   /* ── Responsive ──────────────────────────────────────────────────────────── */
-  @media (max-width: 768px) {
+  @media (max-width: 820px) {
     main {
       flex-direction: column;
-      padding: 2.5rem 1.5rem 3.5rem;
+      padding: 2.5rem 1.5rem 4rem;
       gap: 2.5rem;
+      min-height: unset;
     }
-    .ul-photo-wrap { flex: none; width: min(320px, 80vw); margin: 0 auto; }
-    .ul-photo-inner { padding-bottom: 125%; }
+    .ul-photo-wrap { flex: none; width: min(300px, 75vw); margin: 0 auto; }
+    .ul-photo-inner { padding-bottom: 128%; }
     .ul-text { text-align: center; }
-    .ul-divider { margin: 0 auto 1.8rem; }
-    .footer-inner { grid-template-columns: 1fr; gap: 2rem; }
+    .ul-divider { margin-left: auto; margin-right: auto; }
+    .footer-inner { grid-template-columns: 1fr; gap: 2rem; padding: 2.5rem 1.5rem 1.5rem; }
+    .footer-bar { padding: 1rem 1.5rem 1.5rem; }
   }
 </style>
 </head>
 <body>
+
+<!-- Floating gold particle canvas -->
+<canvas id="ul-particles"></canvas>
 
 <!-- Header -->
 <header id="ul-header">
@@ -252,6 +277,7 @@
 
   <!-- Text -->
   <div class="ul-text">
+    <p class="ul-eyebrow">GiGi Beauty · Bern</p>
     <h1>GiGi Beauty</h1>
     <h2>Ihr Schönheitssalon in Bern</h2>
     <div class="ul-divider"></div>
@@ -268,7 +294,7 @@
 </main>
 
 <!-- Footer -->
-<footer>
+<footer id="main-footer">
   <div class="footer-inner">
 
     <div class="footer-col">
@@ -320,6 +346,67 @@
     <a href="datenschutz.html">Datenschutz</a>
   </div>
 </footer>
+
+<!-- ── Floating gold particles ─────────────────────────────────────────────── -->
+<script>
+(function() {
+  var cv  = document.getElementById('ul-particles');
+  var ctx = cv.getContext('2d');
+  var W, H;
+
+  function resize() {
+    W = cv.width  = window.innerWidth;
+    H = cv.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Create particles
+  var COUNT = window.innerWidth < 768 ? 90 : 200;
+  var pts = [];
+  for (var i = 0; i < COUNT; i++) {
+    pts.push({
+      x:     Math.random() * window.innerWidth,
+      y:     Math.random() * window.innerHeight,
+      r:     0.5 + Math.random() * 2.2,
+      vy:    0.10 + Math.random() * 0.40,
+      drift: (Math.random() - 0.5) * 0.16,
+      op:    0.04 + Math.random() * 0.20,
+      phase: Math.random() * Math.PI * 2,
+      spd:   0.5 + Math.random() * 1.1,
+    });
+  }
+
+  var t = 0;
+  function loop() {
+    requestAnimationFrame(loop);
+    t += 0.016;
+    ctx.clearRect(0, 0, W, H);
+
+    for (var i = 0; i < pts.length; i++) {
+      var p = pts[i];
+      p.y -= p.vy;
+      p.x += Math.sin(t * 0.38 + p.phase) * p.drift;
+      if (p.y < -p.r * 3) {
+        p.y = H + p.r * 2;
+        p.x = Math.random() * W;
+      }
+
+      var twinkle = 0.5 + 0.5 * Math.abs(Math.sin(t * p.spd + p.phase));
+      var alpha   = p.op * twinkle;
+      var grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 2.4);
+      grd.addColorStop(0.0, 'rgba(255,220,120,' + alpha + ')');
+      grd.addColorStop(0.4, 'rgba(212,175,106,' + (alpha * 0.55) + ')');
+      grd.addColorStop(1.0, 'rgba(212,175,106,0)');
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * 2.4, 0, Math.PI * 2);
+      ctx.fillStyle = grd;
+      ctx.fill();
+    }
+  }
+  loop();
+})();
+</script>
 
 </body>
 </html>
