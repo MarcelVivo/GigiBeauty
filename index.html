@@ -104,7 +104,7 @@
     transition: filter 0.35s ease;
   }
   @media (max-width: 767px) {
-    .service-card img { width: 65px; height: 65px; }
+    .service-card img { width: 96px; height: 96px; }
   }
 
   /* Subtle pre-glow on hover */
@@ -1283,8 +1283,8 @@
 
   // ─── 3D positions for service cards (helix) ────────────────────────────────
   // Base helix coordinates — offset from lipstick center
-  const HELIX_RADIUS      = IS_MOBILE ? 1.25 : 3.2;
-  const HELIX_HEIGHT_SPAN = IS_MOBILE ? 2.0  : 4.0;
+  const HELIX_RADIUS      = IS_MOBILE ? 1.8  : 3.2;
+  const HELIX_HEIGHT_SPAN = IS_MOBILE ? 2.4  : 4.0;
 
   function getHelixPos(index, totalItems, rotationOffset) {
     const t = index / totalItems;
@@ -1555,7 +1555,7 @@
       card.style.zIndex = Math.round(depth * 10 + 50);
 
       // ── Floating label
-      const CARD_PX = IS_MOBILE ? 65 : 195;
+      const CARD_PX = IS_MOBILE ? 96 : 195;
       const halfSize = (CARD_PX / 2) * scaleFactor;
 
       let lblTargX, lblTargY;
@@ -1569,8 +1569,8 @@
         lblTargY = screen.y + halfSize * 0.52;
       }
 
-      lblCurX[i] = lerp(lblCurX[i], lblTargX, IS_MOBILE ? 0.12 : 0.07);
-      lblCurY[i] = lerp(lblCurY[i], lblTargY, IS_MOBILE ? 0.12 : 0.07);
+      lblCurX[i] = lerp(lblCurX[i], lblTargX, IS_MOBILE ? 0.22 : 0.07);
+      lblCurY[i] = lerp(lblCurY[i], lblTargY, IS_MOBILE ? 0.22 : 0.07);
 
       const lbl = labelEls[i];
       lbl.style.left      = lblCurX[i] + 'px';
@@ -1579,7 +1579,7 @@
       lbl.style.opacity   = finalOpacity;
       lbl.style.zIndex    = Math.round(depth * 10 + 51);
       lbl.style.fontSize  = IS_MOBILE
-        ? `${Math.max(0.38, 0.48 * scaleFactor)}rem`
+        ? `${Math.max(0.28, 0.36 * scaleFactor)}rem`
         : `${Math.max(0.95, 1.24 * scaleFactor)}rem`;
     });
 
