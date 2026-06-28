@@ -133,6 +133,30 @@
     background: #d4af6a;
     transition: transform 0.25s ease, opacity 0.2s ease;
   }
+
+  #lang-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.70rem;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: rgba(212,175,106,0.8);
+    background: transparent;
+    border: 1px solid rgba(212,175,106,0.32);
+    padding: 7px 11px;
+    border-radius: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: color 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+  }
+  #lang-btn:hover {
+    color: #d4af6a;
+    border-color: rgba(212,175,106,0.65);
+    background: rgba(212,175,106,0.07);
+  }
   #top-nav.menu-open .nav-hamburger span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
   #top-nav.menu-open .nav-hamburger span:nth-child(2) { opacity: 0; }
   #top-nav.menu-open .nav-hamburger span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
@@ -388,6 +412,8 @@
 
   <a class="nav-cta-btn" href="index.html#section-booking">Termin buchen</a>
 
+  <button id="lang-btn" aria-label="Sprache wechseln">PT</button>
+
   <button class="nav-hamburger" aria-label="Menü" onclick="document.getElementById('top-nav').classList.toggle('menu-open')">
     <span></span><span></span><span></span>
   </button>
@@ -404,31 +430,31 @@
   <!-- Right: all text -->
   <div class="ul-text-col">
 
-    <p class="ul-eyebrow">GiGi Beauty · Bern</p>
+    <p class="ul-eyebrow" id="ul-eyebrow">GiGi Beauty · Bern</p>
     <h1>GiGi Beauty</h1>
-    <h2>Ihr Schönheitssalon in Bern</h2>
+    <h2 id="ul-subtitle">Ihr Schönheitssalon in Bern</h2>
     <div class="ul-divider"></div>
 
-    <p>Entdecken Sie GiGi Beauty, Ihren Schönheitssalon in Bern, der für professionelles Nageldesign, Permanent Make-Up und exklusive Kosmetik auf höchstem Niveau steht. Seit vielen Jahren kümmere ich mich mit Leidenschaft um Ihre Schönheit im Herzen von Bern.</p>
+    <p id="ul-p1">Entdecken Sie GiGi Beauty, Ihren Schönheitssalon in Bern, der für professionelles Nageldesign, Permanent Make-Up und exklusive Kosmetik auf höchstem Niveau steht. Seit vielen Jahren kümmere ich mich mit Leidenschaft um Ihre Schönheit im Herzen von Bern.</p>
 
-    <p>In meinem Kosmetikstudio ist es mir ein großes Anliegen, dass Sie sich rundum wohlfühlen. Ich setze alles daran, Ihre individuellen Wünsche zu erfüllen und gehe auf Ihre Bedürfnisse ein, um das gewünschte Ergebnis zu erzielen. Mit meiner Ausbildung und meinem Know-how, das ich kontinuierlich durch Weiterbildungen erweitere, biete ich Ihnen erstklassige Behandlungen an. Von Nageldesign über Permanent Make-Up bis hin zu exklusiven Kosmetikbehandlungen – bei GiGi Beauty sind Sie in besten Händen.</p>
+    <p id="ul-p2">In meinem Kosmetikstudio ist es mir ein großes Anliegen, dass Sie sich rundum wohlfühlen. Ich setze alles daran, Ihre individuellen Wünsche zu erfüllen und gehe auf Ihre Bedürfnisse ein, um das gewünschte Ergebnis zu erzielen. Mit meiner Ausbildung und meinem Know-how, das ich kontinuierlich durch Weiterbildungen erweitere, biete ich Ihnen erstklassige Behandlungen an. Von Nageldesign über Permanent Make-Up bis hin zu exklusiven Kosmetikbehandlungen – bei GiGi Beauty sind Sie in besten Händen.</p>
 
-    <p>Entdecken Sie mein umfangreiches Angebot und buchen Sie noch heute Ihren Termin. Ich freue mich darauf, Sie verwöhnen zu dürfen!</p>
+    <p id="ul-p3">Entdecken Sie mein umfangreiches Angebot und buchen Sie noch heute Ihren Termin. Ich freue mich darauf, Sie verwöhnen zu dürfen!</p>
 
     <div class="ul-section">
-      <h3 class="ul-section-title">Seit 2008 das „It" Beautystudio von Bern</h3>
-      <p class="ul-section-quote">„Die Begeisterung des Herzens ist die Quelle jeder großen Unternehmung" — Giuseppe Mazzini</p>
+      <h3 class="ul-section-title" id="ul-section-title">Seit 2008 das „It" Beautystudio von Bern</h3>
+      <p class="ul-section-quote" id="ul-quote">„Die Begeisterung des Herzens ist die Quelle jeder großen Unternehmung" — Giuseppe Mazzini</p>
 
-      <p>Seit 2008 bin ich eines der führenden Beautystudios im Herzen von Bern. Diese Leidenschaft treibt mich an und sie spiegelt sich in jedem Aspekt meiner Arbeit wider.</p>
+      <p id="ul-p4">Seit 2008 bin ich eines der führenden Beautystudios im Herzen von Bern. Diese Leidenschaft treibt mich an und sie spiegelt sich in jedem Aspekt meiner Arbeit wider.</p>
 
-      <p>Meine Expertise liegt in den Bereichen Kosmetik, Permanent Make-up (PMU) und Nageldesign. Durch jahrelange Erfahrung habe ich mich zu einer vertrauenswürdigen Anlaufstelle für Schönheitsdienstleistungen entwickelt, sowohl hier in Bern als auch international. Durch kontinuierliche Aus- und Weiterbildungen erweitere ich ständig mein Wissen, um meinen Service zu verbessern.</p>
+      <p id="ul-p5">Meine Expertise liegt in den Bereichen Kosmetik, Permanent Make-up (PMU) und Nageldesign. Durch jahrelange Erfahrung habe ich mich zu einer vertrauenswürdigen Anlaufstelle für Schönheitsdienstleistungen entwickelt, sowohl hier in Bern als auch international. Durch kontinuierliche Aus- und Weiterbildungen erweitere ich ständig mein Wissen, um meinen Service zu verbessern.</p>
 
-      <p>In meinem Studio erwartet Sie eine Atmosphäre von Luxus und Glamour, in der Sie sich wie in einer Wohlfühloase fühlen können. Meine Dienstleistungen umfassen die Pflege von Händen und Füßen, einschließlich der Behandlung von brüchigen Nägeln, „Nagelbeißerproblemen" und dem Aufbau der Nagelstruktur sowie des Nagelbettes. Bei mir erhalten Sie nicht nur eine Standardbehandlung, sondern eine individuelle Betreuung, die auf Ihre spezifischen Anliegen abgestimmt ist.</p>
+      <p id="ul-p6">In meinem Studio erwartet Sie eine Atmosphäre von Luxus und Glamour, in der Sie sich wie in einer Wohlfühloase fühlen können. Meine Dienstleistungen umfassen die Pflege von Händen und Füßen, einschließlich der Behandlung von brüchigen Nägeln, „Nagelbeißerproblemen" und dem Aufbau der Nagelstruktur sowie des Nagelbettes. Bei mir erhalten Sie nicht nur eine Standardbehandlung, sondern eine individuelle Betreuung, die auf Ihre spezifischen Anliegen abgestimmt ist.</p>
 
-      <p>Wenn Sie nach einem neuen Schönheitserlebnis suchen und sich schöne, gepflegte Hände wünschen, dann sind Sie bei mir genau richtig. Besuchen Sie mein Studio und lassen Sie sich von meinem Fachwissen und meiner Leidenschaft für Schönheit überzeugen. Ich freue mich darauf, Sie zu verwöhnen und Ihnen ein unvergessliches Erlebnis zu bereiten.</p>
+      <p id="ul-p7">Wenn Sie nach einem neuen Schönheitserlebnis suchen und sich schöne, gepflegte Hände wünschen, dann sind Sie bei mir genau richtig. Besuchen Sie mein Studio und lassen Sie sich von meinem Fachwissen und meiner Leidenschaft für Schönheit überzeugen. Ich freue mich darauf, Sie zu verwöhnen und Ihnen ein unvergessliches Erlebnis zu bereiten.</p>
     </div>
 
-    <a href="index.html#section-booking" class="ul-cta">Termin buchen</a>
+    <a href="index.html#section-booking" class="ul-cta" id="ul-cta">Termin buchen</a>
 
   </div><!-- end .ul-text-col -->
 </main>
@@ -534,6 +560,131 @@
     }
   }
   loop();
+})();
+</script>
+
+<!-- Language toggle -->
+<script>
+(function() {
+  'use strict';
+
+  var T = {
+    de: {
+      // Nav
+      navGel:'Gel & Acryl', navPmu:'Permanent MU', navPedicure:'Pedicure',
+      navFillers:'Fillers', navLashes:'Lashes', navKorean:'Korean', navNatural:'Natural MU',
+      navLiliane:'Über GiGi Beauty', navBook:'Termin buchen',
+      // Page content
+      eyebrow:'GiGi Beauty · Bern',
+      subtitle:'Ihr Schönheitssalon in Bern',
+      p1:'Entdecken Sie GiGi Beauty, Ihren Schönheitssalon in Bern, der für professionelles Nageldesign, Permanent Make-Up und exklusive Kosmetik auf höchstem Niveau steht. Seit vielen Jahren kümmere ich mich mit Leidenschaft um Ihre Schönheit im Herzen von Bern.',
+      p2:'In meinem Kosmetikstudio ist es mir ein großes Anliegen, dass Sie sich rundum wohlfühlen. Ich setze alles daran, Ihre individuellen Wünsche zu erfüllen und gehe auf Ihre Bedürfnisse ein, um das gewünschte Ergebnis zu erzielen. Mit meiner Ausbildung und meinem Know-how, das ich kontinuierlich durch Weiterbildungen erweitere, biete ich Ihnen erstklassige Behandlungen an. Von Nageldesign über Permanent Make-Up bis hin zu exklusiven Kosmetikbehandlungen – bei GiGi Beauty sind Sie in besten Händen.',
+      p3:'Entdecken Sie mein umfangreiches Angebot und buchen Sie noch heute Ihren Termin. Ich freue mich darauf, Sie verwöhnen zu dürfen!',
+      sectionTitle:'Seit 2008 das „It“ Beautystudio von Bern',
+      quote:'„Die Begeisterung des Herzens ist die Quelle jeder gro\xdfen Unternehmung“ — Giuseppe Mazzini',
+      p4:'Seit 2008 bin ich eines der f\xfchrenden Beautystudios im Herzen von Bern. Diese Leidenschaft treibt mich an und sie spiegelt sich in jedem Aspekt meiner Arbeit wider.',
+      p5:'Meine Expertise liegt in den Bereichen Kosmetik, Permanent Make-up (PMU) und Nageldesign. Durch jahrelange Erfahrung habe ich mich zu einer vertrauensw\xfcrdigen Anlaufstelle f\xfcr Sch\xf6nheitsdienstleistungen entwickelt, sowohl hier in Bern als auch international. Durch kontinuierliche Aus- und Weiterbildungen erweitere ich st\xe4ndig mein Wissen, um meinen Service zu verbessern.',
+      p6:'In meinem Studio erwartet Sie eine Atmosph\xe4re von Luxus und Glamour, in der Sie sich wie in einer Wohlf\xfchloase f\xfchlen k\xf6nnen. Meine Dienstleistungen umfassen die Pflege von H\xe4nden und F\xfc\xdfen, einschlie\xdflich der Behandlung von br\xfcchigen N\xe4geln, „Nagelbe\xdferproblemen“ und dem Aufbau der Nagelstruktur sowie des Nagelbettes. Bei mir erhalten Sie nicht nur eine Standardbehandlung, sondern eine individuelle Betreuung, die auf Ihre spezifischen Anliegen abgestimmt ist.',
+      p7:'Wenn Sie nach einem neuen Sch\xf6nheitserlebnis suchen und sich sch\xf6ne, gepflegte H\xe4nde w\xfcnschen, dann sind Sie bei mir genau richtig. Besuchen Sie mein Studio und lassen Sie sich von meinem Fachwissen und meiner Leidenschaft f\xfcr Sch\xf6nheit \xfcberzeugen. Ich freue mich darauf, Sie zu verw\xf6hnen und Ihnen ein unvergessliches Erlebnis zu bereiten.',
+      cta:'Termin buchen',
+      // Footer
+      fStandort:'Standort', fHours:'\xd6ffnungszeiten', fFollow:'Folge mir',
+      fMonFri:'Montag – Freitag', fSat:'Samstag', fSun:'Sonntag', fClosed:'Geschlossen',
+      fCopy:'\xa9 Alle Rechte vorbehalten', fImpressum:'Impressum', fDatenschutz:'Datenschutz',
+    },
+    pt: {
+      // Nav
+      navGel:'Gel & Acr\xedlico', navPmu:'Maquilh. Perm.', navPedicure:'Pedicure',
+      navFillers:'Fillers', navLashes:'Pestanas', navKorean:'Korean', navNatural:'Maquilh. Natural',
+      navLiliane:'Sobre GiGi Beauty', navBook:'Agendar',
+      // Page content
+      eyebrow:'GiGi Beauty · Berna',
+      subtitle:'O seu sal\xe3o de beleza em Berna',
+      p1:'Descubra a GiGi Beauty, o seu sal\xe3o de beleza em Berna, reconhecido pelo design profissional de unhas, maquilhagem permanente e cosm\xe9ticos exclusivos ao mais alto n\xedvel. H\xe1 muitos anos que cuido com paix\xe3o da sua beleza no cora\xe7\xe3o de Berna.',
+      p2:'No meu est\xfadio de cosm\xe9ticos, \xe9 para mim muito importante que se sinta completamente \xe0 vontade. Fa\xe7o tudo para satisfazer os seus desejos individuais e atender \xe0s suas necessidades, de forma a obter o resultado desejado. Com a minha forma\xe7\xe3o e os meus conhecimentos, que continuamente aprofundo atrav\xe9s de forma\xe7\xf5es complementares, ofere\xe7o-lhe tratamentos de primeira classe. Desde design de unhas a maquilhagem permanente, passando por tratamentos cosm\xe9ticos exclusivos — na GiGi Beauty, est\xe1 em boas m\xe3os.',
+      p3:'Descubra a minha vasta oferta e agende j\xe1 a sua consulta. Fico muito feliz em poder mim\xe1-la!',
+      sectionTitle:'Desde 2008 o Est\xfadio de Beleza „It“ de Berna',
+      quote:'„O entusiasmo do cora\xe7\xe3o \xe9 a fonte de todo o grande empreendimento“ — Giuseppe Mazzini',
+      p4:'Desde 2008 que sou um dos principais est\xfadios de beleza no cora\xe7\xe3o de Berna. Esta paix\xe3o impulsiona-me e reflete-se em todos os aspetos do meu trabalho.',
+      p5:'A minha especializa\xe7\xe3o abrange as \xe1reas de cosm\xe9tica, maquilhagem permanente (PMU) e design de unhas. Atrav\xe9s de anos de experi\xeancia, tornei-me numa refer\xeancia de confian\xe7a para servi\xe7os de beleza, tanto aqui em Berna como a n\xedvel internacional. Atrav\xe9s de forma\xe7\xe3o e aperfei\xe7oamento cont\xednuos, amplio constantemente os meus conhecimentos para melhorar o meu servi\xe7o.',
+      p6:'No meu est\xfadio, aguarda-a uma atmosfera de luxo e glamour, onde se pode sentir como num o\xe1sis de bem-estar. Os meus servi\xe7os incluem o cuidado das m\xe3os e dos p\xe9s, nomeadamente o tratamento de unhas fr\xe1geis, problemas de roer as unhas, e a reconstru\xe7\xe3o da estrutura e leito ungueal. Comigo, n\xe3o recebe apenas um tratamento padr\xe3o, mas sim um acompanhamento individualizado, adaptado \xe0s suas necessidades espec\xedficas.',
+      p7:'Se procura uma nova experi\xeancia de beleza e deseja m\xe3os bonitas e bem cuidadas, ent\xe3o est\xe1 no lugar certo. Visite o meu est\xfadio e deixe-se convencer pelo meu conhecimento e paix\xe3o pela beleza. Fico ansiosa por mim\xe1-la e proporcionar-lhe uma experi\xeancia inesquec\xedvel.',
+      cta:'Agendar',
+      // Footer
+      fStandort:'Localiza\xe7\xe3o', fHours:'Hor\xe1rio', fFollow:'Siga-me',
+      fMonFri:'Segunda – Sexta', fSat:'S\xe1bado', fSun:'Domingo', fClosed:'Encerrado',
+      fCopy:'\xa9 Todos os direitos reservados', fImpressum:'Aviso Legal', fDatenschutz:'Privacidade',
+    }
+  };
+
+  var _lang = 'de';
+
+  function g(id) { return document.getElementById(id); }
+  function qa(s) { return document.querySelectorAll(s); }
+
+  function applyLang(lang) {
+    var t = T[lang];
+
+    // Nav links
+    var nl = qa('#nav-links li:not(.mobile-cta) a');
+    ['navGel','navPmu','navPedicure','navFillers','navLashes','navKorean','navNatural','navLiliane']
+      .forEach(function(k,i){ if(nl[i]) nl[i].textContent = t[k]; });
+    qa('.nav-cta-btn, .mobile-cta a').forEach(function(el){ el.textContent = t.navBook; });
+
+    // Page content
+    var e;
+    e=g('ul-eyebrow');     if(e) e.textContent = t.eyebrow;
+    e=g('ul-subtitle');    if(e) e.textContent = t.subtitle;
+    e=g('ul-p1');          if(e) e.textContent = t.p1;
+    e=g('ul-p2');          if(e) e.textContent = t.p2;
+    e=g('ul-p3');          if(e) e.textContent = t.p3;
+    e=g('ul-section-title'); if(e) e.textContent = t.sectionTitle;
+    e=g('ul-quote');       if(e) e.textContent = t.quote;
+    e=g('ul-p4');          if(e) e.textContent = t.p4;
+    e=g('ul-p5');          if(e) e.textContent = t.p5;
+    e=g('ul-p6');          if(e) e.textContent = t.p6;
+    e=g('ul-p7');          if(e) e.textContent = t.p7;
+    e=g('ul-cta');         if(e) e.textContent = t.cta;
+
+    // Footer headings
+    var fh = qa('.footer-heading');
+    if(fh[0]) fh[0].textContent = t.fStandort;
+    if(fh[1]) fh[1].textContent = t.fHours;
+    if(fh[2]) fh[2].textContent = t.fFollow;
+
+    // Footer hours
+    var hrs = qa('.footer-hours span');
+    if(hrs[0]) hrs[0].textContent = t.fMonFri;
+    if(hrs[2]) hrs[2].textContent = t.fSat;
+    if(hrs[4]) hrs[4].textContent = t.fSun;
+    if(hrs[5]) hrs[5].textContent = t.fClosed;
+
+    // Footer bar
+    var fbar = document.querySelector('.footer-bar');
+    if(fbar) {
+      var bs = fbar.querySelectorAll('span:not(.footer-bar-sep)');
+      if(bs[0]) bs[0].textContent = t.fCopy;
+      var al = fbar.querySelectorAll('a');
+      if(al[0]) al[0].textContent = t.fImpressum;
+      if(al[1]) al[1].textContent = t.fDatenschutz;
+    }
+
+    // Lang button label
+    var btn = g('lang-btn');
+    if(btn) btn.textContent = lang === 'de' ? 'PT' : 'DE';
+
+    localStorage.setItem('gigi-lang', lang);
+    document.documentElement.lang = lang;
+    _lang = lang;
+  }
+
+  // Restore saved language (shared with main page)
+  _lang = localStorage.getItem('gigi-lang') || 'de';
+  applyLang(_lang);
+
+  g('lang-btn').addEventListener('click', function(){
+    applyLang(_lang === 'de' ? 'pt' : 'de');
+  });
 })();
 </script>
 
