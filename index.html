@@ -357,6 +357,9 @@
     background: rgba(212,175,106,0.07);
   }
 
+  /* Hide mobile-only CTA on desktop (it lives in the hamburger menu) */
+  .nav-links .mobile-cta { display: none; }
+
   .nav-cta-btn {
     display: inline-block;
     font-family: 'Cormorant Garamond', serif;
@@ -375,6 +378,18 @@
     cursor: pointer;
   }
   .nav-cta-btn:hover {
+    background: linear-gradient(135deg, #d4af6a 0%, #e8c87a 50%, #c8a04a 100%);
+    color: #1a0a0a;
+    letter-spacing: 0.27em;
+  }
+
+  /* About button — same gold style as Termin buchen */
+  .nav-links .nav-about-btn {
+    background: linear-gradient(135deg, #c8a06a 0%, #d4af6a 50%, #b8903a 100%);
+    color: #1a0a0a;
+    padding: 9px 20px;
+  }
+  .nav-links .nav-about-btn:hover {
     background: linear-gradient(135deg, #d4af6a 0%, #e8c87a 50%, #c8a04a 100%);
     color: #1a0a0a;
     letter-spacing: 0.27em;
@@ -840,7 +855,7 @@
     <li><a href="#section-lashes"                  onclick="navTo('section-lashes');closeNav();return false;">Lashes</a></li>
     <li><a href="#section-korean-cosmetics"        onclick="navTo('section-korean-cosmetics');closeNav();return false;">Korean</a></li>
     <li><a href="#section-natural-make-up"         onclick="navTo('section-natural-make-up');closeNav();return false;">Natural MU</a></li>
-    <li><a href="ueber-liliane.html">Über Liliane</a></li>
+    <li><a href="ueber-liliane.html" class="nav-about-btn">Über GiGi Beauty</a></li>
     <li class="mobile-cta"><a href="#section-booking" onclick="navTo('section-booking');closeNav();return false;">Termin buchen</a></li>
   </ul>
 
@@ -2772,7 +2787,7 @@
       // Nav
       navGel:'Gel & Acryl', navPmu:'Permanent MU', navPedicure:'Pedicure',
       navFillers:'Fillers', navLashes:'Lashes', navKorean:'Korean', navNatural:'Natural MU',
-      navLiliane:'Über Liliane',
+      navLiliane:'Über GiGi Beauty',
       navBook:'Termin buchen',
       // Hero
       heroTitle:'Entdecke unsere Welt', heroSub:'Schönheit. Leidenschaft. Perfektion.', heroCta:'Termin buchen',
@@ -2829,7 +2844,7 @@
       // Nav
       navGel:'Gel & Acrílico', navPmu:'Maquilh. Perm.', navPedicure:'Pedicure',
       navFillers:'Fillers', navLashes:'Pestanas', navKorean:'Korean', navNatural:'Maquilh. Natural',
-      navLiliane:'Sobre Liliane',
+      navLiliane:'Sobre GiGi Beauty',
       navBook:'Agendar',
       // Hero
       heroTitle:'Descubra o nosso mundo', heroSub:'Beleza. Paixão. Perfeição.', heroCta:'Agendar',
