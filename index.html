@@ -943,20 +943,6 @@
   // ─── Ground plane + shadow/glow under lipstick ───────────────────────────
   // The lipstick baseCap sits at y = -1.82 (local) → world y = -1.1 + -1.82 = -2.92
   // Ground is placed just there so the lipstick appears to stand on a surface.
-  const GROUND_Y = -2.93;
-
-  // Broad dark floor plane — suggests a surface without dominating the scene
-  const groundGeo = new THREE.PlaneGeometry(28, 28);
-  const groundMat = new THREE.MeshStandardMaterial({
-    color: 0x0d0603,
-    metalness: 0.08,
-    roughness: 0.97,
-  });
-  const groundMesh = new THREE.Mesh(groundGeo, groundMat);
-  groundMesh.rotation.x = -Math.PI / 2;
-  groundMesh.position.y = GROUND_Y;
-  groundMesh.receiveShadow = true;
-  scene.add(groundMesh);
 
   // Soft shadow blob — radial gradient disc, child of lipstickGroup so it
   // moves with the lipstick during scroll / exit animations.
@@ -1130,11 +1116,11 @@
     // Draw the ring: gradient from inner edge outward
     {
       const g = ctx.createRadialGradient(cx, cy, innerHole, cx, cy, outerEdge);
-      g.addColorStop(0.00, 'rgba(255,248,180,0.98)');
-      g.addColorStop(0.12, 'rgba(255,235,150,0.95)');
-      g.addColorStop(0.30, 'rgba(212,175,106,0.80)');
-      g.addColorStop(0.55, 'rgba(200,155,70,0.45)');
-      g.addColorStop(0.78, 'rgba(170,130,60,0.14)');
+      g.addColorStop(0.00, 'rgba(255,238,190,0.98)');
+      g.addColorStop(0.12, 'rgba(238,188,85,0.95)');
+      g.addColorStop(0.30, 'rgba(212,162,58,0.82)');
+      g.addColorStop(0.55, 'rgba(185,138,42,0.46)');
+      g.addColorStop(0.78, 'rgba(155,112,28,0.14)');
       g.addColorStop(1.00, 'rgba(0,0,0,0)');
       ctx.fillStyle = g;
       ctx.beginPath();
@@ -1161,8 +1147,8 @@
       const bx = cx + Math.cos(angle) * sz * 0.28;
       const by = cy + Math.sin(angle) * sz * 0.28;
       const g  = ctx.createRadialGradient(bx, by, 0, bx, by, sz * 0.13);
-      g.addColorStop(0.0, 'rgba(255,252,190,0.40)');
-      g.addColorStop(0.5, 'rgba(212,175,106,0.18)');
+      g.addColorStop(0.0, 'rgba(255,238,185,0.45)');
+      g.addColorStop(0.5, 'rgba(212,162,58,0.20)');
       g.addColorStop(1.0, 'rgba(0,0,0,0)');
       ctx.fillStyle = g;
       ctx.beginPath();
@@ -1234,7 +1220,7 @@
     _bpReset(i);
     _bpPos[i*3+1] += Math.random() * 1.3; // pre-spread so cloud is already filled on load
     const b = 0.65 + Math.random() * 0.35;
-    _bpCol[i*3]=0.85*b; _bpCol[i*3+1]=0.72*b; _bpCol[i*3+2]=0.30*b;
+    _bpCol[i*3]=0.83*b; _bpCol[i*3+1]=0.64*b; _bpCol[i*3+2]=0.22*b;
   }
   const _bpGeo = new THREE.BufferGeometry();
   _bpGeo.setAttribute('position', new THREE.BufferAttribute(_bpPos, 3));
@@ -1753,7 +1739,7 @@
         bpa[i*3+2] += _bpVel[i*3+2];
         if (bpa[i*3+1] > -0.65) _bpReset(i);
         const bright = 0.35 + 0.65 * Math.abs(Math.sin(elapsed * 1.9 + _bpPh[i]));
-        bca[i*3]=0.85*bright; bca[i*3+1]=0.72*bright; bca[i*3+2]=0.30*bright;
+        bca[i*3]=0.83*bright; bca[i*3+1]=0.64*bright; bca[i*3+2]=0.22*bright;
       }
       _bpGeo.attributes.position.needsUpdate = true;
       _bpGeo.attributes.color.needsUpdate    = true;
