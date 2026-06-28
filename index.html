@@ -219,7 +219,12 @@
       top: calc(70vh + 62px);
     }
     #scroll-hint span {
-      color: rgba(212,175,106,0.85);
+      color: rgba(212,175,106,0.9);
+      animation: scrollTextPulse 2s ease-in-out infinite;
+    }
+    @keyframes scrollTextPulse {
+      0%, 100% { opacity: 0.35; }
+      50%       { opacity: 1; }
     }
   }
 
@@ -1531,9 +1536,9 @@
     const gd = document.getElementById('global-dust');
     if (gd) gd.classList.toggle('visible', isPastHero);
 
-    // Hide scroll hint after first scroll
+    // Hide scroll hint: desktop → after 60 px; mobile → only once past hero
     const hint = document.getElementById('scroll-hint');
-    hint.style.opacity = window.scrollY > 60 ? '0' : '1';
+    hint.style.opacity = (IS_MOBILE ? isPastHero : window.scrollY > 60) ? '0' : '1';
   }, { passive: true });
 
   // ─── Project 3D to 2D ─────────────────────────────────────────────────────
