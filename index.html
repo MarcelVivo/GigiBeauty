@@ -30,6 +30,7 @@
     width: 100vw; height: 100vh;
     z-index: 0;
     pointer-events: none;
+    will-change: transform; /* pre-promotes to GPU layer — prevents first-scroll compositing jump */
   }
 
   #canvas-container canvas {
@@ -1408,11 +1409,18 @@
   }
 
   // ─── Resize handler ───────────────────────────────────────────────────────
+  // Debounced: on mobile the URL bar animating in/out fires rapid resize events.
+  // Without debounce, renderer.setSize() runs mid-animation, making the lipstick
+  // jump ~35 px because the same NDC-y maps to a different pixel in a taller canvas.
+  let _rszTimer;
   window.addEventListener('resize', () => {
-    const w = window.innerWidth, h = window.innerHeight;
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-    renderer.setSize(w, h);
+    clearTimeout(_rszTimer);
+    _rszTimer = setTimeout(() => {
+      const w = window.innerWidth, h = window.innerHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    }, IS_MOBILE ? 250 : 50);
   });
 
   // ─── Animate loop ─────────────────────────────────────────────────────────
