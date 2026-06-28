@@ -669,6 +669,72 @@
   }
   .booking-form select option { background: #180d08; }
   .booking-form textarea { min-height: 120px; resize: vertical; }
+
+  /* ── Custom service dropdown ──────────────────────────────────────────── */
+  .custom-select { position: relative; user-select: none; -webkit-user-select: none; }
+
+  .custom-select-trigger {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(212,175,106,0.18);
+    border-radius: 2px;
+    padding: 12px 16px;
+    color: rgba(245,230,200,0.38);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .custom-select.has-value .custom-select-trigger { color: #f5e6c8; }
+  .custom-select.open    .custom-select-trigger,
+  .custom-select-trigger:hover { border-color: rgba(212,175,106,0.55); }
+
+  .custom-select-arrow {
+    flex-shrink: 0;
+    color: rgba(212,175,106,0.45);
+    transition: transform 0.25s ease, color 0.2s ease;
+  }
+  .custom-select.open .custom-select-arrow {
+    transform: rotate(180deg);
+    color: rgba(212,175,106,0.85);
+  }
+
+  .custom-select-options {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px); left: 0; right: 0;
+    background: #1a0a08;
+    border: 1px solid rgba(212,175,106,0.22);
+    border-radius: 2px;
+    list-style: none; margin: 0; padding: 8px 0;
+    z-index: 200;
+    box-shadow: 0 14px 48px rgba(0,0,0,0.75), 0 0 0 1px rgba(212,175,106,0.05);
+  }
+  .custom-select.open .custom-select-options {
+    display: block;
+    animation: csSelectFade 0.15s ease;
+  }
+  @keyframes csSelectFade {
+    from { opacity: 0; transform: translateY(-5px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .custom-select-options li {
+    padding: 12px 18px;
+    color: rgba(245,230,200,0.62);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+  }
+  .custom-select-options li + li { border-top: 1px solid rgba(212,175,106,0.07); }
+  .custom-select-options li:hover {
+    background: rgba(212,175,106,0.09);
+    color: #d4af6a;
+    border-left-color: rgba(212,175,106,0.45);
+  }
   .booking-form .btn-submit {
     display: block;
     width: 100%;
@@ -2177,7 +2243,9 @@
       <form class="booking-form" action="#" method="post">
 
         <label for="bk-service">Leistung</label>
-        <select id="bk-service" name="service" required>
+        <!-- Native select hidden; custom UI below syncs its value for form submission -->
+        <select id="bk-service" name="service" required aria-hidden="true" tabindex="-1"
+          style="position:absolute;opacity:0;pointer-events:none;height:0;width:0;overflow:hidden;">
           <option value="" disabled selected>Bitte wählen…</option>
           <option value="gel-acryl-nails">Gel &amp; Acryl Nails</option>
           <option value="permanent-make-up">Permanent Make Up</option>
@@ -2187,6 +2255,23 @@
           <option value="korean-cosmetics">Korean Cosmetics</option>
           <option value="natural-make-up">Natural Make Up</option>
         </select>
+        <div class="custom-select" id="bk-service-ui" role="listbox" aria-labelledby="bk-service">
+          <div class="custom-select-trigger" role="button" tabindex="0" aria-haspopup="listbox">
+            <span id="bk-service-display">Bitte wählen…</span>
+            <svg class="custom-select-arrow" width="11" height="7" viewBox="0 0 11 7" fill="none" aria-hidden="true">
+              <polyline points="1 1 5.5 6 10 1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <ul class="custom-select-options">
+            <li data-value="gel-acryl-nails">Gel &amp; Acryl Nails</li>
+            <li data-value="permanent-make-up">Permanent Make Up</li>
+            <li data-value="kosmetische-pedicure">Kosmetische Pedicure</li>
+            <li data-value="fillers">Fillers</li>
+            <li data-value="lashes">Lashes</li>
+            <li data-value="korean-cosmetics">Korean Cosmetics</li>
+            <li data-value="natural-make-up">Natural Make Up</li>
+          </ul>
+        </div>
 
         <label for="bk-date">Wunschdatum</label>
         <input type="date" id="bk-date" name="date" required>
@@ -2849,6 +2934,7 @@
     var bIntro=q('.booking-intro');              if(bIntro) bIntro.textContent = t.bookIntro;
     var lsv=q('label[for="bk-service"]');        if(lsv) lsv.textContent = t.bkService;
     var opt=q('#bk-service option[value=""]');   if(opt) opt.textContent = t.bkPlease;
+    var csd=q('#bk-service-display'); if(csd && !q('#bk-service-ui').classList.contains('has-value')) csd.textContent = t.bkPlease;
     var ldt=q('label[for="bk-date"]');           if(ldt) ldt.textContent = t.bkDate;
     var ltm=q('label[for="bk-time"]');           if(ltm) ltm.textContent = t.bkTime;
     var lnm=q('label[for="bk-name"]');           if(lnm) lnm.textContent = t.bkName;
@@ -2917,6 +3003,40 @@
     applyLang(_lang === 'de' ? 'pt' : 'de');
   });
 
+})();
+</script>
+
+<!-- ── Custom service dropdown controller ──────────────────────────────────── -->
+<script>
+(function() {
+  var ui      = document.getElementById('bk-service-ui');
+  var native  = document.getElementById('bk-service');
+  var trigger = ui.querySelector('.custom-select-trigger');
+  var display = document.getElementById('bk-service-display');
+  var items   = ui.querySelectorAll('.custom-select-options li');
+
+  function open()  { ui.classList.add('open'); }
+  function close() { ui.classList.remove('open'); }
+  function toggle(e) { e.stopPropagation(); ui.classList.contains('open') ? close() : open(); }
+
+  trigger.addEventListener('click', toggle);
+  trigger.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(e); }
+    if (e.key === 'Escape') close();
+  });
+
+  items.forEach(function(item) {
+    item.addEventListener('click', function(e) {
+      e.stopPropagation();
+      native.value = item.dataset.value;
+      display.textContent = item.textContent;
+      ui.classList.add('has-value');
+      close();
+    });
+  });
+
+  document.addEventListener('click', close);
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') close(); });
 })();
 </script>
 
