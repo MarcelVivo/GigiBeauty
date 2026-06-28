@@ -1460,34 +1460,53 @@
     a.appendChild(img);
 
     a._armed = false;
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();  // don't bubble to background freeze handler
 
+    // Extract tap logic so both touch and click can call it
+    let _tx = 0, _ty = 0;
+    const _doCardTap = () => {
       if (!heroFrozen) {
-        // First interaction anywhere: freeze + arm this butterfly
         freezeHero();
         cardEls.forEach(c => { c._armed = false; c.classList.remove('card-armed'); });
         a._armed = true;
         a.classList.add('card-armed');
         return;
       }
-
       if (!a._armed) {
-        // Frozen but different butterfly tapped: re-arm
         cardEls.forEach(c => { c._armed = false; c.classList.remove('card-armed'); });
         a._armed = true;
         a.classList.add('card-armed');
         return;
       }
-
-      // Second tap on armed butterfly: navigate
       a._armed = false;
       a.classList.remove('card-armed');
       a.classList.add('card-glow');
       const target = document.getElementById('section-' + svc.slug);
       if (target) target.scrollIntoView({ behavior: 'smooth' });
       setTimeout(() => a.classList.remove('card-glow'), 900);
+    };
+
+    // Mobile: butterflies move every frame so the browser often drops the
+    // synthetic click (touch-start position ≠ touch-end position).
+    // Handle touch directly: record start, fire on end if the finger barely moved.
+    a.addEventListener('touchstart', (e) => {
+      _tx = e.touches[0].clientX;
+      _ty = e.touches[0].clientY;
+    }, { passive: true });
+
+    a.addEventListener('touchend', (e) => {
+      const t = e.changedTouches[0];
+      if (Math.abs(t.clientX - _tx) < 15 && Math.abs(t.clientY - _ty) < 15) {
+        e.preventDefault();   // prevent subsequent synthetic click
+        e.stopPropagation();
+        _doCardTap();
+      }
+    });
+
+    // Desktop click (touchend + preventDefault above suppresses this on mobile)
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      _doCardTap();
     });
 
     overlay.appendChild(a);
