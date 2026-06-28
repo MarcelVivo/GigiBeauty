@@ -186,6 +186,19 @@
     letter-spacing: 0.35em;
   }
 
+  @media (max-width: 767px) {
+    #cta {
+      justify-content: flex-end;
+      padding-bottom: 96px;
+    }
+    #cta h2, #cta p { display: none; }
+    #cta a {
+      padding: 8px 24px;
+      font-size: 0.6rem;
+      letter-spacing: 0.22em;
+    }
+  }
+
   /* Scroll hint */
   #scroll-hint {
     position: fixed;
