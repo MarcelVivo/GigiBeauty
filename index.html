@@ -120,8 +120,8 @@
   }
 
   .service-card img {
-    width: 195px;
-    height: 195px;
+    width: 293px;
+    height: 293px;
     display: block;
     margin: 0 auto;
     object-fit: contain;
@@ -130,7 +130,7 @@
     transition: filter 0.35s ease;
   }
   @media (max-width: 767px) {
-    .service-card img { width: 96px; height: 96px; }
+    .service-card img { width: 144px; height: 144px; }
   }
 
   /* Subtle pre-glow on hover */
@@ -2038,7 +2038,7 @@
       card.style.zIndex = Math.round(depth * 10 + 50);
 
       // ── Floating label
-      const CARD_PX = IS_MOBILE ? 96 : 195;
+      const CARD_PX = IS_MOBILE ? 144 : 293;
       const halfSize = (CARD_PX / 2) * scaleFactor;
 
       let lblTargX, lblTargY;
