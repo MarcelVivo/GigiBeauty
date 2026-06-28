@@ -699,6 +699,15 @@
   }
   #global-dust.visible { opacity: 1; }
 
+  /* ── Left/right edge smoke + gold-particle wisps */
+  #side-smoke {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 6;
+    pointer-events: none;
+  }
+
   /* ── Per-butterfly rising particles */
   .svc-head-left { position: relative; }
   .btfly-dust {
@@ -760,6 +769,9 @@
 
 <!-- Full-page rising-gold-dust overlay — visible only on service sections -->
 <canvas id="global-dust"></canvas>
+
+<!-- Side-smoke: golden wisps + particles rising along left & right edges -->
+<canvas id="side-smoke"></canvas>
 
 <!-- Scroll spacer: provides 400 vh of scrollable room for the 3D animation. -->
 <!-- All hero elements above are position:fixed so they don't add document height. -->
@@ -2275,6 +2287,158 @@
   }
   dustLoop();
 
+})();
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SIDE-EDGE SMOKE + GOLD PARTICLES
+   Golden smoke wisps and sparkles rise along the left and right edges of the
+   full page viewport, fading out as they ascend.
+════════════════════════════════════════════════════════════════════════════ */
+(function initSideSmoke() {
+  const canvas = document.getElementById('side-smoke');
+  const ctx    = canvas.getContext('2d');
+  let W = 0, H = 0;
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Pre-render a soft golden smoke-puff sprite once (reused for all wisps)
+  const SPR = 256;
+  const smokeSprite = (function() {
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = SPR;
+    const c = cv.getContext('2d'), cx = SPR / 2;
+    // Main soft centre glow
+    const g = c.createRadialGradient(cx, cx, 0, cx, cx, cx);
+    g.addColorStop(0.00, 'rgba(200,150,50,0.22)');
+    g.addColorStop(0.30, 'rgba(180,135,42,0.12)');
+    g.addColorStop(0.60, 'rgba(155,112,28,0.05)');
+    g.addColorStop(1.00, 'rgba(0,0,0,0)');
+    c.fillStyle = g; c.fillRect(0, 0, SPR, SPR);
+    // Organic secondary lobes for irregular wisp shape
+    [[-.28,.14,.38],[ .22,-.20,.32],[-.18,-.22,.28],[ .30,.18,.24]].forEach(([dx,dy,r]) => {
+      const bx = cx+dx*SPR, by = cx+dy*SPR, br = r*SPR;
+      const bg = c.createRadialGradient(bx,by,0,bx,by,br);
+      bg.addColorStop(0.0,'rgba(190,142,40,0.10)');
+      bg.addColorStop(0.5,'rgba(165,120,30,0.04)');
+      bg.addColorStop(1.0,'rgba(0,0,0,0)');
+      c.fillStyle=bg; c.beginPath(); c.arc(bx,by,br,0,Math.PI*2); c.fill();
+    });
+    return cv;
+  })();
+
+  const BAND = 0.16; // fraction of viewport width used per edge
+
+  function mkWisp(isLeft) {
+    const xMax = W * BAND;
+    return {
+      isLeft,
+      x:        isLeft ? Math.random()*xMax : W - Math.random()*xMax,
+      y:        H + 80 + Math.random()*180,
+      size:     70 + Math.random()*130,        // draw radius
+      vy:       0.18 + Math.random()*0.32,
+      rotation: Math.random()*Math.PI*2,
+      rotSpd:   (Math.random()-0.5)*0.004,
+      swayAmp:  0.22 + Math.random()*0.45,
+      swaySpd:  0.28 + Math.random()*0.50,
+      phase:    Math.random()*Math.PI*2,
+      maxOp:    0.10 + Math.random()*0.18,
+    };
+  }
+
+  function mkSpark(isLeft) {
+    const xMax = W * BAND * 0.88;
+    return {
+      isLeft,
+      x:         isLeft ? Math.random()*xMax : W - Math.random()*xMax,
+      y:         H + 20 + Math.random()*140,
+      r:         1.0 + Math.random()*3.8,
+      vy:        0.38 + Math.random()*1.0,
+      drift:     (Math.random()-0.5)*0.22,
+      phase:     Math.random()*Math.PI*2,
+      twkSpd:    1.2 + Math.random()*2.2,
+      maxOp:     0.30 + Math.random()*0.55,
+    };
+  }
+
+  // Pools: 30 wisps + 50 sparks per side, pre-spread along full height
+  const wisps = [], sparks = [];
+  [true, false].forEach(isLeft => {
+    for (let i = 0; i < 30; i++) {
+      const w = mkWisp(isLeft);
+      w.y = Math.random() * (H + 200) - 80;  // pre-spread
+      wisps.push(w);
+    }
+    for (let i = 0; i < 50; i++) {
+      const s = mkSpark(isLeft);
+      s.y = Math.random() * (H + 120) - 40;
+      sparks.push(s);
+    }
+  });
+
+  // Fade factor: 0 at top, 1 in bottom third, linear transition
+  function hFade(y) {
+    const ratio = (H - y) / H;           // 0 at bottom → 1 at top
+    if (ratio < 0.12) return ratio / 0.12;  // fade-in as it leaves bottom
+    return Math.max(0, 1 - (ratio - 0.12) / 0.88);
+  }
+
+  let t = 0;
+  function loop() {
+    requestAnimationFrame(loop);
+    t += 0.016;
+    ctx.clearRect(0, 0, W, H);
+
+    wisps.forEach(w => {
+      w.y -= w.vy;
+      w.x += Math.sin(t * w.swaySpd + w.phase) * w.swayAmp;
+      w.rotation += w.rotSpd;
+
+      if (w.y < -w.size * 2) {
+        Object.assign(w, mkWisp(w.isLeft));
+        return;
+      }
+      const alpha = w.maxOp * hFade(w.y);
+      if (alpha < 0.003) return;
+
+      const d = w.size * 2;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(w.x, w.y);
+      ctx.rotate(w.rotation);
+      ctx.drawImage(smokeSprite, -d/2, -d/2, d, d);
+      ctx.restore();
+    });
+
+    sparks.forEach(s => {
+      s.y -= s.vy;
+      s.x += Math.sin(t * 0.44 + s.phase) * s.drift;
+
+      if (s.y < -12) {
+        Object.assign(s, mkSpark(s.isLeft));
+        return;
+      }
+      const twkl  = 0.38 + 0.62 * Math.abs(Math.sin(t * s.twkSpd + s.phase));
+      const alpha = s.maxOp * hFade(s.y) * twkl;
+      if (alpha < 0.01) return;
+
+      const gr = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 2.6);
+      gr.addColorStop(0.0, `rgba(255,222,115,${alpha})`);
+      gr.addColorStop(0.4, `rgba(212,162,58,${(alpha*0.55).toFixed(3)})`);
+      gr.addColorStop(1.0, 'rgba(180,130,30,0)');
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r * 2.6, 0, Math.PI * 2);
+      ctx.fillStyle = gr;
+      ctx.fill();
+    });
+
+    ctx.globalAlpha = 1;
+  }
+  loop();
 })();
 </script>
 
