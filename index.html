@@ -1596,11 +1596,9 @@
       overlay.style.pointerEvents = 'none';
       lipstickGroup.visible  = false;
       spiralParticles.visible = false;
-      groundMesh.visible     = false;
     } else {
       lipstickGroup.visible  = true;
       spiralParticles.visible = true;
-      groundMesh.visible     = true;
       overlay.style.opacity = '';
       overlay.style.pointerEvents = '';
       const ctaOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.65) / 0.10));
