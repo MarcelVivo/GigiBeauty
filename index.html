@@ -1636,8 +1636,12 @@
       card.style.top  = screen.y + 'px';
 
       // Depth-based scale (perspective feel)
+      // On mobile: much stronger depth scaling so the front butterfly
+      // visibly "comes toward" the user (up to 2× base size).
       const depth = pos3d.z;
-      const scaleFactor = Math.max(0.55, Math.min(1.1, 1.0 + depth * 0.06));
+      const scaleFactor = IS_MOBILE
+        ? Math.max(0.40, Math.min(2.0, 1.0 + depth * 0.50))
+        : Math.max(0.55, Math.min(1.1, 1.0 + depth * 0.06));
       card.style.transform = `translate(-50%, -50%) scale(${scaleFactor})`;
 
       // Opacity based on visibility zone + depth
