@@ -1560,9 +1560,9 @@
 
       let lblTargX, lblTargY;
       if (IS_MOBILE) {
-        // Bottom of label anchored to butterfly's bottom edge
+        // Label centered directly on the butterfly (vertical center of card)
         lblTargX = Math.max(50, Math.min(window.innerWidth - 50, screen.x));
-        lblTargY = screen.y + halfSize;
+        lblTargY = screen.y + halfSize * 0.15;
       } else {
         const rawLblX = screen.x - halfSize + 10;
         lblTargX = Math.max(4, Math.min(window.innerWidth - 160, rawLblX));
@@ -1575,7 +1575,7 @@
       const lbl = labelEls[i];
       lbl.style.left      = lblCurX[i] + 'px';
       lbl.style.top       = lblCurY[i] + 'px';
-      lbl.style.transform = IS_MOBILE ? 'translate(-50%, -100%)' : '';
+      lbl.style.transform = IS_MOBILE ? 'translate(-50%, -50%)' : '';
       lbl.style.opacity   = finalOpacity;
       lbl.style.zIndex    = Math.round(depth * 10 + 51);
       lbl.style.fontSize  = IS_MOBILE
