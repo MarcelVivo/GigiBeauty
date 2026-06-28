@@ -324,24 +324,11 @@
     line-height: 0;
     transition: opacity 0.2s ease;
   }
-  .nav-logo:hover { opacity: 0.8; }
-
-  /* Crop just the butterfly from GiGiBeautyLogo.jpg */
-  .nav-logo-crop {
+  .nav-logo:hover { opacity: 0.78; }
+  .nav-logo img {
     display: block;
-    width: 36px;
-    height: 42px;
-    overflow: hidden;
-    position: relative;
-  }
-  .nav-logo-crop img {
-    position: absolute;
-    width: 162px;
-    height: auto;
-    left: -13px;
-    top: -1px;
-    mix-blend-mode: screen;
-    display: block;
+    height: 40px;
+    width: auto;
   }
 
   .nav-links {
@@ -776,9 +763,7 @@
 <!-- ── Top navigation ─────────────────────────────────────────────────── -->
 <nav id="top-nav">
   <a class="nav-logo" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;" aria-label="GiGi Beauty">
-    <span class="nav-logo-crop">
-      <img src="public/images/logo/GiGiBeautyLogo.jpg" alt="GiGi Beauty">
-    </span>
+    <img src="public/images/logo/GiGiBeautySchmetterling.png" alt="GiGi Beauty">
   </a>
 
   <ul class="nav-links" id="nav-links">
