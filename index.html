@@ -20,7 +20,7 @@
 
   /* Scroll spacer — gives the 3D hero its 400 vh of scrollable room */
   #hero-scroll {
-    height: 400vh;
+    height: 600vh;
     pointer-events: none;
   }
 
@@ -1391,7 +1391,7 @@
       groundMesh.visible     = true;
       overlay.style.opacity = '';
       overlay.style.pointerEvents = '';
-      const ctaOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.80) / 0.12));
+      const ctaOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.65) / 0.10));
       ctaEl.style.opacity = ctaOpacity;
       ctaEl.style.pointerEvents = ctaOpacity > 0.3 ? 'auto' : 'none';
     }
