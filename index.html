@@ -380,6 +380,30 @@
     letter-spacing: 0.27em;
   }
 
+  #lang-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.70rem;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: rgba(212,175,106,0.8);
+    background: transparent;
+    border: 1px solid rgba(212,175,106,0.32);
+    padding: 7px 11px;
+    border-radius: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: color 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+  }
+  #lang-btn:hover {
+    color: #d4af6a;
+    border-color: rgba(212,175,106,0.65);
+    background: rgba(212,175,106,0.07);
+  }
+
   /* Hamburger (mobile) */
   .nav-hamburger {
     display: none;
@@ -752,6 +776,8 @@
   </ul>
 
   <a class="nav-cta-btn" href="#section-booking" onclick="navTo('section-booking');closeNav();return false;">Termin buchen</a>
+
+  <button id="lang-btn" aria-label="Sprache wechseln">PT</button>
 
   <button class="nav-hamburger" aria-label="Menü" onclick="document.getElementById('top-nav').classList.toggle('menu-open')">
     <span></span><span></span><span></span>
@@ -2624,6 +2650,252 @@
     ctx.globalAlpha = 1;
   }
   loop();
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     LANGUAGE SWITCHER  —  DE / PT
+════════════════════════════════════════════════════════════════════════════ -->
+<script>
+(function initLang() {
+  'use strict';
+
+  var T = {
+    de: {
+      // Nav
+      navGel:'Gel & Acryl', navPmu:'Permanent MU', navPedicure:'Pedicure',
+      navFillers:'Fillers', navLashes:'Lashes', navKorean:'Korean', navNatural:'Natural MU',
+      navBook:'Termin buchen',
+      // Hero
+      heroTitle:'Entdecke unsere Welt', heroSub:'Schönheit. Leidenschaft. Perfektion.', heroCta:'Termin buchen',
+      // Scroll
+      scroll:'Scrollen',
+      // Section commons
+      treatHead:'Über diese Behandlung', priceHead:'Preisliste', btnBook:'Termin buchen',
+      // Descriptions
+      gelDesc:'Verwöhne deine Nägel mit unseren professionellen Gel- und Acryl-Techniken. Von klassisch bis extravagant gestalten wir deine Traumfingernägel mit höchster Präzision und hochwertigen Materialien — für einen Auftritt, der Eindruck hinterlässt.',
+      pmuDesc:'Dauerhaftes Make-up für einen mühelosen, gepflegten Look — jeden Tag. Unsere Permanent Make-up Techniken betonen deine natürliche Schönheit auf subtile und elegante Weise und sparen dir täglich wertvolle Zeit.',
+      pedDesc:'Gönne deinen Füssen die Pflege, die sie verdienen. Unsere kosmetische Pedicure verwöhnt, glättet und verschönert mit professionellen Techniken — für Füsse, die sich und andere beeindrucken.',
+      fillDesc:'Hyaluron-Fillers für eine natürliche Volumengebung und sanfte Faltenreduktion. Wir arbeiten diskret und präzise — für ein frischeres, ausgeruhteres Erscheinungsbild, das trotzdem ganz du bleibt.',
+      lasDesc:'Wimpernverlängerungen für einen intensiven, ausdrucksstarken Blick. Von natürlich bis dramatisch — wir setzen deine Augen perfekt in Szene und verleihen dir Wimpern, die Blicke auf sich ziehen.',
+      korDesc:'Entdecke die Geheimnisse der koreanischen Schönheitskultur. Unsere K-Beauty Behandlungen kombinieren innovative Techniken mit hochwertigen koreanischen Produkten — für strahlende, glasklare Haut.',
+      natDesc:'Ein zeitloser, natürlicher Look für jeden Anlass. Wir unterstreichen deine individuelle Schönheit mit leichten Texturen und harmonischen Farben — für einen Auftritt, der ganz du bist.',
+      // Gel & Acryl prices
+      gelP1:'Basis Gelnägel', gelP2:'Acryl Verlängerung', gelP3:'Gel Verlängerung',
+      gelP4:'French Manicure', gelP5:'Nageldesign (ab)', gelP6:'Auffüllen',
+      // Permanent MU prices
+      pmuP1:'Ombré Augenbrauen', pmuP2:'Microblading', pmuP3:'Aquarell Lippen',
+      pmuP4:'Eyeliner oben', pmuP5:'Eyeliner unten', pmuP6:'Auffrischen (ab)',
+      // Pedicure prices
+      pedP1:'Basis Pedicure', pedP2:'Spa Pedicure', pedP3:'Pedicure inkl. Gelnägel',
+      pedP4:'Hornhautentfernung', pedP5:'Nagelkorrektur',
+      // Fillers prices
+      fillP1:'Lippen Filler', fillP2:'Wangen Filler', fillP3:'Nasolabialfalten',
+      fillP4:'Kinnkontur', fillP5:'Beratungsgespräch', fillV5:'kostenlos',
+      // Lashes prices
+      lasP1:'Classic Lashes', lasP2:'Volume Lashes', lasP3:'Mega Volume',
+      lasP4:'Lash Lifting', lasP5:'Auffüllen (2 Wochen)', lasP6:'Auffüllen (3 Wochen)',
+      // Korean Cosmetics prices
+      korP1:'Glass Skin Treatment', korP2:'Brightening Facial', korP3:'Anti-Aging Ritual',
+      korP4:'Deep Cleansing', korP5:'Hyaluron Boost',
+      // Natural Make Up prices
+      natP1:'Tages Make-up', natP2:'Evening Look', natP3:'Event Make-up',
+      natP4:'Hochzeits Make-up', natP5:'Probe Make-up', natP6:'Make-up Kurs',
+      // Booking form
+      bookTitle:'Termin buchen',
+      bookIntro:'Wähle deine Wunschleistung und deinen Termin — wir freuen uns auf dich.',
+      bkService:'Leistung', bkPlease:'Bitte wählen…', bkDate:'Wunschdatum',
+      bkTime:'Wunschzeit', bkName:'Name', bkEmail:'E-Mail', bkPhone:'Telefon', bkNote:'Anmerkungen',
+      phName:'Dein Name', phNote:'Wünsche, Fragen oder besondere Hinweise…',
+      btnSubmit:'Anfrage senden',
+      // Footer
+      fStandort:'Standort', fHours:'Öffnungszeiten', fFollow:'Folge mir',
+      fMonFri:'Montag – Freitag', fSat:'Samstag', fSun:'Sonntag', fClosed:'Geschlossen',
+      fPhone:'Telefon:', fCopy:'© Alle Rechte vorbehalten',
+      fImpressum:'Impressum', fDatenschutz:'Datenschutz',
+      // Butterfly floating labels
+      fly0:'Gel &<br>Acryl Nails', fly1:'Permanent<br>Make Up', fly2:'Kosmetische<br>Pedicure',
+      fly3:'Fillers', fly4:'Lashes', fly5:'Korean<br>Cosmetics', fly6:'Natural<br>Make Up',
+    },
+    pt: {
+      // Nav
+      navGel:'Gel & Acrílico', navPmu:'Maquilh. Perm.', navPedicure:'Pedicure',
+      navFillers:'Fillers', navLashes:'Pestanas', navKorean:'Korean', navNatural:'Maquilh. Natural',
+      navBook:'Agendar',
+      // Hero
+      heroTitle:'Descubra o nosso mundo', heroSub:'Beleza. Paixão. Perfeição.', heroCta:'Agendar',
+      // Scroll
+      scroll:'Deslizar',
+      // Section commons
+      treatHead:'Sobre este tratamento', priceHead:'Lista de preços', btnBook:'Agendar',
+      // Descriptions
+      gelDesc:'Mime as suas unhas com as nossas técnicas profissionais de gel e acrílico. Do clássico ao extravagante, criamos as unhas dos seus sonhos com máxima precisão e materiais de alta qualidade — para um visual que verdadeiramente impressiona.',
+      pmuDesc:'Maquilhagem permanente para um visual impecável e sem esforço — todos os dias. As nossas técnicas de maquilhagem permanente realçam a sua beleza natural de forma subtil e elegante, poupando-lhe tempo precioso diariamente.',
+      pedDesc:'Conceda aos seus pés os cuidados que merecem. A nossa pedicure cosmética mima, alisa e embeleza com técnicas profissionais — para pés que se destacam e impressionam.',
+      fillDesc:'Fillers de ácido hialurónico para volume natural e redução suave de rugas. Trabalhamos de forma discreta e precisa — para uma aparência mais fresca e descansada, que continua a ser totalmente você.',
+      lasDesc:'Extensões de pestanas para um olhar intenso e expressivo. Do natural ao dramático — realçamos os seus olhos na perfeição e damos-lhe pestanas que captam todos os olhares.',
+      korDesc:'Descubra os segredos da cultura de beleza coreana. Os nossos tratamentos K-Beauty combinam técnicas inovadoras com produtos coreanos de alta qualidade — para uma pele radiante e luminosa.',
+      natDesc:'Um look atemporal e natural para qualquer ocasião. Realçamos a sua beleza individual com texturas leves e cores harmoniosas — para um visual que é genuinamente você.',
+      // Gel & Acryl prices
+      gelP1:'Unhas de Gel Base', gelP2:'Extensão Acrílica', gelP3:'Extensão de Gel',
+      gelP4:'French Manicure', gelP5:'Design de Unhas (a partir)', gelP6:'Preenchimento',
+      // Permanent MU prices
+      pmuP1:'Sobrancelhas Ombré', pmuP2:'Microblading', pmuP3:'Lábios Aquarela',
+      pmuP4:'Eyeliner superior', pmuP5:'Eyeliner inferior', pmuP6:'Retoque (a partir)',
+      // Pedicure prices
+      pedP1:'Pedicure Base', pedP2:'Pedicure Spa', pedP3:'Pedicure incl. Unhas de Gel',
+      pedP4:'Remoção de Calosidades', pedP5:'Correção de Unhas',
+      // Fillers prices
+      fillP1:'Filler Labial', fillP2:'Filler de Bochechas', fillP3:'Sulcos Nasolabiais',
+      fillP4:'Contorno do Queixo', fillP5:'Consulta', fillV5:'gratuito',
+      // Lashes prices
+      lasP1:'Classic Lashes', lasP2:'Volume Lashes', lasP3:'Mega Volume',
+      lasP4:'Lash Lifting', lasP5:'Reposição (2 semanas)', lasP6:'Reposição (3 semanas)',
+      // Korean Cosmetics prices
+      korP1:'Glass Skin Treatment', korP2:'Brightening Facial', korP3:'Anti-Aging Ritual',
+      korP4:'Deep Cleansing', korP5:'Hyaluron Boost',
+      // Natural Make Up prices
+      natP1:'Maquilhagem do Dia', natP2:'Evening Look', natP3:'Event Make-up',
+      natP4:'Maquilhagem de Casamento', natP5:'Ensaio de Maquilhagem', natP6:'Curso de Maquilhagem',
+      // Booking form
+      bookTitle:'Agendar Consulta',
+      bookIntro:'Escolha o seu serviço e a sua data — estamos à sua espera.',
+      bkService:'Serviço', bkPlease:'Por favor escolha…', bkDate:'Data desejada',
+      bkTime:'Hora desejada', bkName:'Nome', bkEmail:'E-Mail', bkPhone:'Telefone', bkNote:'Observações',
+      phName:'O seu nome', phNote:'Desejos, perguntas ou notas especiais…',
+      btnSubmit:'Enviar pedido',
+      // Footer
+      fStandort:'Localização', fHours:'Horário', fFollow:'Siga-me',
+      fMonFri:'Segunda – Sexta', fSat:'Sábado', fSun:'Domingo', fClosed:'Encerrado',
+      fPhone:'Telefone:', fCopy:'© Todos os direitos reservados',
+      fImpressum:'Aviso Legal', fDatenschutz:'Privacidade',
+      // Butterfly floating labels
+      fly0:'Gel &<br>Acrílico', fly1:'Maquilhagem<br>Permanente', fly2:'Pedicure<br>Cosmética',
+      fly3:'Fillers', fly4:'Pestanas', fly5:'Korean<br>Cosmetics', fly6:'Maquilhagem<br>Natural',
+    }
+  };
+
+  var _lang = 'de';
+
+  function applyLang(lang) {
+    var t  = T[lang];
+    var q  = function(s) { return document.querySelector(s); };
+    var qa = function(s) { return document.querySelectorAll(s); };
+
+    // ── Nav ──────────────────────────────────────────────────────────────────
+    var nl = qa('#nav-links li:not(.mobile-cta) a');
+    ['navGel','navPmu','navPedicure','navFillers','navLashes','navKorean','navNatural']
+      .forEach(function(k,i){ if(nl[i]) nl[i].textContent = t[k]; });
+    qa('.nav-cta-btn, .mobile-cta a').forEach(function(el){ el.textContent = t.navBook; });
+
+    // ── Hero ─────────────────────────────────────────────────────────────────
+    var h2=q('#cta h2'); if(h2) h2.textContent = t.heroTitle;
+    var hp=q('#cta p');  if(hp) hp.textContent = t.heroSub;
+    var ha=q('#cta a');  if(ha) ha.textContent = t.heroCta;
+
+    // ── Scroll hint ───────────────────────────────────────────────────────────
+    var sh=q('#scroll-hint span'); if(sh) sh.textContent = t.scroll;
+
+    // ── Section commons ───────────────────────────────────────────────────────
+    qa('.svc-description h3').forEach(function(el){ el.textContent = t.treatHead; });
+    qa('.svc-prices h3').forEach(function(el){ el.textContent = t.priceHead; });
+    qa('.btn-book').forEach(function(el){ el.textContent = t.btnBook; });
+
+    // ── Descriptions ──────────────────────────────────────────────────────────
+    var descs = qa('.svc-description p');
+    ['gelDesc','pmuDesc','pedDesc','fillDesc','lasDesc','korDesc','natDesc']
+      .forEach(function(k,i){ if(descs[i]) descs[i].textContent = t[k]; });
+
+    // ── Price names ───────────────────────────────────────────────────────────
+    [
+      ['#section-gel-acryl-nails',      ['gelP1','gelP2','gelP3','gelP4','gelP5','gelP6']],
+      ['#section-permanent-make-up',    ['pmuP1','pmuP2','pmuP3','pmuP4','pmuP5','pmuP6']],
+      ['#section-kosmetische-pedicure', ['pedP1','pedP2','pedP3','pedP4','pedP5']],
+      ['#section-fillers',              ['fillP1','fillP2','fillP3','fillP4','fillP5']],
+      ['#section-lashes',               ['lasP1','lasP2','lasP3','lasP4','lasP5','lasP6']],
+      ['#section-korean-cosmetics',     ['korP1','korP2','korP3','korP4','korP5']],
+      ['#section-natural-make-up',      ['natP1','natP2','natP3','natP4','natP5','natP6']],
+    ].forEach(function(pair){
+      var items = qa(pair[0]+' .price-name');
+      pair[1].forEach(function(k,i){ if(items[i]) items[i].textContent = t[k]; });
+    });
+    // Filler "kostenlos" price value
+    var fv = qa('#section-fillers .price-value');
+    if(fv[4]) fv[4].textContent = t.fillV5;
+
+    // ── Booking ───────────────────────────────────────────────────────────────
+    var bTitle=q('#section-booking .svc-title'); if(bTitle) bTitle.textContent = t.bookTitle;
+    var bIntro=q('.booking-intro');              if(bIntro) bIntro.textContent = t.bookIntro;
+    var lsv=q('label[for="bk-service"]');        if(lsv) lsv.textContent = t.bkService;
+    var opt=q('#bk-service option[value=""]');   if(opt) opt.textContent = t.bkPlease;
+    var ldt=q('label[for="bk-date"]');           if(ldt) ldt.textContent = t.bkDate;
+    var ltm=q('label[for="bk-time"]');           if(ltm) ltm.textContent = t.bkTime;
+    var lnm=q('label[for="bk-name"]');           if(lnm) lnm.textContent = t.bkName;
+    var lem=q('label[for="bk-email"]');          if(lem) lem.textContent = t.bkEmail;
+    var lph=q('label[for="bk-phone"]');          if(lph) lph.textContent = t.bkPhone;
+    var lnt=q('label[for="bk-note"]');           if(lnt) lnt.textContent = t.bkNote;
+    var inm=q('#bk-name');                       if(inm) inm.placeholder = t.phName;
+    var int=q('#bk-note');                       if(int) int.placeholder = t.phNote;
+    var sub=q('.btn-submit');                    if(sub) sub.textContent = t.btnSubmit;
+
+    // ── Footer ────────────────────────────────────────────────────────────────
+    var fh=qa('.footer-heading');
+    if(fh[0]) fh[0].textContent = t.fStandort;
+    if(fh[1]) fh[1].textContent = t.fHours;
+    if(fh[2]) fh[2].textContent = t.fFollow;
+
+    var hrs=qa('.footer-hours span');
+    if(hrs[0]) hrs[0].textContent = t.fMonFri;
+    if(hrs[2]) hrs[2].textContent = t.fSat;
+    if(hrs[4]) hrs[4].textContent = t.fSun;
+    if(hrs[5]) hrs[5].textContent = t.fClosed;
+
+    // Phone label (preserve the link child)
+    var phoneP=q('.footer-col--standort .footer-gap');
+    if(phoneP){
+      var phoneA=phoneP.querySelector('a');
+      if(phoneA){
+        var ac=phoneA.cloneNode(true);
+        phoneP.textContent='';
+        phoneP.appendChild(document.createTextNode(t.fPhone+' '));
+        phoneP.appendChild(ac);
+      }
+    }
+
+    // Footer bar
+    var fbar=q('.footer-bar');
+    if(fbar){
+      var bs=fbar.querySelectorAll('span:not(.footer-bar-sep)');
+      if(bs[0]) bs[0].textContent = t.fCopy;
+      var al=fbar.querySelectorAll('a');
+      if(al[0]) al[0].textContent = t.fImpressum;
+      if(al[1]) al[1].textContent = t.fDatenschutz;
+    }
+
+    // ── Butterfly floating labels ─────────────────────────────────────────────
+    qa('.card-label-floating').forEach(function(el,i){
+      var k='fly'+i;
+      if(t[k]!==undefined) el.innerHTML=t[k];
+    });
+
+    // ── Lang button label ─────────────────────────────────────────────────────
+    var btn=document.getElementById('lang-btn');
+    if(btn) btn.textContent = lang==='de' ? 'PT' : 'DE';
+
+    localStorage.setItem('gigi-lang', lang);
+    document.documentElement.lang = lang;
+    _lang = lang;
+  }
+
+  // Restore saved language
+  _lang = localStorage.getItem('gigi-lang') || 'de';
+  applyLang(_lang);
+
+  // Toggle on button click
+  document.getElementById('lang-btn').addEventListener('click', function(){
+    applyLang(_lang === 'de' ? 'pt' : 'de');
+  });
+
 })();
 </script>
 
