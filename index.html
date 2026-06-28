@@ -1642,7 +1642,7 @@
       const depth = pos3d.z;
       const scaleFactor = IS_MOBILE
         ? 0.7  + 1.5  * Math.pow(Math.max(0, Math.min(1, depth / HELIX_RADIUS)), 3)
-        : 0.55 + 0.55 * Math.pow(Math.max(0, Math.min(1, depth / HELIX_RADIUS)), 3);
+        : 0.55 + 0.95 * Math.pow(Math.max(0, Math.min(1, depth / HELIX_RADIUS)), 3);
       card.style.transform = `translate(-50%, -50%) scale(${scaleFactor})`;
 
       // Opacity based on visibility zone + depth
