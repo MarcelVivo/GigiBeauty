@@ -103,6 +103,9 @@
     filter: brightness(0.95);
     transition: filter 0.35s ease;
   }
+  @media (max-width: 767px) {
+    .service-card img { width: 120px; height: 120px; }
+  }
 
   /* Subtle pre-glow on hover */
   .service-card:hover img {
@@ -359,6 +362,7 @@
 
   @media (max-width: 960px) {
     .nav-hamburger { display: flex; }
+    .nav-cta-btn   { display: none; }   /* moves into hamburger menu */
     .nav-links {
       display: none;
       position: fixed;
@@ -366,17 +370,25 @@
       flex-direction: column;
       align-items: stretch;
       background: rgba(24, 13, 8, 0.97);
-      padding: 12px 0 20px;
+      padding: 12px 0 24px;
       border-bottom: 1px solid rgba(212,175,106,0.15);
       gap: 0;
     }
     #top-nav.menu-open .nav-links { display: flex; }
     .nav-links a {
       padding: 13px 32px;
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       border-radius: 0;
     }
-    #top-nav { padding: 0 24px; }
+    /* Termin buchen as last item in mobile menu */
+    .nav-links .mobile-cta a {
+      color: #d4af6a;
+      border-top: 1px solid rgba(212,175,106,0.15);
+      margin-top: 8px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+    }
+    #top-nav { padding: 0 20px; }
   }
 
   /* ═══════════════════════════════════════════════════════════════
@@ -623,12 +635,27 @@
     margin: 0 auto 56px;
   }
 
-  /* Responsive */
+  /* Responsive — Tablet */
   @media (max-width: 800px) {
     .svc-content { grid-template-columns: 1fr; gap: 40px; }
     .svc-inner   { padding: 44px 24px 64px; }
     .svc-head-left { gap: 18px; }
+    .svc-butterfly { width: 110px; height: 110px; }
+  }
+
+  /* Responsive — Mobile */
+  @media (max-width: 480px) {
+    .svc-inner     { padding: 32px 18px 56px; }
+    .svc-header    { margin-bottom: 36px; padding-bottom: 24px; }
+    .svc-head-left { gap: 14px; }
     .svc-butterfly { width: 80px; height: 80px; }
+    .svc-title     { font-size: clamp(1.3rem, 5vw, 1.8rem); }
+    .svc-description p { font-size: 0.95rem; }
+    .price-list li { font-size: 0.9rem; }
+    .btn-back-top  { width: 42px; height: 42px; font-size: 1.1rem; }
+    .btn-book      { padding: 14px 32px; font-size: 0.9rem; }
+    .booking-form-wrap { padding: 0; }
+    #logo img { width: clamp(130px, 55vw, 220px); }
   }
 
   /* ── Global rising-dust overlay (visible on service sections) */
@@ -669,6 +696,7 @@
     <li><a href="#section-lashes"                  onclick="navTo('section-lashes');closeNav();return false;">Lashes</a></li>
     <li><a href="#section-korean-cosmetics"        onclick="navTo('section-korean-cosmetics');closeNav();return false;">Korean</a></li>
     <li><a href="#section-natural-make-up"         onclick="navTo('section-natural-make-up');closeNav();return false;">Natural MU</a></li>
+    <li class="mobile-cta"><a href="#section-booking" onclick="navTo('section-booking');closeNav();return false;">Termin buchen</a></li>
   </ul>
 
   <a class="nav-cta-btn" href="#section-booking" onclick="navTo('section-booking');closeNav();return false;">Termin buchen</a>
@@ -735,6 +763,7 @@
   // ─── Scene setup ──────────────────────────────────────────────────────────
   const container = document.getElementById('canvas-container');
   const W = window.innerWidth, H = window.innerHeight;
+  const IS_MOBILE = W < 768;
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -750,8 +779,8 @@
   scene.fog = new THREE.FogExp2(0x180d08, 0.05);
 
   const camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 100);
-  camera.position.set(0, 1.2, 11);
-  camera.lookAt(0, -0.4, 0);
+  camera.position.set(0, 1.2, IS_MOBILE ? 13 : 11);
+  camera.lookAt(0, IS_MOBILE ? -0.8 : -0.4, 0);
 
   // ─── Lighting ─────────────────────────────────────────────────────────────
   const ambientLight = new THREE.AmbientLight(0x180a18, 0.8);
@@ -1253,8 +1282,8 @@
 
   // ─── 3D positions for service cards (helix) ────────────────────────────────
   // Base helix coordinates — offset from lipstick center
-  const HELIX_RADIUS = 3.2;
-  const HELIX_HEIGHT_SPAN = 4.0;
+  const HELIX_RADIUS      = IS_MOBILE ? 2.0 : 3.2;
+  const HELIX_HEIGHT_SPAN = IS_MOBILE ? 3.0 : 4.0;
 
   function getHelixPos(index, totalItems, rotationOffset) {
     const t = index / totalItems;
@@ -1372,8 +1401,9 @@
     lipstickGroup.rotation.z = Math.cos(elapsed * 0.3) * 0.008;
 
     // ── Camera subtle float
-    camera.position.y = lerp(camera.position.y, 1.2 - eased * 0.4, 0.03);
-    camera.lookAt(0, smoothedTipY * 0.25 - 0.4, 0);
+    const camTargY = IS_MOBILE ? 1.2 - eased * 0.2 : 1.2 - eased * 0.4;
+    camera.position.y = lerp(camera.position.y, camTargY, 0.03);
+    camera.lookAt(0, smoothedTipY * 0.25 + (IS_MOBILE ? -0.8 : -0.4), 0);
 
     // ── Gold sparkle flight — individual drift + twinkle per particle
     const posArr = sparkleGeo.attributes.position.array;
@@ -1524,9 +1554,13 @@
       card.style.zIndex = Math.round(depth * 10 + 50);
 
       // ── Floating label: trails butterfly, sits bottom-left over the butterfly
-      const halfSize = 97.5 * scaleFactor;   // half of 195px
-      const lblTargX = screen.x - halfSize + 10;   // left edge of butterfly
-      const lblTargY = screen.y + halfSize * 0.52; // lower third of butterfly
+      const CARD_PX = IS_MOBILE ? 120 : 195;
+      const halfSize = (CARD_PX / 2) * scaleFactor;
+      const rawLblX  = screen.x - halfSize + 10;
+      const rawLblY  = screen.y + halfSize * 0.52;
+      // Clamp so labels never bleed off screen edges
+      const lblTargX = Math.max(4, Math.min(window.innerWidth - 160, rawLblX));
+      const lblTargY = rawLblY;
 
       // Lerp slower than the card → creates spring trailing delay
       lblCurX[i] = lerp(lblCurX[i], lblTargX, 0.07);
@@ -1537,7 +1571,9 @@
       lbl.style.top      = lblCurY[i] + 'px';
       lbl.style.opacity  = finalOpacity;
       lbl.style.zIndex   = Math.round(depth * 10 + 51);
-      lbl.style.fontSize = `${Math.max(0.95, 1.24 * scaleFactor)}rem`;
+      lbl.style.fontSize = IS_MOBILE
+        ? `${Math.max(0.68, 0.88 * scaleFactor)}rem`
+        : `${Math.max(0.95, 1.24 * scaleFactor)}rem`;
     });
 
     renderer.render(scene, camera);
