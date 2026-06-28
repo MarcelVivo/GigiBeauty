@@ -203,8 +203,9 @@
   @media (max-width: 767px) {
     #cta {
       justify-content: flex-start;
-      padding-top: 65vh;
+      padding-top: 70vh;
       padding-bottom: 0;
+      opacity: 1; /* always visible on mobile — JS maintains this */
     }
     #cta h2, #cta p { display: none; }
     #cta a {
@@ -1613,7 +1614,7 @@
       spiralParticles.visible = true;
       overlay.style.opacity = '';
       overlay.style.pointerEvents = '';
-      const ctaOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.65) / 0.10));
+      const ctaOpacity = IS_MOBILE ? 1 : Math.max(0, Math.min(1, (scrollProgress - 0.65) / 0.10));
       ctaEl.style.opacity = ctaOpacity;
       ctaEl.style.pointerEvents = ctaOpacity > 0.3 ? 'auto' : 'none';
     }
