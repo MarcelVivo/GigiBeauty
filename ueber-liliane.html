@@ -8,19 +8,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { height: 100%; font-size: 16px; }
+
+  html { scroll-behavior: smooth; }
 
   body {
     background: #180d08;
     color: #f5e6c8;
     font-family: 'Cormorant Garamond', 'Times New Roman', serif;
     font-weight: 300;
-    overflow: hidden;          /* page itself doesn't scroll — right col does */
+    overflow-x: hidden;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
   }
 
-  /* ── Particle canvas ─────────────────────────────────────────────────────── */
+  /* ── Particle canvas ── */
   #ul-particles {
     position: fixed;
     top: 0; left: 0;
@@ -29,15 +31,17 @@
     pointer-events: none;
   }
 
-  /* ── Header ──────────────────────────────────────────────────────────────── */
+  /* ── Header ── */
   #ul-header {
     position: relative;
     z-index: 10;
     flex-shrink: 0;
-    padding: 1.2rem 2rem;
+    padding: 1.2rem 2.5rem;
     border-bottom: 1px solid rgba(212,175,106,0.15);
     display: flex;
     align-items: center;
+    background: rgba(24,13,8,0.6);
+    backdrop-filter: blur(8px);
   }
 
   #ul-logo {
@@ -55,56 +59,42 @@
   }
   #ul-logo:hover { color: #d4af6a; }
 
-  /* ── Two-column wrapper ──────────────────────────────────────────────────── */
-  .ul-columns {
+  /* ── Main two-column layout ── */
+  .ul-main {
     position: relative;
     z-index: 1;
     flex: 1;
-    min-height: 0;       /* required so flex child can shrink below content size */
     display: grid;
-    grid-template-columns: 42% 58%;
-    overflow: hidden;
-  }
-
-  /* ── Left: sticky photo column ───────────────────────────────────────────── */
-  .ul-photo-col {
-    padding: 2.5rem 1.5rem 2.5rem 2.5rem;
-    display: flex;
-    align-items: stretch;
-    overflow: hidden;
-  }
-
-  .ul-photo-inner {
-    position: relative;
-    flex: 1;
-    overflow: hidden;
-    border-radius: 4px;
-  }
-
-  .ul-photo-inner img {
-    position: absolute;
-    inset: 0;
+    grid-template-columns: 46% 54%;
+    align-items: start;
+    max-width: 1400px;
     width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center top;
+    margin: 0 auto;
+    padding: clamp(2.5rem, 5vw, 5rem) clamp(2rem, 4vw, 4rem);
+    gap: clamp(2rem, 4vw, 5rem);
+  }
+
+  /* ── Left: photo (fully visible, natural proportions) ── */
+  .ul-photo-col {
+    position: sticky;
+    top: clamp(2rem, 4vw, 4rem);
+  }
+
+  .ul-photo-col img {
+    width: 100%;
+    height: auto;
     display: block;
-    filter: drop-shadow(0 8px 40px rgba(0,0,0,0.6));
+    border-radius: 6px;
+    box-shadow:
+      0 4px 24px rgba(0,0,0,0.55),
+      0 0 60px rgba(212,175,106,0.08);
   }
 
-  /* ── Right: scrollable text column ──────────────────────────────────────── */
+  /* ── Right: text column ── */
   .ul-text-col {
-    overflow-y: auto;
-    padding: clamp(2.5rem, 5vw, 5rem) clamp(2rem, 4vw, 4.5rem) 4rem;
-    /* Hide scrollbar visually but keep functional */
-    scrollbar-width: thin;
-    scrollbar-color: rgba(212,175,106,0.2) transparent;
+    padding-top: 0.5rem;
   }
-  .ul-text-col::-webkit-scrollbar { width: 4px; }
-  .ul-text-col::-webkit-scrollbar-track { background: transparent; }
-  .ul-text-col::-webkit-scrollbar-thumb { background: rgba(212,175,106,0.2); border-radius: 2px; }
 
-  /* ── Text content ────────────────────────────────────────────────────────── */
   .ul-eyebrow {
     font-size: 0.68rem;
     letter-spacing: 0.35em;
@@ -115,7 +105,7 @@
 
   .ul-text-col h1 {
     font-family: 'Playfair Display', Georgia, serif;
-    font-size: clamp(2.4rem, 4vw, 4rem);
+    font-size: clamp(2.2rem, 3.5vw, 3.8rem);
     font-weight: 400;
     color: #f5e6c8;
     letter-spacing: 0.01em;
@@ -125,7 +115,7 @@
 
   .ul-text-col h2 {
     font-family: 'Playfair Display', Georgia, serif;
-    font-size: clamp(1.0rem, 1.8vw, 1.4rem);
+    font-size: clamp(1.0rem, 1.6vw, 1.35rem);
     font-weight: 400;
     font-style: italic;
     color: #d4af6a;
@@ -140,42 +130,41 @@
   }
 
   .ul-text-col p {
-    font-size: clamp(1.0rem, 1.4vw, 1.12rem);
+    font-size: clamp(0.95rem, 1.3vw, 1.08rem);
     font-weight: 300;
     color: rgba(245,230,200,0.78);
     line-height: 1.9;
     margin-bottom: 1.1rem;
   }
 
-  /* ── Section divider between blocks ─────────────────────────────────────── */
   .ul-section {
-    margin-top: 3rem;
-    padding-top: 2.8rem;
+    margin-top: 2.8rem;
+    padding-top: 2.5rem;
     border-top: 1px solid rgba(212,175,106,0.14);
   }
 
   .ul-section-title {
     font-family: 'Playfair Display', Georgia, serif;
-    font-size: clamp(1.3rem, 2.2vw, 1.9rem);
+    font-size: clamp(1.2rem, 2vw, 1.75rem);
     font-weight: 400;
     color: #f5e6c8;
     line-height: 1.2;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.6rem;
   }
 
   .ul-section-quote {
     font-family: 'Playfair Display', Georgia, serif;
-    font-size: clamp(0.9rem, 1.3vw, 1.05rem);
+    font-size: clamp(0.88rem, 1.2vw, 1.0rem);
     font-style: italic;
     color: #d4af6a;
     letter-spacing: 0.02em;
     margin-bottom: 1.8rem;
-    line-height: 1.5;
+    line-height: 1.55;
   }
 
   .ul-cta {
     display: inline-block;
-    margin-top: 2.4rem;
+    margin-top: 2.2rem;
     background: linear-gradient(135deg, #c8a06a 0%, #d4af6a 50%, #b8903a 100%);
     color: #1a0a0a;
     font-family: 'Cormorant Garamond', serif;
@@ -187,23 +176,21 @@
     padding: 14px 40px;
     border-radius: 2px;
     transition: background 0.25s ease, letter-spacing 0.25s ease;
-    margin-bottom: 3rem;
   }
   .ul-cta:hover {
     background: linear-gradient(135deg, #d4af6a 0%, #e8c87a 50%, #c8a04a 100%);
     letter-spacing: 0.36em;
   }
 
-  /* ── Footer ──────────────────────────────────────────────────────────────── */
-  /* Footer sits OUTSIDE .ul-columns as a full-width flex child of body */
-  .ul-footer {
+  /* ── Footer ── */
+  footer.ul-footer {
+    position: relative;
+    z-index: 2;
     flex-shrink: 0;
     border-top: 1px solid rgba(212,175,106,0.12);
     padding: 2.5rem clamp(2rem, 5vw, 5rem) 0;
     background: #f0ece4;
     color: #2c1f0e;
-    position: relative;
-    z-index: 2;
   }
 
   .footer-inner {
@@ -257,29 +244,19 @@
   .footer-bar a:hover { color: #b8903a; }
   .footer-bar-sep { opacity: 0.4; }
 
-  /* ── Mobile: stack vertically, page scrolls normally ─────────────────────── */
+  /* ── Mobile ── */
   @media (max-width: 820px) {
-    html, body { height: auto; overflow: auto; }
-    body { overflow-x: hidden; }
-
-    .ul-columns {
+    .ul-main {
       grid-template-columns: 1fr;
-      overflow: visible;
+      padding: 2rem 1.5rem;
+      gap: 2rem;
     }
 
     .ul-photo-col {
-      height: 65vw;
-      max-height: 380px;
-      padding: 1.5rem;
-    }
-
-    .ul-text-col {
-      overflow-y: visible;
-      padding: 2rem 1.5rem 3rem;
+      position: static;
     }
 
     .footer-inner { grid-template-columns: 1fr; gap: 1.8rem; }
-    .ul-footer { padding-left: 1.5rem; padding-right: 1.5rem; }
   }
 </style>
 </head>
@@ -298,17 +275,15 @@
   </a>
 </header>
 
-<!-- Two columns -->
-<div class="ul-columns">
+<!-- Main content -->
+<main class="ul-main">
 
-  <!-- Left: fixed photo -->
+  <!-- Left: full photo -->
   <div class="ul-photo-col">
-    <div class="ul-photo-inner">
-      <img src="public/images/Gallery/Liliane.png" alt="Liliane Serrano — GiGi Beauty">
-    </div>
+    <img src="public/images/Gallery/Liliane.png" alt="Liliane Serrano — GiGi Beauty">
   </div>
 
-  <!-- Right: scrollable text -->
+  <!-- Right: all text -->
   <div class="ul-text-col">
 
     <p class="ul-eyebrow">GiGi Beauty · Bern</p>
@@ -322,7 +297,6 @@
 
     <p>Entdecken Sie mein umfangreiches Angebot und buchen Sie noch heute Ihren Termin. Ich freue mich darauf, Sie verwöhnen zu dürfen!</p>
 
-    <!-- Second text block -->
     <div class="ul-section">
       <h3 class="ul-section-title">Seit 2008 das „It" Beautystudio von Bern</h3>
       <p class="ul-section-quote">„Die Begeisterung des Herzens ist die Quelle jeder großen Unternehmung" — Giuseppe Mazzini</p>
@@ -339,9 +313,9 @@
     <a href="index.html#section-booking" class="ul-cta">Termin buchen</a>
 
   </div><!-- end .ul-text-col -->
-</div><!-- end .ul-columns -->
+</main>
 
-<!-- Footer: full-width, static, outside the two-column area -->
+<!-- Footer: full-width, below both columns -->
 <footer class="ul-footer">
   <div class="footer-inner">
 
@@ -395,7 +369,6 @@
   </div>
 </footer>
 
-<!-- Floating gold particles -->
 <script>
 (function() {
   var cv  = document.getElementById('ul-particles');
