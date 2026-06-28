@@ -1283,7 +1283,7 @@
 
   // ─── 3D positions for service cards (helix) ────────────────────────────────
   // Base helix coordinates — offset from lipstick center
-  const HELIX_RADIUS      = IS_MOBILE ? 1.8  : 3.2;
+  const HELIX_RADIUS      = IS_MOBILE ? 2.05 : 3.2;
   const HELIX_HEIGHT_SPAN = IS_MOBILE ? 2.4  : 4.0;
 
   function getHelixPos(index, totalItems, rotationOffset) {
@@ -1579,7 +1579,7 @@
       lbl.style.opacity   = finalOpacity;
       lbl.style.zIndex    = Math.round(depth * 10 + 51);
       lbl.style.fontSize  = IS_MOBILE
-        ? `${Math.max(0.28, 0.36 * scaleFactor)}rem`
+        ? `${Math.max(0.42, 0.54 * scaleFactor)}rem`
         : `${Math.max(0.95, 1.24 * scaleFactor)}rem`;
     });
 
