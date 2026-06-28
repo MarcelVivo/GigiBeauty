@@ -1114,6 +1114,107 @@
   const particles = new THREE.Points(sparkleGeo, sparkleMat);
   scene.add(particles);
 
+  // ─── Golden mist cloud at lipstick base ──────────────────────────────────
+  // Layered horizontal discs + billboard sprites create a volumetric cloud
+  // around the base cap; all are children of lipstickGroup so they follow it.
+  const _mistLayers = [], _mistLayerSpds = [], _mistSprites = [], _mistSpriteBaseOp = [];
+  (function buildBaseMist() {
+    // Cloud-puff texture: several overlapping soft elliptic blobs → irregular organic shape
+    const sz = 256, cv = document.createElement('canvas');
+    cv.width = sz; cv.height = sz;
+    const ctx = cv.getContext('2d'), c = sz / 2;
+    [
+      {dx: 0.00, dy: 0.00, rx:0.42, ry:0.30, a:0.30},
+      {dx:-0.16, dy: 0.06, rx:0.30, ry:0.21, a:0.22},
+      {dx: 0.19, dy:-0.09, rx:0.28, ry:0.20, a:0.20},
+      {dx:-0.09, dy:-0.14, rx:0.22, ry:0.16, a:0.17},
+      {dx: 0.13, dy: 0.14, rx:0.25, ry:0.18, a:0.19},
+      {dx: 0.23, dy: 0.05, rx:0.19, ry:0.13, a:0.14},
+      {dx:-0.21, dy:-0.06, rx:0.21, ry:0.15, a:0.15},
+    ].forEach(b => {
+      const bx = c + b.dx*sz, by = c + b.dy*sz, rx = b.rx*sz, ry = b.ry*sz;
+      const g = ctx.createRadialGradient(bx,by,0,bx,by,rx);
+      g.addColorStop(0.00, `rgba(255,228,140,${b.a})`);
+      g.addColorStop(0.40, `rgba(212,175,106,${+(b.a*0.55).toFixed(3)})`);
+      g.addColorStop(0.72, `rgba(170,130,60,${+(b.a*0.14).toFixed(3)})`);
+      g.addColorStop(1.00, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g;
+      ctx.save(); ctx.beginPath(); ctx.ellipse(bx,by,rx,ry,0,0,Math.PI*2); ctx.fill(); ctx.restore();
+    });
+    const mTex = new THREE.CanvasTexture(cv);
+
+    // Five horizontal disk layers from base (y=-1.92) rising upward
+    [
+      {y:-1.92, size:4.5, op:0.40, spd: 0.0007},
+      {y:-1.76, size:3.7, op:0.30, spd:-0.0011},
+      {y:-1.58, size:2.9, op:0.22, spd: 0.0014},
+      {y:-1.38, size:2.1, op:0.14, spd:-0.0017},
+      {y:-1.16, size:1.4, op:0.08, spd: 0.0020},
+    ].forEach(cfg => {
+      const mat = new THREE.MeshBasicMaterial({
+        map: mTex, transparent: true, opacity: cfg.op,
+        depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+      });
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(cfg.size, cfg.size), mat);
+      m.rotation.x = -Math.PI / 2;
+      m.position.y = cfg.y;
+      lipstickGroup.add(m);
+      _mistLayers.push(m);
+      _mistLayerSpds.push(cfg.spd);
+    });
+
+    // Billboard puff sprites facing the camera → volumetric 3D look
+    const spMat = new THREE.SpriteMaterial({
+      map: mTex, transparent: true,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+    });
+    [
+      {p:[-0.55,-1.48, 0.30], s:1.5,  o:0.22},
+      {p:[ 0.60,-1.42,-0.25], s:1.3,  o:0.18},
+      {p:[-0.30,-1.32,-0.55], s:1.1,  o:0.16},
+      {p:[ 0.25,-1.22, 0.45], s:0.95, o:0.13},
+    ].forEach(cfg => {
+      const sp = new THREE.Sprite(spMat.clone());
+      sp.material.opacity = cfg.o;
+      sp.position.set(...cfg.p);
+      sp.scale.setScalar(cfg.s);
+      lipstickGroup.add(sp);
+      _mistSprites.push(sp);
+      _mistSpriteBaseOp.push(cfg.o);
+    });
+  })();
+
+  // Floating particles that rise from inside the cloud and respawn at the base
+  const BASE_P = IS_MOBILE ? 60 : 110;
+  const _bpPos = new Float32Array(BASE_P * 3);
+  const _bpVel = new Float32Array(BASE_P * 3);
+  const _bpPh  = new Float32Array(BASE_P);
+  const _bpCol = new Float32Array(BASE_P * 3);
+  function _bpReset(i) {
+    const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * 1.8;
+    _bpPos[i*3]   = Math.cos(a) * r;
+    _bpPos[i*3+1] = -1.92 + Math.random() * 0.10;
+    _bpPos[i*3+2] = Math.sin(a) * r;
+    _bpVel[i*3]   = (Math.random() - 0.5) * 0.004;
+    _bpVel[i*3+1] = Math.random() * 0.007 + 0.003;
+    _bpVel[i*3+2] = (Math.random() - 0.5) * 0.004;
+    _bpPh[i] = Math.random() * Math.PI * 2;
+  }
+  for (let i = 0; i < BASE_P; i++) {
+    _bpReset(i);
+    _bpPos[i*3+1] += Math.random() * 1.3; // pre-spread so cloud is already filled on load
+    const b = 0.65 + Math.random() * 0.35;
+    _bpCol[i*3]=0.85*b; _bpCol[i*3+1]=0.72*b; _bpCol[i*3+2]=0.30*b;
+  }
+  const _bpGeo = new THREE.BufferGeometry();
+  _bpGeo.setAttribute('position', new THREE.BufferAttribute(_bpPos, 3));
+  _bpGeo.setAttribute('color',    new THREE.BufferAttribute(_bpCol, 3));
+  lipstickGroup.add(new THREE.Points(_bpGeo, new THREE.PointsMaterial({
+    size: IS_MOBILE ? 0.12 : 0.16, map: _sparkleTex, vertexColors: true,
+    transparent: true, opacity: 0.80, alphaTest: 0.005,
+    sizeAttenuation: true, blending: THREE.AdditiveBlending, depthWrite: false,
+  })));
+
   // ─── Lipstick spiral particles ────────────────────────────────────────────
   // Dense helical swirl around the metallic holder; rises with scroll progress.
   // Coordinate space: world (lipstickGroup sits at y=0 normally).
@@ -1601,6 +1702,31 @@
           window._bokehBaseY[i] +
           Math.sin(elapsed * window._bokehSpd[i] + window._bokehPhase[i]) * window._bokehAmp[i];
       }
+    }
+
+    // ── Mist cloud: slowly rotate horizontal layers + breathe opacity on sprites
+    for (let i = 0; i < _mistLayers.length; i++) {
+      _mistLayers[i].rotation.z += _mistLayerSpds[i];
+      const br = 0.95 + 0.05 * Math.sin(elapsed * 0.38 + i * 1.05);
+      _mistLayers[i].scale.set(br, br, 1);
+    }
+    for (let i = 0; i < _mistSprites.length; i++) {
+      _mistSprites[i].material.opacity = _mistSpriteBaseOp[i] * (0.78 + 0.22 * Math.sin(elapsed * 0.32 + i * 1.9));
+    }
+    // ── Base cloud particles: drift up from base, respawn when they clear the cloud
+    {
+      const bpa = _bpGeo.attributes.position.array;
+      const bca = _bpGeo.attributes.color.array;
+      for (let i = 0; i < BASE_P; i++) {
+        bpa[i*3]   += _bpVel[i*3];
+        bpa[i*3+1] += _bpVel[i*3+1];
+        bpa[i*3+2] += _bpVel[i*3+2];
+        if (bpa[i*3+1] > -0.65) _bpReset(i);
+        const bright = 0.35 + 0.65 * Math.abs(Math.sin(elapsed * 1.9 + _bpPh[i]));
+        bca[i*3]=0.85*bright; bca[i*3+1]=0.72*bright; bca[i*3+2]=0.30*bright;
+      }
+      _bpGeo.attributes.position.needsUpdate = true;
+      _bpGeo.attributes.color.needsUpdate    = true;
     }
 
     // ── Purple accent light gentle pulse (kept low to preserve red hue)
