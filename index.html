@@ -177,7 +177,7 @@
   }
 
   #cta a {
-    pointer-events: inherit;
+    pointer-events: auto;
     display: inline-block;
     background: linear-gradient(135deg, #c8a06a 0%, #d4af6a 50%, #b8903a 100%);
     color: #1a0a0a;
@@ -1664,7 +1664,6 @@
     const ctaEl = document.getElementById('cta');
     if (isPastHero) {
       ctaEl.style.opacity = '0';
-      ctaEl.style.pointerEvents = 'none';
       overlay.style.opacity = '0';
       overlay.style.pointerEvents = 'none';
       lipstickGroup.visible  = false;
@@ -1676,7 +1675,8 @@
       overlay.style.pointerEvents = '';
       const ctaOpacity = IS_MOBILE ? 1 : Math.max(0, Math.min(1, (scrollProgress - 0.65) / 0.10));
       ctaEl.style.opacity = ctaOpacity;
-      ctaEl.style.pointerEvents = ctaOpacity > 0.3 ? 'auto' : 'none';
+      // #cta container stays pointer-events:none (CSS) so touches reach the
+      // butterflies below (z-index 5). The <a> inside has pointer-events:auto.
     }
 
     // ── Gentle idle sway (very subtle when not scrolling)
