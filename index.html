@@ -395,6 +395,10 @@
     letter-spacing: 0.27em;
   }
 
+  /* Extra gap before the About button, tighter gap before Termin buchen */
+  .nav-links .nav-about-li { margin-left: 1.8rem; }
+  .nav-cta-btn             { margin-left: -10px; }
+
   #lang-btn {
     display: inline-flex;
     align-items: center;
@@ -855,7 +859,7 @@
     <li><a href="#section-lashes"                  onclick="navTo('section-lashes');closeNav();return false;">Lashes</a></li>
     <li><a href="#section-korean-cosmetics"        onclick="navTo('section-korean-cosmetics');closeNav();return false;">Korean</a></li>
     <li><a href="#section-natural-make-up"         onclick="navTo('section-natural-make-up');closeNav();return false;">Natural MU</a></li>
-    <li><a href="ueber-liliane.html" class="nav-about-btn">Über GiGi Beauty</a></li>
+    <li class="nav-about-li"><a href="ueber-liliane.html" class="nav-about-btn">Über GiGi Beauty</a></li>
     <li class="mobile-cta"><a href="#section-booking" onclick="navTo('section-booking');closeNav();return false;">Termin buchen</a></li>
   </ul>
 
