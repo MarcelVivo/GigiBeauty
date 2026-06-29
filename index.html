@@ -1660,10 +1660,11 @@
     abNormTex.wrapS = abNormTex.wrapT = THREE.RepeatWrapping;
     abNormTex.repeat.set(2, 10);
 
-    // Abrasiv: matt-grau, porös, kaum metallisch — typische Schleiffeile
+    // Abrasiv: matt-grau, porös — emissive sorgt für Sichtbarkeit trotz dunklem Ambient
     const abrasiveMat = new THREE.MeshStandardMaterial({
-      color: 0xA8A8AA, roughness: 0.96, metalness: 0.04,
-      normalMap: abNormTex, normalScale: new THREE.Vector2(2.20, 2.20),
+      color:    0xC2C2C4, roughness: 0.94, metalness: 0.04,
+      emissive: 0x343434, emissiveIntensity: 0.45,
+      normalMap: abNormTex, normalScale: new THREE.Vector2(2.00, 2.00),
     });
     // Klingenränder: polierter Edelstahl
     const edgeMat = new THREE.MeshStandardMaterial({
