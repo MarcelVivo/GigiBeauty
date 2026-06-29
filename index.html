@@ -2607,25 +2607,39 @@
   // ── Fächerförmige Goldstrahlen hinter dem Bouquet ────────────────────────
   const _fanRays = (function buildFanRays() {
     const NUM    = 18;
-    const SPREAD = Math.PI * 0.78;   // ~140° Fächer
-    const OY     = -1.55;            // Ursprung: leicht unter Werkzeugmitte (lipstickGroup-lokal)
-    const OZ     = -0.85;            // hinter allen Werkzeugen
+    const SPREAD = Math.PI * 0.78;
+    const OY     = -1.55;
+    const OZ     = -0.85;
 
-    // Textur: transparent an Spitze (UV.v=1 = canvas oben), hell am Ursprung (UV.v=0 = canvas unten)
-    const tc = document.createElement('canvas');
-    tc.width = 4; tc.height = 64;
-    const tx = tc.getContext('2d');
-    const tg = tx.createLinearGradient(0, 0, 0, 64);
-    tg.addColorStop(0.00, 'rgba(212,175,106,0.00)');
-    tg.addColorStop(0.38, 'rgba(212,175,106,0.08)');
-    tg.addColorStop(0.70, 'rgba(212,175,106,0.52)');
-    tg.addColorStop(1.00, 'rgba(212,175,106,1.00)');
-    tx.fillStyle = tg;
-    tx.fillRect(0, 0, 4, 64);
+    // 2-D Kegel-Textur: pro Pixel Gaussian-Kegelform berechnet
+    // canvas-oben (py=0)  → UV.v=1 → Geometrie-Spitze: breit & transparent
+    // canvas-unten (py=TH)→ UV.v=0 → Geometrie-Ursprung: schmal & hell
+    const TW = 64, TH = 128;
+    const tc  = document.createElement('canvas');
+    tc.width  = TW; tc.height = TH;
+    const tx  = tc.getContext('2d');
+    const img = tx.createImageData(TW, TH);
+    const d   = img.data;
+    for (let py = 0; py < TH; py++) {
+      for (let px = 0; px < TW; px++) {
+        const v  = py / (TH - 1);          // 0 = Spitze, 1 = Ursprung
+        const u  = px / (TW - 1) - 0.5;   // -0.5 … +0.5 zentriert
+        const vertA  = Math.pow(v, 1.2);   // hell am Ursprung, transparent an Spitze
+        const halfW  = 0.04 + (1 - v) * 0.46;  // schmal am Ursprung, breit an Spitze
+        const sigma  = halfW * 0.55;
+        const horiA  = Math.exp(-(u * u) / (2 * sigma * sigma));
+        const a = Math.min(1, vertA * horiA);
+        const idx = (py * TW + px) * 4;
+        d[idx]     = 212;
+        d[idx + 1] = 175;
+        d[idx + 2] = 106;
+        d[idx + 3] = Math.round(a * 255);
+      }
+    }
+    tx.putImageData(img, 0, 0);
     const rayTex = new THREE.CanvasTexture(tc);
 
     const fanGroup = new THREE.Group();
-    // Fest in Weltkoordinaten: lipstickGroup startet bei y=-1.1, OY relativ dazu
     fanGroup.position.set(0, -1.1 + OY, OZ);
     fanGroup.scale.setScalar(2);
     scene.add(fanGroup);
@@ -2635,11 +2649,11 @@
       const t      = i / (NUM - 1);
       const angle  = -SPREAD / 2 + SPREAD * t + (Math.random() - 0.5) * 0.20;
       const len    = 2.4 + Math.random() * 2.8;
-      const hw     = 0.009 + Math.random() * 0.052;
+      const hw     = 0.06  + Math.random() * 0.08;   // breiter für Kegeleffekt
       const baseOp = 0.04  + Math.random() * 0.40;
 
       const geo = new THREE.PlaneGeometry(hw * 2, len);
-      geo.translate(0, len / 2, 0);   // Drehpunkt unten
+      geo.translate(0, len / 2, 0);
 
       const mat = new THREE.MeshBasicMaterial({
         map: rayTex, transparent: true, opacity: baseOp,
