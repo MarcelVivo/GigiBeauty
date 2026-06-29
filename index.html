@@ -1448,9 +1448,7 @@
     color: 0x080808, roughness: 0.72, metalness: 0.0,
   });
   // Mascara-Kappe: dunkles Metall
-  const mascaraCapMat = new THREE.MeshStandardMaterial({
-    color: 0x181820, metalness: 0.55, roughness: 0.30,
-  });
+  const mascaraCapMat = woodMat;
 
   // ── 1. Make-up Pinsel — exakt nach Spezifikation (skaliert ×1.3 für Szene)
   (function buildBrush() {
