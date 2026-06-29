@@ -1894,6 +1894,7 @@
   let _isAnimatingToSec    = false; // true while triggerFirstSection rAF is running
   let _lastMouseX          = null;  // previous mousemove clientX for delta calculation
   let _mouseXCurrent       = -1;    // latest known mouse X (for edge-zone continuous scroll)
+  let mouseTargetProgress  = 0;    // virtual 0-1 progress driven by mouse (no DOM scroll)
 
   // ─── Mouse-driven rotation offset ─────────────────────────────────────────
   let targetMouseRot   = 0;   // desired rotation based on mouse X (±π)
@@ -1992,17 +1993,16 @@
       return;
     }
 
-    // ── Mouse left/right drives scroll (same UX as scrolling down/up) ──────
-    // Moving LEFT  → scroll DOWN  (progress increases → service sections)
-    // Moving RIGHT → scroll UP    (progress decreases → back to top)
+    // ── Mouse left/right drives virtual scroll progress (no DOM scrollBy) ──
+    // Moving LEFT  → progress ↑  (toward service sections)
+    // Moving RIGHT → progress ↓  (back to top)
     if (!_isAnimatingToSec && _lastMouseX !== null) {
       const dx = e.clientX - _lastMouseX;
       if (dx !== 0) {
-        const heroEl = document.getElementById('hero-scroll');
-        const maxScrl = heroEl.offsetHeight - window.innerHeight;
-        // Full screen width = 110% of hero scroll (doubled speed)
-        const scrollPx = -dx * (maxScrl * 1.10 / window.innerWidth);
-        window.scrollBy({ top: scrollPx, behavior: 'instant' });
+        // Full screen width = 110% of progress range
+        mouseTargetProgress = Math.max(0, Math.min(1,
+          mouseTargetProgress - dx * (1.10 / window.innerWidth)
+        ));
       }
     }
     _lastMouseX    = e.clientX;
@@ -2077,31 +2077,34 @@
       return;
     }
 
-    // ── Edge-zone continuous scroll: when mouse is pinned to left/right edge,
-    //    keep scrolling without needing further mouse movement.
-    //    Left edge  → scroll DOWN  (progress ↑)
-    //    Right edge → scroll UP    (progress ↓)
+    // ── Edge-zone continuous scroll via mouseTargetProgress (no window.scrollBy) ──
+    //    When mouse is pinned to left/right edge, progress advances each frame.
     if (!isPastHero && !_isAnimatingToSec && _mouseXCurrent >= 0) {
-      const EDGE  = 90;                          // px zone from each edge
-      const W     = window.innerWidth;
-      let   edgePx = 0;
+      const EDGE = 90;
+      const W    = window.innerWidth;
       if (_mouseXCurrent < EDGE) {
-        // left edge: strength 0→1 as mouse goes to edge
         const str = (EDGE - _mouseXCurrent) / EDGE;
-        const heroEl  = document.getElementById('hero-scroll');
-        const maxScrl = heroEl.offsetHeight - window.innerHeight;
-        edgePx = maxScrl * 0.0036 * str;        // up to ~0.18 % of hero per frame
+        mouseTargetProgress = Math.min(1, mouseTargetProgress + 0.0036 * str);
       } else if (_mouseXCurrent > W - EDGE) {
         const str = (_mouseXCurrent - (W - EDGE)) / EDGE;
-        const heroEl  = document.getElementById('hero-scroll');
-        const maxScrl = heroEl.offsetHeight - window.innerHeight;
-        edgePx = -(maxScrl * 0.0036 * str);
+        mouseTargetProgress = Math.max(0, mouseTargetProgress - 0.0036 * str);
       }
-      if (edgePx !== 0) window.scrollBy({ top: edgePx, behavior: 'instant' });
+      // Once mouse has driven progress to 100%, trigger section reveal once
+      if (mouseTargetProgress >= 1 && !_firstSvcLaunched) {
+        _firstSvcLaunched = true;
+        triggerFirstSection();
+      }
     }
 
-    // Smooth scroll progress
-    scrollProgress = lerp(scrollProgress, targetScrollProgress, IS_MOBILE ? 0.26 : 0.07);
+    // Reset so mouse can re-trigger if user goes back to the beginning
+    if (!isPastHero && mouseTargetProgress < 0.05 && targetScrollProgress < 0.05) {
+      _firstSvcLaunched = false;
+      _ctaGestureCount  = 0;
+    }
+
+    // Smooth scroll progress — merge physical scroll and mouse-driven virtual progress
+    const _effectiveTarget = Math.max(targetScrollProgress, mouseTargetProgress);
+    scrollProgress = lerp(scrollProgress, _effectiveTarget, IS_MOBILE ? 0.26 : 0.07);
     const eased = easeInOut(scrollProgress);
 
     // ── Lipstick rotation (full 360° over scroll)
