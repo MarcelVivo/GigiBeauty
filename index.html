@@ -523,6 +523,15 @@
     border-top: 1px solid rgba(212,175,106,0.12);
   }
 
+  /* First section fades in after hero — opacity:0 until JS adds .svc-revealed */
+  #section-gel-acryl-nails {
+    opacity: 0;
+  }
+  #section-gel-acryl-nails.svc-revealed {
+    opacity: 1;
+    transition: opacity 0.90s ease;
+  }
+
   .svc-inner {
     max-width: 1100px;
     margin: 0 auto;
@@ -1863,6 +1872,7 @@
   let smoothedHelixRot = 0;
   let smoothedCameraY = 0;
   let isPastHero = false;
+  let _firstSvcTimer = null;   // timeout handle for first-section reveal delay
 
   // ─── Mouse-driven rotation offset ─────────────────────────────────────────
   let targetMouseRot   = 0;   // desired rotation based on mouse X (±π)
@@ -1900,6 +1910,21 @@
     // Hide scroll hint: desktop → after 60 px; mobile → only once past hero
     const hint = document.getElementById('scroll-hint');
     hint.style.opacity = isPastHero ? '0' : '1';
+
+    // First service section: fade in 300 ms after entering, instant hide on return
+    const firstSvc = document.getElementById('section-gel-acryl-nails');
+    if (isPastHero) {
+      if (!firstSvc.classList.contains('svc-revealed') && !_firstSvcTimer) {
+        _firstSvcTimer = setTimeout(() => {
+          firstSvc.classList.add('svc-revealed');
+          _firstSvcTimer = null;
+        }, 300);
+      }
+    } else {
+      clearTimeout(_firstSvcTimer);
+      _firstSvcTimer = null;
+      firstSvc.classList.remove('svc-revealed');
+    }
   }, { passive: true });
 
   // ─── Mouse X → helix rotation ─────────────────────────────────────────────
