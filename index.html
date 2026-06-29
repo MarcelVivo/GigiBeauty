@@ -535,13 +535,16 @@
     border-top: 1px solid rgba(212,175,106,0.12);
   }
 
-  /* First section fades in after hero — opacity:0 until JS adds .svc-revealed */
+  /* First section slides up after hero — hidden + shifted down until .svc-revealed */
   #section-gel-acryl-nails {
     opacity: 0;
+    transform: translateY(55px);
   }
   #section-gel-acryl-nails.svc-revealed {
     opacity: 1;
-    transition: opacity 0.90s ease;
+    transform: translateY(0);
+    transition: opacity 0.85s ease,
+                transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .svc-inner {
@@ -1884,7 +1887,10 @@
   let smoothedHelixRot = 0;
   let smoothedCameraY = 0;
   let isPastHero = false;
-  let _firstSvcTimer = null;   // timeout handle for first-section reveal delay
+  let _firstSvcTimer    = null;   // timeout handle for first-section reveal delay
+  let _ctaGestureCount  = 0;     // scroll gestures counted after CTA is fully visible
+  let _lastGestureTime  = 0;     // debounce: ms timestamp of last counted gesture
+  let _firstSvcLaunched = false; // prevents re-triggering the slide-up
 
   // ─── Mouse-driven rotation offset ─────────────────────────────────────────
   let targetMouseRot   = 0;   // desired rotation based on mouse X (±π)
@@ -1923,6 +1929,24 @@
     const hint = document.getElementById('scroll-hint');
     hint.style.opacity = isPastHero ? '0' : '1';
 
+    // After CTA is fully visible (scrollProgress ≥ 0.435), count 2 scroll gestures
+    // then programmatically scroll to the first service section.
+    if (!_firstSvcLaunched && !isPastHero) {
+      if (scrollProgress < 0.325) {
+        _ctaGestureCount = 0; // reset if user scrolled back before CTA
+      } else if (scrollProgress >= 0.435) {
+        const now = Date.now();
+        if (now - _lastGestureTime > 220) { // one gesture per 220 ms
+          _lastGestureTime = now;
+          _ctaGestureCount++;
+          if (_ctaGestureCount >= 2) {
+            _firstSvcLaunched = true;
+            triggerFirstSection();
+          }
+        }
+      }
+    }
+
     // First service section: fade in 300 ms after entering, instant hide on return
     const firstSvc = document.getElementById('section-gel-acryl-nails');
     if (isPastHero) {
@@ -1938,6 +1962,21 @@
       firstSvc.classList.remove('svc-revealed');
     }
   }, { passive: true });
+
+  // Smoothly scroll page to the first service section (easeOutCubic, 700ms)
+  function triggerFirstSection() {
+    const heroEl  = document.getElementById('hero-scroll');
+    const target  = heroEl.offsetHeight - window.innerHeight + 60;
+    const startY  = window.scrollY;
+    const t0      = performance.now();
+    const dur     = 700;
+    const ease    = t => 1 - Math.pow(1 - t, 3);
+    (function step(now) {
+      const p = Math.min((now - t0) / dur, 1);
+      window.scrollTo(0, startY + (target - startY) * ease(p));
+      if (p < 1) requestAnimationFrame(step);
+    })(t0);
+  }
 
   // ─── Mouse X → helix rotation ─────────────────────────────────────────────
   // #hero-scroll has pointer-events:none, so listen on window instead
