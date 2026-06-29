@@ -1125,13 +1125,43 @@
     envMapIntensity: 1.3,
   });
 
-  // Label band: same hue as lipstick bullet, glossy so lights reflect on it
-  const roseGoldMat = new THREE.MeshStandardMaterial({
-    color:           0x9B3025,  // matches lipstickMat color
-    metalness:       0.18,      // slight sheen without full metal look
-    roughness:       0.22,      // polished — reflects surrounding lights
-    envMapIntensity: 1.2,
-  });
+  // Label band: lipstick color, glossy, with subtle procedural grain normal-map
+  const roseGoldMat = (function () {
+    const W = 256, H = 256;
+    const cvs = document.createElement('canvas');
+    cvs.width = W; cvs.height = H;
+    const cx  = cvs.getContext('2d');
+    const img = cx.createImageData(W, H);
+    const d   = img.data;
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const i = (y * W + x) * 4;
+        // Multi-frequency coherent noise → subtle surface bumps
+        const nx = Math.sin(x * 0.21 + y * 0.08) * 0.40
+                 + Math.sin(x * 0.79 - y * 0.53) * 0.35
+                 + Math.cos(x * 1.43 + y * 1.17) * 0.25;
+        const ny = Math.cos(y * 0.19 + x * 0.11) * 0.40
+                 + Math.cos(y * 0.67 - x * 0.49) * 0.35
+                 + Math.sin(y * 1.31 + x * 0.97) * 0.25;
+        d[i]   = Math.round(128 + nx * 24);  // R = tangent X
+        d[i+1] = Math.round(128 + ny * 24);  // G = tangent Y
+        d[i+2] = 255;                          // B = surface normal (pointing out)
+        d[i+3] = 255;
+      }
+    }
+    cx.putImageData(img, 0, 0);
+    const normalTex = new THREE.CanvasTexture(cvs);
+    normalTex.wrapS = normalTex.wrapT = THREE.RepeatWrapping;
+    normalTex.repeat.set(4, 2);   // 4× around circumference, 2× along height
+    return new THREE.MeshStandardMaterial({
+      color:           0x9B3025,
+      metalness:       0.18,
+      roughness:       0.22,
+      envMapIntensity: 1.2,
+      normalMap:       normalTex,
+      normalScale:     new THREE.Vector2(0.42, 0.42),
+    });
+  })();
 
   const goldMat = new THREE.MeshStandardMaterial({
     color: 0xd4af6a,
