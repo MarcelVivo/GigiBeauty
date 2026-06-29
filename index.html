@@ -1169,11 +1169,46 @@
     roughness: 0.1,
   });
 
-  const lipstickMat = new THREE.MeshStandardMaterial({
-    color: 0x9B3025,
-    metalness: 0.0,
-    roughness: 0.62,
-  });
+  // Lipstick bullet: fine organic surface irregularities via normal-map
+  const lipstickMat = (function () {
+    const W = 256, H = 256;
+    const cvs = document.createElement('canvas');
+    cvs.width = W; cvs.height = H;
+    const cx  = cvs.getContext('2d');
+    const img = cx.createImageData(W, H);
+    const d   = img.data;
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const i = (y * W + x) * 4;
+        // 5 overlapping frequencies → organic, non-repeating grain
+        const nx = Math.sin(x * 0.31 + y * 0.19) * 0.28
+                 + Math.sin(x * 1.13 - y * 0.71) * 0.22
+                 + Math.cos(x * 2.37 + y * 1.83) * 0.18
+                 + Math.sin(x * 4.01 - y * 3.17) * 0.11
+                 + Math.cos(x * 6.53 + y * 5.29) * 0.07;
+        const ny = Math.cos(y * 0.27 + x * 0.15) * 0.28
+                 + Math.cos(y * 1.07 - x * 0.63) * 0.22
+                 + Math.sin(y * 2.19 + x * 1.91) * 0.18
+                 + Math.cos(y * 3.83 - x * 2.93) * 0.11
+                 + Math.sin(y * 5.97 + x * 4.43) * 0.07;
+        d[i]   = Math.round(128 + nx * 20);
+        d[i+1] = Math.round(128 + ny * 20);
+        d[i+2] = 255;
+        d[i+3] = 255;
+      }
+    }
+    cx.putImageData(img, 0, 0);
+    const tex = new THREE.CanvasTexture(cvs);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(2, 3);   // 2× around circumference, 3× along height
+    return new THREE.MeshStandardMaterial({
+      color:       0x9B3025,
+      metalness:   0.0,
+      roughness:   0.62,
+      normalMap:   tex,
+      normalScale: new THREE.Vector2(0.28, 0.28),
+    });
+  })();
 
   const darkMat = new THREE.MeshStandardMaterial({
     color: 0x2a2a3a,
