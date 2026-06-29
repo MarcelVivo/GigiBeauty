@@ -1125,12 +1125,12 @@
     envMapIntensity: 1.3,
   });
 
-  // Satin-matte rose gold for the label band stripe
+  // Label band: same hue as lipstick bullet, glossy so lights reflect on it
   const roseGoldMat = new THREE.MeshStandardMaterial({
-    color:           0xC4806E,  // noble warm rose gold
-    metalness:       0.58,      // metallic but not mirror-like
-    roughness:       0.62,      // satin matte — silky, not shiny
-    envMapIntensity: 0.5,
+    color:           0x9B3025,  // matches lipstickMat color
+    metalness:       0.18,      // slight sheen without full metal look
+    roughness:       0.22,      // polished — reflects surrounding lights
+    envMapIntensity: 1.2,
   });
 
   const goldMat = new THREE.MeshStandardMaterial({
