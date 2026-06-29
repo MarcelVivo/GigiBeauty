@@ -872,6 +872,17 @@
     letter-spacing: 0.35em;
   }
 
+  /* ── Service-section entrance animation ── */
+  [data-svc-step] {
+    opacity: 0;
+    transform: translateX(-22px);
+    transition: opacity 0.52s ease-out, transform 0.52s ease-out;
+  }
+  [data-svc-step].svc-in {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
   /* Gold divider line between sections */
   .svc-divider {
     width: 80px;
@@ -4160,6 +4171,59 @@
   }
 
   loop();
+})();
+</script>
+
+<!-- ── Service-section text entrance animation (scroll-down only) ──────── -->
+<script>
+(function () {
+  /* Assign data-svc-step to each element group in every service section */
+  document.querySelectorAll('.svc-section').forEach(function (sec) {
+    var groups = [
+      [sec.querySelector('.svc-title')],                          /* 0 – heading      */
+      [sec.querySelector('.svc-description h3')],                 /* 1 – "Über…"      */
+      [sec.querySelector('.svc-prices h3')],                      /* 2 – "Preisliste" */
+      [sec.querySelector('.svc-description p'),
+       sec.querySelector('.price-list')],                         /* 3 – body text    */
+      [sec.querySelector('.btn-book')],                           /* 4 – CTA button   */
+    ];
+    groups.forEach(function (els, step) {
+      els.forEach(function (el) {
+        if (el) el.setAttribute('data-svc-step', step);
+      });
+    });
+  });
+
+  /* Track scroll direction */
+  var lastY = window.scrollY;
+  var goingDown = true;
+  window.addEventListener('scroll', function () {
+    goingDown = window.scrollY >= lastY;
+    lastY = window.scrollY;
+  }, { passive: true });
+
+  /* Fire staggered animation when section enters viewport while scrolling down */
+  var STEP_MS = 130; /* ms between each step */
+  var obs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting || !goingDown) return;
+      var sec = entry.target;
+      for (var s = 0; s <= 4; s++) {
+        (function (step) {
+          setTimeout(function () {
+            sec.querySelectorAll('[data-svc-step="' + step + '"]').forEach(function (el) {
+              el.classList.add('svc-in');
+            });
+          }, step * STEP_MS);
+        })(s);
+      }
+      obs.unobserve(sec); /* animate only once per section */
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.svc-section').forEach(function (sec) {
+    obs.observe(sec);
+  });
 })();
 </script>
 
