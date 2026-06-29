@@ -1893,6 +1893,7 @@
   let _firstSvcLaunched    = false; // prevents re-triggering the slide-up
   let _isAnimatingToSec    = false; // true while triggerFirstSection rAF is running
   let _lastMouseX          = null;  // previous mousemove clientX for delta calculation
+  let _mouseXCurrent       = -1;    // latest known mouse X (for edge-zone continuous scroll)
 
   // ─── Mouse-driven rotation offset ─────────────────────────────────────────
   let targetMouseRot   = 0;   // desired rotation based on mouse X (±π)
@@ -2004,7 +2005,8 @@
         window.scrollBy({ top: scrollPx, behavior: 'instant' });
       }
     }
-    _lastMouseX = e.clientX;
+    _lastMouseX    = e.clientX;
+    _mouseXCurrent = e.clientX;
 
     // ── Helix rotation offset (existing) ───────────────────────────────────
     const normalizedX = e.clientX / window.innerWidth;
@@ -2073,6 +2075,29 @@
       lipstickGroup.position.y = lerp(lipstickGroup.position.y, -7, 0.09);
       renderer.render(scene, camera);
       return;
+    }
+
+    // ── Edge-zone continuous scroll: when mouse is pinned to left/right edge,
+    //    keep scrolling without needing further mouse movement.
+    //    Left edge  → scroll DOWN  (progress ↑)
+    //    Right edge → scroll UP    (progress ↓)
+    if (!isPastHero && !_isAnimatingToSec && _mouseXCurrent >= 0) {
+      const EDGE  = 90;                          // px zone from each edge
+      const W     = window.innerWidth;
+      let   edgePx = 0;
+      if (_mouseXCurrent < EDGE) {
+        // left edge: strength 0→1 as mouse goes to edge
+        const str = (EDGE - _mouseXCurrent) / EDGE;
+        const heroEl  = document.getElementById('hero-scroll');
+        const maxScrl = heroEl.offsetHeight - window.innerHeight;
+        edgePx = maxScrl * 0.0018 * str;        // up to ~0.18 % of hero per frame
+      } else if (_mouseXCurrent > W - EDGE) {
+        const str = (_mouseXCurrent - (W - EDGE)) / EDGE;
+        const heroEl  = document.getElementById('hero-scroll');
+        const maxScrl = heroEl.offsetHeight - window.innerHeight;
+        edgePx = -(maxScrl * 0.0018 * str);
+      }
+      if (edgePx !== 0) window.scrollBy({ top: edgePx, behavior: 'instant' });
     }
 
     // Smooth scroll progress
