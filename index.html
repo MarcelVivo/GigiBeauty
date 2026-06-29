@@ -1835,6 +1835,30 @@
     // In Z zentrieren und auf Ferrule-Oberkante setzen
     blade.position.set(0, blBaseY, -0.007 * S);
     grp.add(blade);
+
+    // ── Schatten linke Kante → Fläche ───────────────────────────────────────
+    // Horizontaler Gradient: linker Rand dunkel, nach ~35% der Breite transparent
+    const shCvs = document.createElement('canvas');
+    shCvs.width = 64; shCvs.height = 4;
+    const shCtx = shCvs.getContext('2d');
+    const shGrad = shCtx.createLinearGradient(0, 0, 64, 0);
+    shGrad.addColorStop(0,    'rgba(0,0,0,0.52)');
+    shGrad.addColorStop(0.38, 'rgba(0,0,0,0.0)');
+    shGrad.addColorStop(1,    'rgba(0,0,0,0.0)');
+    shCtx.fillStyle = shGrad;
+    shCtx.fillRect(0, 0, 64, 4);
+    const shTex = new THREE.CanvasTexture(shCvs);
+
+    const shMat = new THREE.MeshBasicMaterial({
+      map: shTex, transparent: true, depthWrite: false,
+    });
+    const shMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(bW * 2, bHf),
+      shMat
+    );
+    // Sitzt knapp vor der Vorderfläche der Klinge (ExtrudeGeometry → Frontfläche bei z=+depth)
+    shMesh.position.set(0, blBaseY + bHf / 2, -0.007 * S + 0.014 * S + 0.001);
+    grp.add(shMesh);
   })();
 
   // ── 4. Eyeliner (rechts, leicht vorne) — Hochglanz-Schwarz, gestufte Spitze
