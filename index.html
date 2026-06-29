@@ -1753,11 +1753,19 @@
     const blBaseR = 0.175*S, blH = 1.45*S;
     const blBaseY = fBaseY + fHr;
 
-    const bladeGeo = new THREE.CylinderGeometry(0.0007, blBaseR, blH, 4, 1);
+    const bladeGeo = new THREE.CylinderGeometry(0.022*S, blBaseR, blH, 4, 1);
     const blade = new THREE.Mesh(bladeGeo, abrasiveMat);
     blade.scale.set(0.50, 1, 0.078);
     blade.position.y = blBaseY + blH/2;
     grp.add(blade);
+
+    // Abgerundete Kuppe an der Spitze (verhindert "Messer"-Look)
+    const tipCap = new THREE.Mesh(
+      new THREE.SphereGeometry(0.022*S, 16, 12), abrasiveMat
+    );
+    tipCap.scale.set(0.50, 0.80, 0.078);
+    tipCap.position.y = blBaseY + blH;
+    grp.add(tipCap);
 
     // Polierte Edelstahl-Klingenränder (dünne Streifen, untere 60% der Klinge)
     const eW = 0.0025*S, eD = 0.013*S;
