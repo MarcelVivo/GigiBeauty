@@ -1650,8 +1650,8 @@
         const ry = (h2 - Math.floor(h2)) * 2.0 - 1.0;
         const nx = rx*0.68 + Math.sin(px*9.7+py*7.3)*0.22 + Math.sin(px*21.3-py*17.1)*0.10;
         const ny = ry*0.68 + Math.cos(py*8.9+px*6.1)*0.22 + Math.cos(py*19.7-px*15.3)*0.10;
-        abd[ii]   = Math.max(0,Math.min(255, Math.round(128+nx*58)));
-        abd[ii+1] = Math.max(0,Math.min(255, Math.round(128+ny*58)));
+        abd[ii]   = Math.max(0,Math.min(255, Math.round(128+nx*72)));
+        abd[ii+1] = Math.max(0,Math.min(255, Math.round(128+ny*72)));
         abd[ii+2] = 255; abd[ii+3] = 255;
       }
     }
@@ -1660,10 +1660,10 @@
     abNormTex.wrapS = abNormTex.wrapT = THREE.RepeatWrapping;
     abNormTex.repeat.set(2, 10);
 
-    // Abrasiv: hell-silber, körnig-funkelnd (wie Ref.)
+    // Abrasiv: matt-grau, porös, kaum metallisch — typische Schleiffeile
     const abrasiveMat = new THREE.MeshStandardMaterial({
-      color: 0xD5D5D9, roughness: 0.68, metalness: 0.48,
-      normalMap: abNormTex, normalScale: new THREE.Vector2(1.20, 1.20),
+      color: 0xA8A8AA, roughness: 0.96, metalness: 0.04,
+      normalMap: abNormTex, normalScale: new THREE.Vector2(2.20, 2.20),
     });
     // Klingenränder: polierter Edelstahl
     const edgeMat = new THREE.MeshStandardMaterial({
