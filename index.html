@@ -2666,7 +2666,7 @@
       fanGroup.add(mesh);
 
       rays.push({
-        mat,
+        mesh, mat, angle,   // angle + mesh needed for collapse animation
         baseOp,
         amp:   baseOp * (0.28 + Math.random() * 0.58),
         phase: Math.random() * Math.PI * 2,
@@ -2677,6 +2677,8 @@
     }
     return rays;
   })();
+
+  let _fanCollapseT = 0;   // 0 = Fächer offen, 1 = kollabiert & ausgeblendet
 
   // ─── Animate loop ─────────────────────────────────────────────────────────
   const clock = new THREE.Clock();
@@ -2990,12 +2992,23 @@
         : `${Math.max(0.95, 1.24 * scaleFactor)}rem`;
     });
 
-    // ── Pulsierender Goldstrahl-Fächer ──────────────────────────────────────
+    // ── Goldstrahl-Fächer: pulsieren + beim isPastHero zur Mitte kollabieren ─
+    _fanCollapseT = lerp(_fanCollapseT, isPastHero ? 1 : 0, 0.055);
+    const _fanVisible = _fanCollapseT < 0.99;
     _fanRays.forEach(function (r) {
-      const n = Math.sin(elapsed * r.sp1 + r.phase)        * 0.50
-              + Math.sin(elapsed * r.sp2 + r.phase * 1.87) * 0.32
-              + Math.sin(elapsed * r.sp3 + r.phase * 0.61) * 0.18;
-      r.mat.opacity = Math.max(0.005, r.baseOp + n * r.amp);
+      if (_fanVisible) {
+        // Winkel: von originalem Fächer-Winkel → 0 (vertikal) beim Kollaps
+        r.mesh.rotation.z = r.angle * (1 - _fanCollapseT);
+        // Puls-Rauschen
+        const n = Math.sin(elapsed * r.sp1 + r.phase)        * 0.50
+                + Math.sin(elapsed * r.sp2 + r.phase * 1.87) * 0.32
+                + Math.sin(elapsed * r.sp3 + r.phase * 0.61) * 0.18;
+        const pulsed = Math.max(0.005, r.baseOp + n * r.amp);
+        r.mat.opacity = pulsed * (1 - _fanCollapseT);
+        r.mesh.visible = true;
+      } else {
+        r.mesh.visible = false;
+      }
     });
 
     renderer.render(scene, camera);
