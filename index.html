@@ -1401,115 +1401,229 @@
   bouquetGroup.position.set(0, -1.1, 0);
   scene.add(bouquetGroup);
 
-  const brushHeadMat = new THREE.MeshStandardMaterial({
-    color: 0x100c08, metalness: 0.0, roughness: 0.93,
+  // Hochglanz Rose-Gold für Ringe & Ferrule
+  const bouqRoseGold = new THREE.MeshStandardMaterial({
+    color: 0xc27255, metalness: 0.93, roughness: 0.055,
   });
+  // Pinselborsten: fast weiß unten (Basis), sehr dunkel oben (Spitzen)
+  const bristleWhiteMat = new THREE.MeshStandardMaterial({
+    color: 0xd6dae0, metalness: 0.0, roughness: 0.95,
+  });
+  const bristleDarkMat = new THREE.MeshStandardMaterial({
+    color: 0x0b0b0b, metalness: 0.0, roughness: 0.96,
+  });
+  // Feilen-Klinge: raues, körniges Metall
   const fileBladeMat = new THREE.MeshStandardMaterial({
-    color: 0xbec5c8, metalness: 0.60, roughness: 0.62,
+    color: 0xb8bfc4, metalness: 0.38, roughness: 0.87,
   });
-  const eyelinerBodyMat = new THREE.MeshStandardMaterial({
-    color: 0x0c0c10, metalness: 0.28, roughness: 0.48,
+  // Eyeliner: Hochglanz-Schwarz (lackiert)
+  const eyelinerMat = new THREE.MeshStandardMaterial({
+    color: 0x060610, metalness: 0.52, roughness: 0.07,
+  });
+  // Mascara-Kappe: dunkles Metall
+  const mascaraCapMat = new THREE.MeshStandardMaterial({
+    color: 0x181820, metalness: 0.55, roughness: 0.30,
   });
 
-  // ── 1. Makeup Brush (links, hinten) ─────────────────────────────────────
+  // ── 1. Make-up Pinsel (links, hinten) — Trapez-Ferrule, Zwei-Ton-Borsten
   (function buildBrush() {
     const grp = new THREE.Group();
-    grp.position.set(-0.70, -1.82, -0.35);
+    grp.position.set(-0.72, -1.82, -0.36);
     grp.rotation.z =  18 * Math.PI / 180;
     grp.rotation.y =  0.10;
     bouquetGroup.add(grp);
-    const R = 0.108;
-    const cap = new THREE.Mesh(new THREE.SphereGeometry(R, 14, 8), woodMat);
-    cap.position.y = R; grp.add(cap);
-    const hnd = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.90, R, 2.10, 22), woodMat);
-    hnd.position.y = R + 1.05; grp.add(hnd);
-    const ferrY = R + 2.10;
-    const ferr = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.88, R * 1.06, 0.36, 22), roseGoldMat);
-    ferr.position.y = ferrY + 0.18; grp.add(ferr);
-    const colY = ferrY + 0.36;
-    const col = new THREE.Mesh(new THREE.CylinderGeometry(0.152, R * 0.88, 0.22, 22), roseGoldMat);
-    col.position.y = colY + 0.11; grp.add(col);
-    const bhY = colY + 0.22;
-    const bh = new THREE.Mesh(new THREE.CylinderGeometry(0.210, 0.152, 0.54, 22), brushHeadMat);
-    bh.position.y = bhY + 0.27; grp.add(bh);
-    const dome = new THREE.Mesh(new THREE.SphereGeometry(0.215, 22, 12), brushHeadMat);
-    dome.scale.set(1, 0.62, 1); dome.position.y = bhY + 0.54; grp.add(dome);
+
+    // Griff: unten abgerundet, leicht konisch nach oben
+    const capBot = new THREE.Mesh(new THREE.SphereGeometry(0.115, 18, 10), woodMat);
+    capBot.position.y = 0.115; grp.add(capBot);
+    const hnd = new THREE.Mesh(new THREE.CylinderGeometry(0.108, 0.115, 2.18, 26), woodMat);
+    hnd.position.y = 0.115 + 1.09; grp.add(hnd);
+
+    // Dünner Übergangsring Griff → Ferrule
+    const sepY = 0.115 + 2.18;
+    const sep = new THREE.Mesh(new THREE.CylinderGeometry(0.122, 0.108, 0.055, 22), bouqRoseGold);
+    sep.position.y = sepY + 0.0275; grp.add(sep);
+
+    // Ferrule: TRAPEZFÖRMIG — schmal unten (0.115), breit oben (0.262)
+    const ferrY = sepY + 0.055;
+    const ferr = new THREE.Mesh(new THREE.CylinderGeometry(0.262, 0.118, 0.54, 26), bouqRoseGold);
+    ferr.position.y = ferrY + 0.27; grp.add(ferr);
+
+    // Schmaler Übergang Ferrule → Borsten
+    const colY = ferrY + 0.54;
+    const col = new THREE.Mesh(new THREE.CylinderGeometry(0.274, 0.262, 0.10, 26), bouqRoseGold);
+    col.position.y = colY + 0.05; grp.add(col);
+
+    // Untere Borsten (helles Weiß/Silber) — sichtbar an der Basis des Pinsels
+    const bhY = colY + 0.10;
+    const bhW = new THREE.Mesh(new THREE.CylinderGeometry(0.272, 0.274, 0.26, 26), bristleWhiteMat);
+    bhW.position.y = bhY + 0.13; grp.add(bhW);
+
+    // Obere Borsten (fast schwarz) — bilden den Hauptkörper
+    const bhDY = bhY + 0.26;
+    const bhD = new THREE.Mesh(new THREE.CylinderGeometry(0.268, 0.272, 0.44, 26), bristleDarkMat);
+    bhD.position.y = bhDY + 0.22; grp.add(bhD);
+
+    // Flacher Abschluss oben (flach abgeschnittener Pinsel)
+    const domeY = bhDY + 0.44;
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(0.272, 24, 14), bristleDarkMat);
+    dome.scale.set(1, 0.14, 1);
+    dome.position.y = domeY; grp.add(dome);
   })();
 
-  // ── 2. Mascara (links, leicht vorne) ─────────────────────────────────────
+  // ── 2. Mascara-Tube (links, leicht vorne) — geschlossener Tube
   (function buildMascara() {
     const grp = new THREE.Group();
-    grp.position.set(-0.34, -1.82, +0.22);
+    grp.position.set(-0.35, -1.82, +0.24);
     grp.rotation.z =  10 * Math.PI / 180;
     grp.rotation.y = -0.06;
     bouquetGroup.add(grp);
-    const R = 0.155;
-    const cap = new THREE.Mesh(new THREE.SphereGeometry(R, 14, 8), woodMat);
-    cap.position.y = R; grp.add(cap);
-    const b = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.97, R, 2.45, 24), woodMat);
-    b.position.y = R + 1.225; grp.add(b);
-    const nkY = R + 2.45;
-    const nk = new THREE.Mesh(new THREE.CylinderGeometry(0.100, R * 0.97, 0.22, 22), woodMat);
-    nk.position.y = nkY + 0.11; grp.add(nk);
-    const rgY = nkY + 0.22;
-    const rg = new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.115, 0.13, 22), roseGoldMat);
-    rg.position.y = rgY + 0.065; grp.add(rg);
-    const capbY = rgY + 0.13;
-    const capb = new THREE.Mesh(new THREE.CylinderGeometry(0.108, 0.108, 0.65, 22), darkMat);
-    capb.position.y = capbY + 0.325; grp.add(capb);
-    const nzY = capbY + 0.65;
-    const nz = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.108, 0.20, 18), darkMat);
-    nz.position.y = nzY + 0.10; grp.add(nz);
-    const td = new THREE.Mesh(new THREE.SphereGeometry(0.068, 12, 8), darkMat);
-    td.position.y = nzY + 0.20; grp.add(td);
+
+    // Abgerundeter Boden
+    const capBot = new THREE.Mesh(new THREE.SphereGeometry(0.162, 18, 10), woodMat);
+    capBot.position.y = 0.162; grp.add(capBot);
+
+    // Haupt-Tubus: dunkles Holz, gleichmäßiger Zylinder
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.158, 0.162, 2.55, 28), woodMat);
+    body.position.y = 0.162 + 1.275; grp.add(body);
+
+    // Einschnürung zum Verschluss hin
+    const nkY = 0.162 + 2.55;
+    const nk = new THREE.Mesh(new THREE.CylinderGeometry(0.118, 0.158, 0.24, 24), woodMat);
+    nk.position.y = nkY + 0.12; grp.add(nk);
+
+    // Markanter Rose-Gold-Ring
+    const rgY = nkY + 0.24;
+    const rg = new THREE.Mesh(new THREE.CylinderGeometry(0.132, 0.132, 0.26, 24), bouqRoseGold);
+    rg.position.y = rgY + 0.13; grp.add(rg);
+
+    // Dunkle Kappe (Verschluss-Zylinder)
+    const ckY = rgY + 0.26;
+    const ck = new THREE.Mesh(new THREE.CylinderGeometry(0.118, 0.118, 0.68, 22), mascaraCapMat);
+    ck.position.y = ckY + 0.34; grp.add(ck);
+
+    // Taper zur Öffnung
+    const nzY = ckY + 0.68;
+    const nz = new THREE.Mesh(new THREE.CylinderGeometry(0.072, 0.118, 0.19, 18), mascaraCapMat);
+    nz.position.y = nzY + 0.095; grp.add(nz);
+
+    // Gewinde-Nippel oben (kleines Detail)
+    const nipY = nzY + 0.19;
+    const nip = new THREE.Mesh(new THREE.CylinderGeometry(0.060, 0.072, 0.09, 16), mascaraCapMat);
+    nip.position.y = nipY + 0.045; grp.add(nip);
+    const nipCap = new THREE.Mesh(new THREE.SphereGeometry(0.060, 14, 8), mascaraCapMat);
+    nipCap.scale.set(1, 0.65, 1); nipCap.position.y = nipY + 0.09; grp.add(nipCap);
   })();
 
-  // ── 3. Nagel-Feile (rechts, hinten) ──────────────────────────────────────
+  // ── 3. Nagel-Feile (rechts, hinten) — Birnen-Griff, breite Klinge
   (function buildFile() {
     const grp = new THREE.Group();
-    grp.position.set(+0.70, -1.82, -0.35);
+    grp.position.set(+0.72, -1.82, -0.36);
     grp.rotation.z = -18 * Math.PI / 180;
     grp.rotation.y = -0.10;
     bouquetGroup.add(grp);
-    const R = 0.122;
-    const cap = new THREE.Mesh(new THREE.SphereGeometry(R, 14, 8), woodMat);
-    cap.position.y = R; grp.add(cap);
-    const h = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.92, R, 1.65, 22), woodMat);
-    h.position.y = R + 0.825; grp.add(h);
-    const rY = R + 1.65;
-    const rg = new THREE.Mesh(new THREE.CylinderGeometry(R * 1.08, R * 1.08, 0.14, 22), roseGoldMat);
-    rg.position.y = rY + 0.07; grp.add(rg);
-    const bbY = rY + 0.14;
-    const bb = new THREE.Mesh(new THREE.CylinderGeometry(0.075, R * 1.02, 0.18, 10), fileBladeMat);
-    bb.position.y = bbY + 0.09; grp.add(bb);
-    const blY = bbY + 0.18;
-    const bl = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.075, 2.20, 7), fileBladeMat);
-    bl.scale.set(0.38, 1, 1); bl.position.y = blY + 1.10; grp.add(bl);
-    const bt = new THREE.Mesh(new THREE.SphereGeometry(0.014, 8, 6), fileBladeMat);
-    bt.scale.set(0.38, 1, 1); bt.position.y = blY + 2.20; grp.add(bt);
+
+    // Unterer Nippel (dunkler Punkt am Griff-Ende)
+    const nip = new THREE.Mesh(new THREE.SphereGeometry(0.062, 12, 8), darkMat);
+    nip.scale.set(1, 0.65, 1); nip.position.y = 0.040; grp.add(nip);
+
+    // Abgerundeter Griff-Boden
+    const capBot = new THREE.Mesh(new THREE.SphereGeometry(0.095, 16, 10), woodMat);
+    capBot.position.y = 0.095; grp.add(capBot);
+
+    // Untere schmale Griffsektion (Taille)
+    const lo = new THREE.Mesh(new THREE.CylinderGeometry(0.092, 0.093, 0.48, 24), woodMat);
+    lo.position.y = 0.095 + 0.24; grp.add(lo);
+
+    // Griff wölbt sich auf (Birnform)
+    const wid = new THREE.Mesh(new THREE.CylinderGeometry(0.138, 0.092, 0.50, 24), woodMat);
+    wid.position.y = 0.095 + 0.48 + 0.25; grp.add(wid);
+
+    // Breiter Griffkörper (dickste Stelle)
+    const midY = 0.095 + 0.48 + 0.50;
+    const mid = new THREE.Mesh(new THREE.CylinderGeometry(0.138, 0.138, 0.72, 24), woodMat);
+    mid.position.y = midY + 0.36; grp.add(mid);
+
+    // Griff verjüngt sich wieder Richtung Rose-Gold-Ring
+    const tapY = midY + 0.72;
+    const tap = new THREE.Mesh(new THREE.CylinderGeometry(0.108, 0.138, 0.34, 22), woodMat);
+    tap.position.y = tapY + 0.17; grp.add(tap);
+
+    // Markanter Rose-Gold-Ring
+    const rgY = tapY + 0.34;
+    const rg = new THREE.Mesh(new THREE.CylinderGeometry(0.124, 0.124, 0.22, 22), bouqRoseGold);
+    rg.position.y = rgY + 0.11; grp.add(rg);
+
+    // Übergangsstück Griff → Klinge (leichte Verjüngung)
+    const bbY = rgY + 0.22;
+    const bb = new THREE.Mesh(new THREE.CylinderGeometry(0.088, 0.112, 0.15, 12), fileBladeMat);
+    bb.position.y = bbY + 0.075; grp.add(bb);
+
+    // Klinge: flach (scale.x=0.28), von breit nach spitz
+    const blY = bbY + 0.15;
+    const bl = new THREE.Mesh(new THREE.CylinderGeometry(0.010, 0.088, 2.15, 8), fileBladeMat);
+    bl.scale.set(0.28, 1, 1); bl.position.y = blY + 1.075; grp.add(bl);
+
+    // Klingenspitze
+    const btip = new THREE.Mesh(new THREE.SphereGeometry(0.012, 8, 6), fileBladeMat);
+    btip.scale.set(0.28, 1, 1); btip.position.y = blY + 2.15; grp.add(btip);
   })();
 
-  // ── 4. Eyeliner (rechts, leicht vorne) ───────────────────────────────────
+  // ── 4. Eyeliner (rechts, leicht vorne) — Hochglanz-Schwarz, gestufte Spitze
   (function buildEyeliner() {
     const grp = new THREE.Group();
-    grp.position.set(+0.34, -1.82, +0.22);
+    grp.position.set(+0.35, -1.82, +0.24);
     grp.rotation.z = -10 * Math.PI / 180;
     grp.rotation.y = +0.06;
     bouquetGroup.add(grp);
-    const R = 0.096;
-    const cap = new THREE.Mesh(new THREE.SphereGeometry(R, 14, 8), eyelinerBodyMat);
-    cap.position.y = R; grp.add(cap);
-    const b = new THREE.Mesh(new THREE.CylinderGeometry(R, R, 3.40, 24), eyelinerBodyMat);
-    b.position.y = R + 1.70; grp.add(b);
-    const shY = R + 3.40;
-    const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.052, R, 0.28, 20), eyelinerBodyMat);
-    sh.position.y = shY + 0.14; grp.add(sh);
-    const tpY = shY + 0.28;
-    const tp = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.052, 0.24, 16), eyelinerBodyMat);
-    tp.position.y = tpY + 0.12; grp.add(tp);
-    const ftY = tpY + 0.24;
-    const ft = new THREE.Mesh(new THREE.ConeGeometry(0.022, 0.38, 10), eyelinerBodyMat);
-    ft.position.y = ftY + 0.19; grp.add(ft);
+
+    // Abgerundeter Boden
+    const capBot = new THREE.Mesh(new THREE.SphereGeometry(0.097, 18, 10), eyelinerMat);
+    capBot.position.y = 0.097; grp.add(capBot);
+
+    // Hauptkörper: schlanker, gleichmäßiger Hochglanz-Zylinder
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.097, 0.097, 3.52, 28), eyelinerMat);
+    body.position.y = 0.097 + 1.76; grp.add(body);
+
+    // Schulter: erste Verjüngung
+    const sh1Y = 0.097 + 3.52;
+    const sh1 = new THREE.Mesh(new THREE.CylinderGeometry(0.078, 0.097, 0.22, 24), eyelinerMat);
+    sh1.position.y = sh1Y + 0.11; grp.add(sh1);
+
+    // Stufe 1 (kleiner Wulst als Kragen-Detail)
+    const s1Y = sh1Y + 0.22;
+    const s1r = new THREE.Mesh(new THREE.CylinderGeometry(0.082, 0.078, 0.05, 22), eyelinerMat);
+    s1r.position.y = s1Y + 0.025; grp.add(s1r);
+
+    // Stufe 2: Verjüngung
+    const s2Y = s1Y + 0.05;
+    const s2 = new THREE.Mesh(new THREE.CylinderGeometry(0.063, 0.082, 0.09, 20), eyelinerMat);
+    s2.position.y = s2Y + 0.045; grp.add(s2);
+
+    // Stufe 3: weiterer Kragen
+    const s3Y = s2Y + 0.09;
+    const s3r = new THREE.Mesh(new THREE.CylinderGeometry(0.066, 0.063, 0.045, 20), eyelinerMat);
+    s3r.position.y = s3Y + 0.0225; grp.add(s3r);
+
+    // Stufe 4: Verjüngung zur Spitze
+    const s4Y = s3Y + 0.045;
+    const s4 = new THREE.Mesh(new THREE.CylinderGeometry(0.046, 0.066, 0.09, 18), eyelinerMat);
+    s4.position.y = s4Y + 0.045; grp.add(s4);
+
+    // Stufe 5: finaler Kragen vor Spitze
+    const s5Y = s4Y + 0.09;
+    const s5r = new THREE.Mesh(new THREE.CylinderGeometry(0.048, 0.046, 0.038, 18), eyelinerMat);
+    s5r.position.y = s5Y + 0.019; grp.add(s5r);
+
+    // Verjüngung zur Filzspitze
+    const s6Y = s5Y + 0.038;
+    const s6 = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.048, 0.09, 16), eyelinerMat);
+    s6.position.y = s6Y + 0.045; grp.add(s6);
+
+    // Filz-Spitze (sehr fein)
+    const tipY = s6Y + 0.09;
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.026, 0.46, 12), eyelinerMat);
+    tip.position.y = tipY + 0.23; grp.add(tip);
   })();
 
   // ─── Gold sparkle particles (4-pointed stars) ─────────────────────────────
