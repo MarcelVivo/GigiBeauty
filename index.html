@@ -1748,36 +1748,37 @@
     bevTop.rotation.x = Math.PI/2; bevTop.position.y = fBaseY + fHr;
     grp.add(bevTop);
 
-    // ── Klinge: breite, flache, spitz zulaufende Diamant-Feile ──────────
-    // Breite Basis (≈85% Ferrule-Durchmesser), extrem spitze Spitze
-    const blBaseR = 0.175*S, blH = 1.45*S;
+    // ── Klinge: echte Nagelfeile — flache Platte mit sanft gerundeter Spitze ──
+    // ExtrudeGeometry: breite, dünne Platte, fast parallele Seiten, oben zulaufend
+    const bW  = 0.090 * S;   // halbe Breite (paralleler Bereich)
+    const bHf = 1.40 * S;    // Gesamthöhe der Klinge
     const blBaseY = fBaseY + fHr;
 
-    const bladeGeo = new THREE.CylinderGeometry(0.022*S, blBaseR, blH, 4, 1);
-    const blade = new THREE.Mesh(bladeGeo, abrasiveMat);
-    blade.scale.set(0.50, 1, 0.078);
-    blade.position.y = blBaseY + blH/2;
-    grp.add(blade);
+    // 2D-Umriss der Klinge (Draufsicht von vorne):
+    //  — fast parallel bis 76% der Höhe
+    //  — dann weiche quadratische Kurve zur gerundeten Spitze
+    const bladeShape = new THREE.Shape();
+    bladeShape.moveTo(-bW, 0);
+    bladeShape.lineTo(-bW, bHf * 0.76);
+    bladeShape.quadraticCurveTo(-bW * 0.15, bHf * 0.97, 0, bHf);
+    bladeShape.quadraticCurveTo( bW * 0.15, bHf * 0.97, bW, bHf * 0.76);
+    bladeShape.lineTo(bW, 0);
+    bladeShape.closePath();
 
-    // Abgerundete Kuppe an der Spitze (verhindert "Messer"-Look)
-    const tipCap = new THREE.Mesh(
-      new THREE.SphereGeometry(0.022*S, 16, 12), abrasiveMat
-    );
-    tipCap.scale.set(0.50, 0.80, 0.078);
-    tipCap.position.y = blBaseY + blH;
-    grp.add(tipCap);
-
-    // Polierte Edelstahl-Klingenränder (dünne Streifen, untere 60% der Klinge)
-    const eW = 0.0025*S, eD = 0.013*S;
-    const edgeH = blH * 0.60;
-    const edgeOffX = blBaseR * 0.50 * 0.32;
-    [-1, 1].forEach(side => {
-      const strip = new THREE.Mesh(
-        new THREE.BoxGeometry(eW, edgeH, eD), edgeMat
-      );
-      strip.position.set(side * edgeOffX, blBaseY + edgeH/2, 0);
-      grp.add(strip);
+    const bladeGeo = new THREE.ExtrudeGeometry(bladeShape, {
+      depth:          0.014 * S,   // Dicke der Feile
+      bevelEnabled:   true,
+      bevelThickness: 0.003 * S,
+      bevelSize:      0.003 * S,
+      bevelSegments:  3,
+      steps:          1,
     });
+
+    // Material-Array: Kanten polierter Stahl (idx 0), Fläche abrasiv (idx 1)
+    const blade = new THREE.Mesh(bladeGeo, [edgeMat, abrasiveMat]);
+    // In Z zentrieren und auf Ferrule-Oberkante setzen
+    blade.position.set(0, blBaseY, -0.007 * S);
+    grp.add(blade);
   })();
 
   // ── 4. Eyeliner (rechts, leicht vorne) — Hochglanz-Schwarz, gestufte Spitze
