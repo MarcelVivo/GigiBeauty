@@ -1661,17 +1661,8 @@
       color: 0x080808, roughness: 0.86, metalness: 0.0,
     });
 
-    // Dünner schwarzer Stab (aus dem Nippel heraus)
-    const wandBaseY = nipY + 0.09 + 0.060 * 0.65;
-    const wandH = 0.70;
-    const wand = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.010, 0.013, wandH, 8), bMat
-    );
-    wand.position.y = wandBaseY + wandH / 2;
-    grp.add(wand);
-
-    // Bürstenkopf-Gruppe: leicht geneigt für Sichelform (~13°)
-    const brushBaseY = wandBaseY + wandH;
+    // Bürstenkopf direkt auf dem Nippel (kein Stab dazwischen)
+    const brushBaseY = nipY + 0.09 + 0.060 * 0.65;
     const brushGrp   = new THREE.Group();
     brushGrp.position.set(0, brushBaseY, 0);
     brushGrp.rotation.z = 0.22;   // Sichelneigung
