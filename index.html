@@ -2627,6 +2627,7 @@
     const fanGroup = new THREE.Group();
     // Fest in Weltkoordinaten: lipstickGroup startet bei y=-1.1, OY relativ dazu
     fanGroup.position.set(0, -1.1 + OY, OZ);
+    fanGroup.scale.setScalar(2);
     scene.add(fanGroup);
 
     const rays = [];
