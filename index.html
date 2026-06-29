@@ -1759,10 +1759,12 @@
     //  — fast parallel bis 76% der Höhe
     //  — dann weiche quadratische Kurve zur gerundeten Spitze
     const bladeShape = new THREE.Shape();
+    const tipR = bW * 0.28;  // Radius der abgerundeten Spitze
     bladeShape.moveTo(-bW, 0);
     bladeShape.lineTo(-bW, bHf * 0.76);
-    bladeShape.quadraticCurveTo(-bW * 0.15, bHf * 0.97, 0, bHf);
-    bladeShape.quadraticCurveTo( bW * 0.15, bHf * 0.97, bW, bHf * 0.76);
+    bladeShape.quadraticCurveTo(-bW * 0.18, bHf * 0.95, -tipR, bHf - tipR);
+    bladeShape.absarc(0, bHf - tipR, tipR, Math.PI, 0, true);  // Kreisbogen oben
+    bladeShape.quadraticCurveTo( bW * 0.18, bHf * 0.95, bW, bHf * 0.76);
     bladeShape.lineTo(bW, 0);
     bladeShape.closePath();
 
