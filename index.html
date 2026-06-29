@@ -4059,29 +4059,34 @@
     wrap.insertBefore(cvs, wrap.firstChild);
 
     var ctx = cvs.getContext('2d');
-    var PCOUNT = 22;
+    var PCOUNT = 32;
     var particles = [];
 
-    function spawn() {
-      var W = cvs.width, H = cvs.height;
+    function spawn(W, H) {
+      /* Spawn from the center of the butterfly image.
+         The canvas is (wrap + 80) px; the butterfly center sits at W/2, H/2. */
+      var cx = W / 2, cy = H / 2;
+      var angle = Math.random() * Math.PI * 2;
+      var dist  = Math.random() * W * 0.28;
       return {
-        x:  W * (0.20 + Math.random() * 0.60),
-        y:  H * (0.55 + Math.random() * 0.30),
-        vx: (Math.random() - 0.5) * 0.069,
-        vy: -(0.031 + Math.random() * 0.069),
-        r:  (W * 0.06) + Math.random() * (W * 0.10),
-        a:  0.08 + Math.random() * 0.18,
-        da: 0.00015 + Math.random() * 0.000275,
-        gr: 0.01 + Math.random() * 0.0175,
-        hue: 32 + Math.random() * 18          /* warm gold hue variation */
+        x:  cx + Math.cos(angle) * dist,
+        y:  cy + Math.sin(angle) * dist,
+        vx: (Math.random() - 0.5) * 0.055,
+        vy: -(0.018 + Math.random() * 0.045),
+        r:  W * 0.10 + Math.random() * W * 0.14,
+        a:  0.10 + Math.random() * 0.22,
+        da: 0.00012 + Math.random() * 0.00022,
+        gr: 0.008 + Math.random() * 0.014,
+        hue: 32 + Math.random() * 18
       };
     }
 
-    /* Stagger initial spawn across the canvas lifetime */
+    /* Pre-age particles so the effect is already running on first frame */
     for (var i = 0; i < PCOUNT; i++) {
-      var p = spawn();
-      p.y -= p.vy * (Math.random() * 80); /* pre-age some particles */
-      p.a  = Math.random() * 0.15;
+      var W0 = 296, H0 = 296; /* fallback before first resize */
+      var p = spawn(W0, H0);
+      p.y -= p.vy * (Math.random() * 100);
+      p.a  = Math.random() * 0.18;
       particles.push(p);
     }
 
@@ -4093,7 +4098,7 @@
     systems.forEach(function(sys) {
       var wrap = sys.wrap;
       var cvs  = sys.cvs;
-      var W    = wrap.offsetWidth  + 80;   /* +80 for the -40px inset overflow */
+      var W    = wrap.offsetWidth  + 80;
       var H    = wrap.offsetHeight + 80;
       if (cvs.width !== W || cvs.height !== H) {
         cvs.width  = W;
@@ -4110,9 +4115,7 @@
         p.a -= p.da;
 
         if (p.a <= 0 || p.y + p.r < 0) {
-          sys.particles[idx] = sys.spawn();
-          sys.particles[idx].x = W * (0.20 + Math.random() * 0.60);
-          sys.particles[idx].y = H * (0.60 + Math.random() * 0.25);
+          sys.particles[idx] = sys.spawn(W, H);
           return;
         }
 
