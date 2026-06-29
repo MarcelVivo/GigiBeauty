@@ -1867,10 +1867,17 @@
     const s6 = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.048, 0.09, 16), eyelinerMat);
     s6.position.y = s6Y + 0.045; grp.add(s6);
 
-    // Filz-Spitze (sehr fein, matt — wie echter Faserschreiber)
+    // Stift-Spitze: kurze Verjüngung + abgerundete Kugelkuppe (wie Kugelschreiber)
     const tipY = s6Y + 0.09;
-    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.026, 0.46, 12), eyelinerTipMat);
-    tip.position.y = tipY + 0.23; grp.add(tip);
+    const penNeck = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.013, 0.026, 0.10, 18), eyelinerTipMat
+    );
+    penNeck.position.y = tipY + 0.05; grp.add(penNeck);
+
+    const penBall = new THREE.Mesh(
+      new THREE.SphereGeometry(0.013, 16, 10), eyelinerTipMat
+    );
+    penBall.position.y = tipY + 0.10 + 0.013; grp.add(penBall);
   })();
 
   // ─── Gold sparkle particles (4-pointed stars) ─────────────────────────────
