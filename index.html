@@ -1495,7 +1495,7 @@
     // ── Borsten-Kopf: Referenz-Shader — schwarz oben (~55%), weiß unten (~45%) ──
     // Zylinder-Basis: einheitlich hell-weiß (sichtbare Basis-Borsten)
     const bBaseMat = new THREE.MeshStandardMaterial({
-      color: 0xF0F0F0, roughness: 0.92, metalness: 0.0,
+      color: 0xEDD0B8, roughness: 0.92, metalness: 0.0,
     });
 
     // ShaderMaterial Kugel:
@@ -1534,9 +1534,9 @@
                                midV + transW + noiseOff,
                                vUv.y);
 
-          // Farben: nahezu schwarz → leuchtendes Weiß (wie Referenzbild)
-          vec3 tipCol  = vec3(0.072, 0.072, 0.078); // #121213
-          vec3 baseCol = vec3(0.952, 0.952, 0.952); // #F3F3F3
+          // Farben: nahezu schwarz → dezenter Hautton #EDD0B8
+          vec3 tipCol  = vec3(0.072, 0.072, 0.078);   // #121213 schwarz
+          vec3 baseCol = vec3(0.929, 0.816, 0.722);   // #EDD0B8 nude/haut
           vec3 albedo  = mix(tipCol, baseCol, t);
 
           // Mattes Licht (keine Spiegelung bei echten Borsten)
@@ -1544,15 +1544,15 @@
           float fillDiff = max(dot(N, fillDir), 0.0) * 0.20;
           float amb      = 0.25;
 
-          // Weisszone: Studio-Overhead fängt die weissen Fasern von oben
-          float whiteLum = pow(t, 1.6) * max(dot(N, vec3(0.0, 0.9, 0.4)), 0.0) * 0.35;
+          // Hautton-Zone: Studio-Overhead fängt die Basis-Fasern von oben
+          float whiteLum = pow(t, 1.6) * max(dot(N, vec3(0.0, 0.9, 0.4)), 0.0) * 0.28;
 
           // Schwarzzone: einzelne Borstenspitzen reflektieren minimal Seitenlicht
           float darkArea   = 1.0 - t;
           float tipSparkle = darkArea * rnd2 * max(dot(N, fillDir), 0.0) * 0.055;
 
           vec3 color = albedo * (amb + keyDiff + fillDiff)
-                     + vec3(whiteLum)
+                     + vec3(0.93, 0.82, 0.72) * whiteLum  // warmer Hautton-Schimmer
                      + vec3(tipSparkle);
 
           gl_FragColor = vec4(color, 1.0);
