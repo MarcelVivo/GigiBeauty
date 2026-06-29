@@ -120,8 +120,9 @@
   }
 
   .service-card img {
-    width: 293px;
-    height: 293px;
+    /* Portrait / mobile: scale with viewport width */
+    width:  clamp(75px, 27vw, 200px);
+    height: clamp(75px, 27vw, 200px);
     display: block;
     margin: 0 auto;
     object-fit: contain;
@@ -129,8 +130,12 @@
     filter: brightness(0.95);
     transition: filter 0.35s ease;
   }
-  @media (max-width: 767px) {
-    .service-card img { width: 144px; height: 144px; }
+  @media (orientation: landscape) {
+    /* Landscape / desktop: scale with smaller viewport dimension (height) */
+    .service-card img {
+      width:  clamp(150px, 28vmin, 450px);
+      height: clamp(150px, 28vmin, 450px);
+    }
   }
 
   /* Subtle pre-glow on hover */
@@ -2038,7 +2043,11 @@
       card.style.zIndex = Math.round(depth * 10 + 50);
 
       // ── Floating label
-      const CARD_PX = IS_MOBILE ? 144 : 293;
+      const isPortrait = window.innerHeight > window.innerWidth;
+      const _vmin = Math.min(window.innerWidth, window.innerHeight);
+      const CARD_PX = isPortrait
+        ? Math.round(Math.max(75,  Math.min(window.innerWidth * 0.27, 200)))
+        : Math.round(Math.max(150, Math.min(_vmin * 0.28, 450)));
       const halfSize = (CARD_PX / 2) * scaleFactor;
 
       let lblTargX, lblTargY;
