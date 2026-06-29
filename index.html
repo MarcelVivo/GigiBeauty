@@ -220,19 +220,25 @@
     border-radius: 2px;
     box-shadow: 0 4px 24px rgba(212,175,106,0.3), 0 2px 8px rgba(0,0,0,0.5);
     transition: all 0.3s ease;
+    /* Pin button just above the scroll hint (hint: bottom 32px + ~64px height + 16px gap) */
+    position: absolute;
+    bottom: 112px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
   }
 
   #cta a:hover {
     background: linear-gradient(135deg, #d4af6a 0%, #e8c87a 50%, #c8a04a 100%);
     box-shadow: 0 8px 40px rgba(212,175,106,0.5), 0 4px 16px rgba(0,0,0,0.6);
-    transform: translateY(-2px);
+    transform: translateX(-50%) translateY(-2px);
     letter-spacing: 0.35em;
   }
 
   @media (max-width: 767px) {
     #cta {
-      justify-content: flex-start;
-      padding-top: 70vh;
+      justify-content: center;
+      padding-top: 0;
       padding-bottom: 0;
       opacity: 1; /* always visible on mobile — JS maintains this */
     }
@@ -241,6 +247,12 @@
       padding: 12px 36px;
       font-size: 0.8rem;
       letter-spacing: 0.25em;
+      /* Mobile: pin just above scroll-hint (top: 70vh + 62px; button ~44px + 18px gap) */
+      position: absolute;
+      bottom: auto;
+      top: calc(70vh - 2px);
+      left: 50%;
+      transform: translateX(-50%);
     }
     /* Reposition scroll hint below CTA button, clear of browser chrome */
     #scroll-hint {
