@@ -615,24 +615,36 @@
     background: transparent;
     border: 1px solid rgba(212,175,106,0.3);
     color: #d4af6a;
-    font-size: 1.4rem;
-    line-height: 1;
-    width: 50px;
-    height: 50px;
+    width: 68px;
+    height: 68px;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 1px;
     transition: all 0.25s ease;
     flex-shrink: 0;
     margin-top: 10px;
-    font-family: 'Playfair Display', serif;
+    padding: 0;
   }
   .btn-back-top:hover {
     background: rgba(212,175,106,0.10);
     border-color: #d4af6a;
     box-shadow: 0 0 18px rgba(212,175,106,0.22);
+  }
+  .back-top-arrow {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.80rem;
+    line-height: 1;
+    color: #d4af6a;
+  }
+  .back-top-logo {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    display: block;
   }
 
   /* 2-col body: description + price list */
@@ -912,7 +924,8 @@
     .svc-title     { font-size: clamp(1.3rem, 5vw, 1.8rem); }
     .svc-description p { font-size: 0.95rem; }
     .price-list li { font-size: 0.9rem; }
-    .btn-back-top  { width: 42px; height: 42px; font-size: 1.1rem; }
+    .btn-back-top  { width: 56px; height: 56px; }
+    .back-top-logo { width: 28px; height: 28px; }
     .btn-book      { padding: 14px 32px; font-size: 0.9rem; }
     .booking-form-wrap { padding: 0; }
     #logo img { width: clamp(130px, 55vw, 220px); }
@@ -3033,7 +3046,10 @@
         <div class="svc-butterfly-wrap"><img src="public/images/Butterfly/Gel&AcrylNails.png" alt="" class="svc-butterfly"></div>
         <h2 class="svc-title">Gel &amp; Acryl Nails</h2>
       </div>
-      <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">∧</button>
+      <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">
+        <span class="back-top-arrow">∧</span>
+        <img src="public/images/logo/GiGiBeautySchmetterling.png" alt="" class="back-top-logo">
+      </button>
     </div>
 
     <div class="svc-content">
@@ -3069,7 +3085,10 @@
         <div class="svc-butterfly-wrap"><img src="public/images/Butterfly/PermamentMakeUp.png" alt="" class="svc-butterfly"></div>
         <h2 class="svc-title">Permanent Make Up</h2>
       </div>
-      <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">∧</button>
+      <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">
+        <span class="back-top-arrow">∧</span>
+        <img src="public/images/logo/GiGiBeautySchmetterling.png" alt="" class="back-top-logo">
+      </button>
     </div>
 
     <div class="svc-content">
@@ -3105,7 +3124,10 @@
         <div class="svc-butterfly-wrap"><img src="public/images/Butterfly/KosmetischePedicure.png" alt="" class="svc-butterfly"></div>
         <h2 class="svc-title">Kosmetische Pedicure</h2>
       </div>
-      <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">∧</button>
+      <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">
+        <span class="back-top-arrow">∧</span>
+        <img src="public/images/logo/GiGiBeautySchmetterling.png" alt="" class="back-top-logo">
+      </button>
     </div>
 
     <div class="svc-content">
@@ -3140,7 +3162,10 @@
         <div class="svc-butterfly-wrap"><img src="public/images/Butterfly/Filler.png" alt="" class="svc-butterfly"></div>
         <h2 class="svc-title">Fillers</h2>
       </div>
-      <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">∧</button>
+      <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">
+        <span class="back-top-arrow">∧</span>
+        <img src="public/images/logo/GiGiBeautySchmetterling.png" alt="" class="back-top-logo">
+      </button>
     </div>
 
     <div class="svc-content">
@@ -3175,7 +3200,10 @@
         <div class="svc-butterfly-wrap"><img src="public/images/Butterfly/Lashes.png" alt="" class="svc-butterfly"></div>
         <h2 class="svc-title">Lashes</h2>
       </div>
-      <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">∧</button>
+      <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">
+        <span class="back-top-arrow">∧</span>
+        <img src="public/images/logo/GiGiBeautySchmetterling.png" alt="" class="back-top-logo">
+      </button>
     </div>
 
     <div class="svc-content">
@@ -3211,7 +3239,10 @@
         <div class="svc-butterfly-wrap"><img src="public/images/Butterfly/KoreanCosmetics.png" alt="" class="svc-butterfly"></div>
         <h2 class="svc-title">Korean Cosmetics</h2>
       </div>
-      <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">∧</button>
+      <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">
+        <span class="back-top-arrow">∧</span>
+        <img src="public/images/logo/GiGiBeautySchmetterling.png" alt="" class="back-top-logo">
+      </button>
     </div>
 
     <div class="svc-content">
@@ -3246,7 +3277,10 @@
         <div class="svc-butterfly-wrap"><img src="public/images/Butterfly/NaturalMakeUp.png" alt="" class="svc-butterfly"></div>
         <h2 class="svc-title">Natural Make Up</h2>
       </div>
-      <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">∧</button>
+      <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">
+        <span class="back-top-arrow">∧</span>
+        <img src="public/images/logo/GiGiBeautySchmetterling.png" alt="" class="back-top-logo">
+      </button>
     </div>
 
     <div class="svc-content">
@@ -3283,7 +3317,10 @@
       <div class="svc-head-left">
         <h2 class="svc-title">Termin buchen</h2>
       </div>
-      <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">∧</button>
+      <button class="btn-back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Zurück nach oben">
+        <span class="back-top-arrow">∧</span>
+        <img src="public/images/logo/GiGiBeautySchmetterling.png" alt="" class="back-top-logo">
+      </button>
     </div>
 
     <div class="booking-form-wrap">
