@@ -1396,6 +1396,122 @@
     lipstickGroup.add(glow);
   })();
 
+  // ─── Bouquet companion items ──────────────────────────────────────────────
+  const bouquetGroup = new THREE.Group();
+  bouquetGroup.position.set(0, -1.1, 0);
+  scene.add(bouquetGroup);
+
+  const brushHeadMat = new THREE.MeshStandardMaterial({
+    color: 0x100c08, metalness: 0.0, roughness: 0.93,
+  });
+  const fileBladeMat = new THREE.MeshStandardMaterial({
+    color: 0xbec5c8, metalness: 0.60, roughness: 0.62,
+  });
+  const eyelinerBodyMat = new THREE.MeshStandardMaterial({
+    color: 0x0c0c10, metalness: 0.28, roughness: 0.48,
+  });
+
+  // ── 1. Makeup Brush (links, hinten) ─────────────────────────────────────
+  (function buildBrush() {
+    const grp = new THREE.Group();
+    grp.position.set(-0.70, -1.82, -0.35);
+    grp.rotation.z =  18 * Math.PI / 180;
+    grp.rotation.y =  0.10;
+    bouquetGroup.add(grp);
+    const R = 0.108;
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(R, 14, 8), woodMat);
+    cap.position.y = R; grp.add(cap);
+    const hnd = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.90, R, 2.10, 22), woodMat);
+    hnd.position.y = R + 1.05; grp.add(hnd);
+    const ferrY = R + 2.10;
+    const ferr = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.88, R * 1.06, 0.36, 22), roseGoldMat);
+    ferr.position.y = ferrY + 0.18; grp.add(ferr);
+    const colY = ferrY + 0.36;
+    const col = new THREE.Mesh(new THREE.CylinderGeometry(0.152, R * 0.88, 0.22, 22), roseGoldMat);
+    col.position.y = colY + 0.11; grp.add(col);
+    const bhY = colY + 0.22;
+    const bh = new THREE.Mesh(new THREE.CylinderGeometry(0.210, 0.152, 0.54, 22), brushHeadMat);
+    bh.position.y = bhY + 0.27; grp.add(bh);
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(0.215, 22, 12), brushHeadMat);
+    dome.scale.set(1, 0.62, 1); dome.position.y = bhY + 0.54; grp.add(dome);
+  })();
+
+  // ── 2. Mascara (links, leicht vorne) ─────────────────────────────────────
+  (function buildMascara() {
+    const grp = new THREE.Group();
+    grp.position.set(-0.34, -1.82, +0.22);
+    grp.rotation.z =  10 * Math.PI / 180;
+    grp.rotation.y = -0.06;
+    bouquetGroup.add(grp);
+    const R = 0.155;
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(R, 14, 8), woodMat);
+    cap.position.y = R; grp.add(cap);
+    const b = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.97, R, 2.45, 24), woodMat);
+    b.position.y = R + 1.225; grp.add(b);
+    const nkY = R + 2.45;
+    const nk = new THREE.Mesh(new THREE.CylinderGeometry(0.100, R * 0.97, 0.22, 22), woodMat);
+    nk.position.y = nkY + 0.11; grp.add(nk);
+    const rgY = nkY + 0.22;
+    const rg = new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.115, 0.13, 22), roseGoldMat);
+    rg.position.y = rgY + 0.065; grp.add(rg);
+    const capbY = rgY + 0.13;
+    const capb = new THREE.Mesh(new THREE.CylinderGeometry(0.108, 0.108, 0.65, 22), darkMat);
+    capb.position.y = capbY + 0.325; grp.add(capb);
+    const nzY = capbY + 0.65;
+    const nz = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.108, 0.20, 18), darkMat);
+    nz.position.y = nzY + 0.10; grp.add(nz);
+    const td = new THREE.Mesh(new THREE.SphereGeometry(0.068, 12, 8), darkMat);
+    td.position.y = nzY + 0.20; grp.add(td);
+  })();
+
+  // ── 3. Nagel-Feile (rechts, hinten) ──────────────────────────────────────
+  (function buildFile() {
+    const grp = new THREE.Group();
+    grp.position.set(+0.70, -1.82, -0.35);
+    grp.rotation.z = -18 * Math.PI / 180;
+    grp.rotation.y = -0.10;
+    bouquetGroup.add(grp);
+    const R = 0.122;
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(R, 14, 8), woodMat);
+    cap.position.y = R; grp.add(cap);
+    const h = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.92, R, 1.65, 22), woodMat);
+    h.position.y = R + 0.825; grp.add(h);
+    const rY = R + 1.65;
+    const rg = new THREE.Mesh(new THREE.CylinderGeometry(R * 1.08, R * 1.08, 0.14, 22), roseGoldMat);
+    rg.position.y = rY + 0.07; grp.add(rg);
+    const bbY = rY + 0.14;
+    const bb = new THREE.Mesh(new THREE.CylinderGeometry(0.075, R * 1.02, 0.18, 10), fileBladeMat);
+    bb.position.y = bbY + 0.09; grp.add(bb);
+    const blY = bbY + 0.18;
+    const bl = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.075, 2.20, 7), fileBladeMat);
+    bl.scale.set(0.38, 1, 1); bl.position.y = blY + 1.10; grp.add(bl);
+    const bt = new THREE.Mesh(new THREE.SphereGeometry(0.014, 8, 6), fileBladeMat);
+    bt.scale.set(0.38, 1, 1); bt.position.y = blY + 2.20; grp.add(bt);
+  })();
+
+  // ── 4. Eyeliner (rechts, leicht vorne) ───────────────────────────────────
+  (function buildEyeliner() {
+    const grp = new THREE.Group();
+    grp.position.set(+0.34, -1.82, +0.22);
+    grp.rotation.z = -10 * Math.PI / 180;
+    grp.rotation.y = +0.06;
+    bouquetGroup.add(grp);
+    const R = 0.096;
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(R, 14, 8), eyelinerBodyMat);
+    cap.position.y = R; grp.add(cap);
+    const b = new THREE.Mesh(new THREE.CylinderGeometry(R, R, 3.40, 24), eyelinerBodyMat);
+    b.position.y = R + 1.70; grp.add(b);
+    const shY = R + 3.40;
+    const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.052, R, 0.28, 20), eyelinerBodyMat);
+    sh.position.y = shY + 0.14; grp.add(sh);
+    const tpY = shY + 0.28;
+    const tp = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.052, 0.24, 16), eyelinerBodyMat);
+    tp.position.y = tpY + 0.12; grp.add(tp);
+    const ftY = tpY + 0.24;
+    const ft = new THREE.Mesh(new THREE.ConeGeometry(0.022, 0.38, 10), eyelinerBodyMat);
+    ft.position.y = ftY + 0.19; grp.add(ft);
+  })();
+
   // ─── Gold sparkle particles (4-pointed stars) ─────────────────────────────
   // Build a 4-pointed star / sparkle texture on a canvas
   function createSparkleTexture() {
@@ -2079,6 +2195,7 @@
     // ── Exit animation: lipstick sinks below screen
     if (isExiting) {
       lipstickGroup.position.y = lerp(lipstickGroup.position.y, -7, 0.09);
+      bouquetGroup.position.y  = lipstickGroup.position.y;
       renderer.render(scene, camera);
       return;
     }
@@ -2132,10 +2249,12 @@
       ctaEl.style.opacity = '0';
       overlay.style.opacity = '0';
       overlay.style.pointerEvents = 'none';
-      lipstickGroup.visible  = false;
+      lipstickGroup.visible   = false;
+      bouquetGroup.visible    = false;
       spiralParticles.visible = false;
     } else {
-      lipstickGroup.visible  = true;
+      lipstickGroup.visible   = true;
+      bouquetGroup.visible    = true;
       spiralParticles.visible = true;
       overlay.style.opacity = '';
       overlay.style.pointerEvents = '';
@@ -2149,6 +2268,8 @@
     const idleSway = Math.sin(elapsed * 0.4) * 0.012;
     lipstickGroup.rotation.x = idleSway;
     lipstickGroup.rotation.z = Math.cos(elapsed * 0.3) * 0.008;
+    bouquetGroup.rotation.x  = idleSway * 0.8;
+    bouquetGroup.position.y  = lipstickGroup.position.y;
 
     // ── Camera subtle float (mobile: fixed position — no drift during scroll)
     const camTargY = IS_MOBILE ? 1.2 : 1.2 - eased * 0.4;
