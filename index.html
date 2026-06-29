@@ -1051,6 +1051,73 @@
   scene.add(rimLight);
 
   // ─── Materials ────────────────────────────────────────────────────────────
+
+  // Procedural dark-wood-grain canvas texture for the lipstick casing
+  (function buildWoodMat() {
+    const W = 512, H = 512;
+    const cvs = document.createElement('canvas');
+    cvs.width = W; cvs.height = H;
+    const cx = cvs.getContext('2d');
+
+    // Very dark walnut/ebony base
+    cx.fillStyle = '#1c0c05';
+    cx.fillRect(0, 0, W, H);
+
+    // Subtle depth variation — slightly lighter warm-brown bands
+    for (let i = 0; i < 20; i++) {
+      const xc = Math.random() * W;
+      const gr = cx.createLinearGradient(xc - 22, 0, xc + 22, 0);
+      gr.addColorStop(0,   'rgba(72,28,10,0)');
+      gr.addColorStop(0.5, 'rgba(58,20,7,' + (0.07 + Math.random() * 0.11) + ')');
+      gr.addColorStop(1,   'rgba(72,28,10,0)');
+      cx.fillStyle = gr;
+      cx.fillRect(xc - 22, 0, 44, H);
+    }
+
+    // Black wood-fiber lines — thin, vertical, gently wavy
+    for (let i = 0; i < 58; i++) {
+      const xBase = (i / 58) * W;
+      const alpha = 0.10 + Math.random() * 0.26;
+      const lw    = 0.25 + Math.random() * 0.90;
+      cx.beginPath();
+      cx.moveTo(xBase, 0);
+      for (let y = 0; y <= H; y += 2) {
+        const wx = xBase
+          + Math.sin(y * 0.011 + i * 1.7) * 2.8
+          + Math.sin(y * 0.028 + i * 0.9) * 1.4
+          + Math.sin(y * 0.057 + i * 2.2) * 0.7;
+        cx.lineTo(wx, y);
+      }
+      cx.strokeStyle = 'rgba(0,0,0,' + alpha + ')';
+      cx.lineWidth   = lw;
+      cx.stroke();
+    }
+
+    // Very faint warm-amber sheen streaks (lacquered wood highlight)
+    for (let i = 0; i < 7; i++) {
+      const xc = Math.random() * W;
+      const gr = cx.createLinearGradient(xc - 5, 0, xc + 5, 0);
+      gr.addColorStop(0,   'rgba(145,65,22,0)');
+      gr.addColorStop(0.5, 'rgba(145,65,22,' + (0.03 + Math.random() * 0.05) + ')');
+      gr.addColorStop(1,   'rgba(145,65,22,0)');
+      cx.fillStyle = gr;
+      cx.fillRect(xc - 5, 0, 10, H);
+    }
+
+    const tex = new THREE.CanvasTexture(cvs);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+
+    window._woodMat = new THREE.MeshStandardMaterial({
+      color:             0x2b1508,  // dark warm-brown tint
+      map:               tex,
+      metalness:         0.04,      // barely metallic — lacquered finish
+      roughness:         0.38,      // polished, smooth
+      envMapIntensity:   0.6,
+    });
+  })();
+  const woodMat = window._woodMat;
+
   const metalMat = new THREE.MeshStandardMaterial({
     color: 0x080808,
     metalness: 0.92,
@@ -1083,7 +1150,7 @@
 
   // Base cap — wider, shorter cylinder at the very bottom
   const baseCapGeo = new THREE.CylinderGeometry(0.48, 0.52, 0.18, 32);
-  const baseCap = new THREE.Mesh(baseCapGeo, goldMat);
+  const baseCap = new THREE.Mesh(baseCapGeo, woodMat);
   baseCap.position.y = -1.82;
   lipstickGroup.add(baseCap);
 
@@ -1096,13 +1163,13 @@
 
   // Main body — tall metallic cylinder
   const bodyGeo = new THREE.CylinderGeometry(0.42, 0.44, 2.8, 32);
-  const body = new THREE.Mesh(bodyGeo, metalMat);
+  const body = new THREE.Mesh(bodyGeo, woodMat);
   body.position.y = -0.37;
   lipstickGroup.add(body);
 
   // Top collar — slight taper where tip meets body
   const collarGeo = new THREE.CylinderGeometry(0.38, 0.42, 0.22, 32);
-  const collar = new THREE.Mesh(collarGeo, goldMat);
+  const collar = new THREE.Mesh(collarGeo, woodMat);
   collar.position.y = 1.03;
   lipstickGroup.add(collar);
 
