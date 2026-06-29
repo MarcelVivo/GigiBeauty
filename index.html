@@ -1495,7 +1495,7 @@
     // ── Borsten-Kopf: Referenz-Shader — schwarz oben (~55%), weiß unten (~45%) ──
     // Zylinder-Basis: einheitlich hell-weiß (sichtbare Basis-Borsten)
     const bBaseMat = new THREE.MeshStandardMaterial({
-      color: 0xEDD0B8, roughness: 0.92, metalness: 0.0,
+      color: 0xD4956A, roughness: 0.92, metalness: 0.0,
     });
 
     // ShaderMaterial Kugel:
@@ -1534,9 +1534,9 @@
                                midV + transW + noiseOff,
                                vUv.y);
 
-          // Farben: nahezu schwarz → dezenter Hautton #EDD0B8
+          // Farben: nahezu schwarz → kräftiger Hautton #D4956A
           vec3 tipCol  = vec3(0.072, 0.072, 0.078);   // #121213 schwarz
-          vec3 baseCol = vec3(0.929, 0.816, 0.722);   // #EDD0B8 nude/haut
+          vec3 baseCol = vec3(0.831, 0.584, 0.416);   // #D4956A warm nude
           vec3 albedo  = mix(tipCol, baseCol, t);
 
           // Mattes Licht (keine Spiegelung bei echten Borsten)
@@ -1552,7 +1552,7 @@
           float tipSparkle = darkArea * rnd2 * max(dot(N, fillDir), 0.0) * 0.055;
 
           vec3 color = albedo * (amb + keyDiff + fillDiff)
-                     + vec3(0.93, 0.82, 0.72) * whiteLum  // warmer Hautton-Schimmer
+                     + vec3(0.85, 0.58, 0.40) * whiteLum  // kräftiger Hautton-Schimmer
                      + vec3(tipSparkle);
 
           gl_FragColor = vec4(color, 1.0);
