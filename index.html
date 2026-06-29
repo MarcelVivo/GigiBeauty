@@ -1492,16 +1492,16 @@
     );
     ferrule.position.y = fBotY + fH / 2; grp.add(ferrule);
 
-    // ── Borsten-Kopf: ShaderMaterial mit Vertex-Farbverlauf + Lichtberechnung ──
-    // Zylinder-Basis (weiß/silber, monochrom — Ferrule-Übergang)
+    // ── Borsten-Kopf: Referenz-Shader — schwarz oben (~55%), weiß unten (~45%) ──
+    // Zylinder-Basis: einheitlich hell-weiß (sichtbare Basis-Borsten)
     const bBaseMat = new THREE.MeshStandardMaterial({
-      color: 0xDCDEE2, roughness: 0.95, metalness: 0.0,
+      color: 0xF0F0F0, roughness: 0.92, metalness: 0.0,
     });
 
-    // ShaderMaterial für die Haupt-Kugel:
-    //   V=0 (Polkuppe/Spitzen) → fast schwarz #1A1A1A
-    //   V=1 (Äquator-Basis)    → weiß-silber #E8E8E8
-    // Enthält Phong-Diffuse mit Szenen-Lichtrichtungen + Fresnel-Studio-Glanz
+    // ShaderMaterial Kugel:
+    //   V=0 (Polkuppe/Spitzen) → nahezu schwarz  #111213
+    //   Übergang bei ~V=0.57   → zackige Borstenkante per Rauschen
+    //   V=1 (Äquator-Basis)   → leuchtendes Weiß  #F5F5F5
     const bristleShader = new THREE.ShaderMaterial({
       vertexShader: /* glsl */`
         varying vec2 vUv;
@@ -1513,37 +1513,47 @@
         }
       `,
       fragmentShader: /* glsl */`
-        varying vec2 vUv;
-        varying vec3 vWorldNormal;
+        varying vec2  vUv;
+        varying vec3  vWorldNormal;
         void main() {
-          // Farbverlauf: V=0 Spitzen (dunkel) → V=1 Basis (weiß-silber)
-          float t       = smoothstep(0.04, 0.93, vUv.y);
-          vec3  tipCol  = vec3(0.102, 0.102, 0.102); // #1A1A1A
-          vec3  baseCol = vec3(0.910, 0.910, 0.910); // #E8E8E8
-          vec3  albedo  = mix(tipCol, baseCol, t);
-
           vec3 N = normalize(vWorldNormal);
+          vec3 keyDir  = normalize(vec3(4.0, 8.0, 6.0));
+          vec3 fillDir = normalize(vec3(0.0, 2.0, 8.0));
 
-          // Key-Licht (warm-weiß, oben-links, wie Szenen-dirLight)
-          float keyDiff  = max(dot(N, normalize(vec3(4.0, 8.0, 6.0))), 0.0) * 0.68;
-          // Fill-Licht (kalt, von vorne)
-          float fillDiff = max(dot(N, normalize(vec3(0.0, 2.0, 8.0))), 0.0) * 0.22;
-          // Rim-Licht (violett, von hinten-links wie rimLight)
-          float rimDiff  = max(dot(N, normalize(vec3(-4.0, 2.0,-4.0))), 0.0) * 0.10;
-          float amb      = 0.22;
+          // Raster-Rauschen: simuliert einzelne Borstenenden die unterschiedlich enden
+          // ~55 × 45 Borstenzellen sichtbar
+          vec2  bCell = floor(vUv * vec2(55.0, 45.0));
+          float rnd   = fract(sin(dot(bCell, vec2(127.1, 311.7))) * 43758.5453);
+          float rnd2  = fract(sin(dot(bCell + 1.7, vec2(98.5, 231.3))) * 31723.5);
 
-          // Fresnel-Randlicht: Studio-Softbox fängt die äußeren Borsten-Ränder —
-          // besonders stark im dunklen Spitzen-Bereich (t nahe 0)
-          vec3  viewDir  = vec3(0.0, 0.0, 1.0); // Kamera schaut in +Z
-          float fresnel  = pow(1.0 - abs(dot(N, viewDir)), 2.8);
-          float studioRim = fresnel * (1.0 - t * 0.65) * 0.20;
+          // Übergangszone mit zackigem Borstenmuster
+          float midV     = 0.57;   // Grenze dunkel/weiß (57% von oben = schwarz)
+          float transW   = 0.095;  // halbe Breite der Übergangszone
+          float noiseOff = (rnd - 0.5) * transW * 1.7; // einzelne Borsten enden unregelmässig
+          float t = smoothstep(midV - transW + noiseOff,
+                               midV + transW + noiseOff,
+                               vUv.y);
 
-          // Lumineszenz: weiße Basis-Fasern schimmern sanft
-          float baseGlow = pow(t, 2.3) * 0.13;
+          // Farben: nahezu schwarz → leuchtendes Weiß (wie Referenzbild)
+          vec3 tipCol  = vec3(0.072, 0.072, 0.078); // #121213
+          vec3 baseCol = vec3(0.952, 0.952, 0.952); // #F3F3F3
+          vec3 albedo  = mix(tipCol, baseCol, t);
 
-          vec3 color = albedo * (amb + keyDiff + fillDiff + rimDiff)
-                     + vec3(studioRim)
-                     + vec3(0.86, 0.84, 0.80) * baseGlow;
+          // Mattes Licht (keine Spiegelung bei echten Borsten)
+          float keyDiff  = max(dot(N, keyDir),  0.0) * 0.60;
+          float fillDiff = max(dot(N, fillDir), 0.0) * 0.20;
+          float amb      = 0.25;
+
+          // Weisszone: Studio-Overhead fängt die weissen Fasern von oben
+          float whiteLum = pow(t, 1.6) * max(dot(N, vec3(0.0, 0.9, 0.4)), 0.0) * 0.35;
+
+          // Schwarzzone: einzelne Borstenspitzen reflektieren minimal Seitenlicht
+          float darkArea   = 1.0 - t;
+          float tipSparkle = darkArea * rnd2 * max(dot(N, fillDir), 0.0) * 0.055;
+
+          vec3 color = albedo * (amb + keyDiff + fillDiff)
+                     + vec3(whiteLum)
+                     + vec3(tipSparkle);
 
           gl_FragColor = vec4(color, 1.0);
         }
@@ -1555,20 +1565,19 @@
     const bCylH  = 0.14 * S;    // kurzer Zylinder-Übergang (einheitlich weiß)
     const bSphR  = 0.20 * S;    // Kugelradius
 
-    // Kurzer Übergangs-Zylinder: gleichmäßig weiß-silber (Basis-Borsten sichtbar)
+    // Kurzer Übergangs-Zylinder: gleichmäßig weiß (helle Basis-Borsten wie im Ref.)
     const bCyl = new THREE.Mesh(
       new THREE.CylinderGeometry(fTopR, fTopR, bCylH, 32), bBaseMat
     );
     bCyl.position.y = bBaseY + bCylH / 2; grp.add(bCyl);
 
-    // Haupt-Borstenform: abgeflachte Kugel (scale 1.0, 0.85, 0.9)
-    // SphereGeometry UV: V=0 = Polkuppe (dunkel), V=1 = südlicher Pol (weiß)
-    // → nahtloser Anschluss an den weißen Zylinder unten
+    // Haupt-Borstenform: leicht gerundete Kugel — Ref. zeigt vollen Dome
+    // SphereGeometry UV: V=0 = Polkuppe (schwarz), V=1 = Süd-Pol (weiß)
     const bSph = new THREE.Mesh(
-      new THREE.SphereGeometry(bSphR, 40, 30), bristleShader
+      new THREE.SphereGeometry(bSphR, 48, 36), bristleShader
     );
-    bSph.scale.set(1.0, 0.85, 0.9);
-    bSph.position.y = bBaseY + bCylH + bSphR * 0.85;
+    bSph.scale.set(1.0, 0.92, 0.95);
+    bSph.position.y = bBaseY + bCylH + bSphR * 0.92;
     grp.add(bSph);
   })();
 
