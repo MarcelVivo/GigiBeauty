@@ -1417,8 +1417,40 @@
     color: 0xb8bfc4, metalness: 0.38, roughness: 0.87,
   });
   // Eyeliner: Hochglanz-Schwarz (lackiert)
-  const eyelinerMat = new THREE.MeshStandardMaterial({
-    color: 0x060610, metalness: 0.52, roughness: 0.07,
+  // Eyeliner-Körper: edles Holzbraun, hochglanz-lackiert
+  // Subtile Holzmaserung unter tiefem Klarlack
+  (function() {
+    const eCvs = document.createElement('canvas');
+    eCvs.width = 256; eCvs.height = 256;
+    const eCtx = eCvs.getContext('2d');
+    const eImg = eCtx.createImageData(256, 256);
+    const ed   = eImg.data;
+    for (let py = 0; py < 256; py++) {
+      for (let px = 0; px < 256; px++) {
+        const ii = (py * 256 + px) * 4;
+        const nx = Math.sin(px*0.22)*0.42 + Math.sin(px*0.51+0.9)*0.28
+                 + Math.sin(px*0.88+1.7)*0.16 + Math.sin(px*1.44+2.5)*0.08
+                 + Math.sin(py*0.09+px*0.05)*0.06;
+        const ny = Math.cos(py*0.08+px*0.04)*0.10 + Math.sin(py*0.15-px*0.07)*0.07;
+        ed[ii]   = Math.round(128 + nx * 18);
+        ed[ii+1] = Math.round(128 + ny * 10);
+        ed[ii+2] = 255; ed[ii+3] = 255;
+      }
+    }
+    eCtx.putImageData(eImg, 0, 0);
+    const eNorm = new THREE.CanvasTexture(eCvs);
+    eNorm.wrapS = eNorm.wrapT = THREE.RepeatWrapping;
+    eNorm.repeat.set(4, 1);
+    window._eyelinerNorm = eNorm;
+  })();
+  const eyelinerMat = new THREE.MeshPhysicalMaterial({
+    color: 0x3E1A08, roughness: 0.06, metalness: 0.0,
+    normalMap: window._eyelinerNorm,
+    normalScale: new THREE.Vector2(0.20, 0.20),
+    clearcoat: 1.0, clearcoatRoughness: 0.03,
+  });
+  const eyelinerTipMat = new THREE.MeshStandardMaterial({
+    color: 0x1A0A04, roughness: 0.78, metalness: 0.0,
   });
   // Mascara-Kappe: dunkles Metall
   const mascaraCapMat = new THREE.MeshStandardMaterial({
@@ -1835,9 +1867,9 @@
     const s6 = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.048, 0.09, 16), eyelinerMat);
     s6.position.y = s6Y + 0.045; grp.add(s6);
 
-    // Filz-Spitze (sehr fein)
+    // Filz-Spitze (sehr fein, matt — wie echter Faserschreiber)
     const tipY = s6Y + 0.09;
-    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.026, 0.46, 12), eyelinerMat);
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.026, 0.46, 12), eyelinerTipMat);
     tip.position.y = tipY + 0.23; grp.add(tip);
   })();
 
