@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galerie — GiGi Beauty</title>
+<meta name="description" content="Entdecke die Arbeiten von GiGi Beauty — Wimpern, Augenbrauen, Nägel und Make-up.">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/global.css">
+<link rel="stylesheet" href="../assets/css/pages/nav.css">
+<style>
+  .page-hero {
+    min-height: 40vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: calc(var(--nav-height) + var(--space-lg)) var(--space-md) var(--space-lg);
+    background: radial-gradient(ellipse at 50% 0%, #2a0a2a 0%, var(--black) 70%);
+  }
+  .page-hero h1 { color: var(--gold); }
+
+  /* Filter tabs */
+  .gallery-filter {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-lg);
+  }
+  .filter-btn {
+    background: transparent;
+    border: 1px solid rgba(212,175,106,0.3);
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 8px 20px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .filter-btn:hover,
+  .filter-btn.active {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(212,175,106,0.08);
+  }
+
+  /* Masonry-style grid */
+  .gallery-grid {
+    columns: 3 280px;
+    column-gap: 12px;
+  }
+  .gallery-item {
+    break-inside: avoid;
+    margin-bottom: 12px;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: zoom-in;
+    transition: transform 0.25s ease;
+  }
+  .gallery-item:hover { transform: scale(1.02); }
+  .gallery-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+    /* Bilder in public/images/gallery/ ablegen */
+  }
+
+  /* Lightbox placeholder */
+  #lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  #lightbox.open { display: flex; }
+  #lightbox img { max-width: 90vw; max-height: 85vh; border-radius: 4px; }
+  #lightbox-close {
+    position: absolute;
+    top: 20px; right: 28px;
+    font-size: 2rem;
+    color: var(--gold);
+    cursor: pointer;
+    line-height: 1;
+  }
+</style>
+</head>
+<body>
+
+<nav id="site-nav">
+  <a class="nav-logo" href="/">GiGi Beauty</a>
+  <ul class="nav-links">
+    <li><a href="/pages/services/">Leistungen</a></li>
+    <li><a href="/pages/galerie.html">Galerie</a></li>
+    <li><a href="/pages/ueber-uns.html">Über uns</a></li>
+    <li><a href="/pages/kontakt.html">Kontakt</a></li>
+  </ul>
+  <a class="nav-cta" href="/pages/booking.html">Termin buchen</a>
+</nav>
+
+<section class="page-hero">
+  <h1>Galerie</h1>
+  <div class="divider"></div>
+  <p style="color: var(--text-muted); letter-spacing: 0.12em;">Unsere Arbeiten für dich</p>
+</section>
+
+<main class="container section">
+
+  <div class="gallery-filter fade-in">
+    <button class="filter-btn active" data-filter="all">Alle</button>
+    <button class="filter-btn" data-filter="wimpern">Wimpern</button>
+    <button class="filter-btn" data-filter="augenbrauen">Augenbrauen</button>
+    <button class="filter-btn" data-filter="naegel">Nägel</button>
+    <button class="filter-btn" data-filter="makeup">Make-up</button>
+  </div>
+
+  <div class="gallery-grid fade-in" id="gallery-grid">
+    <!--
+      Bilder hier einfügen, sobald vorhanden:
+      <div class="gallery-item" data-category="wimpern">
+        <img src="../public/images/gallery/wimpern-01.jpg" alt="Künstliche Wimpern">
+      </div>
+      Bilder in public/images/gallery/ abspeichern.
+    -->
+    <div class="gallery-item" style="background:#1a1a2a; min-height:200px; display:flex; align-items:center; justify-content:center; color:rgba(212,175,106,0.3); font-size:0.8rem; letter-spacing:0.15em;">Bilder folgen</div>
+  </div>
+
+</main>
+
+<div id="lightbox">
+  <span id="lightbox-close" onclick="document.getElementById('lightbox').classList.remove('open')">×</span>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<footer id="site-footer">
+  <div class="footer-logo">GiGi Beauty</div>
+  <p class="footer-tagline">Luxury Beauty Studio · Zürich</p>
+  <ul class="footer-links">
+    <li><a href="/pages/services/">Leistungen</a></li>
+    <li><a href="/pages/galerie.html">Galerie</a></li>
+    <li><a href="/pages/ueber-uns.html">Über uns</a></li>
+    <li><a href="/pages/kontakt.html">Kontakt</a></li>
+    <li><a href="/pages/booking.html">Termin buchen</a></li>
+  </ul>
+  <p class="footer-copy">© 2025 GiGi Beauty · www.gigibeauty.ch</p>
+</footer>
+
+<script src="../assets/js/main.js"></script>
+<script>
+  // Filter
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const f = btn.dataset.filter;
+      document.querySelectorAll('.gallery-item[data-category]').forEach(item => {
+        item.style.display = (f === 'all' || item.dataset.category === f) ? 'block' : 'none';
+      });
+    });
+  });
+
+  // Lightbox
+  document.querySelectorAll('.gallery-item img').forEach(img => {
+    img.addEventListener('click', () => {
+      document.getElementById('lightbox-img').src = img.src;
+      document.getElementById('lightbox').classList.add('open');
+    });
+  });
+  document.getElementById('lightbox').addEventListener('click', e => {
+    if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
+  });
+</script>
+</body>
+</html>

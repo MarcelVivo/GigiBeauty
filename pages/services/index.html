@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leistungen — GiGi Beauty</title>
+<meta name="description" content="Alle Beauty-Leistungen von GiGi Beauty: Wimpern, Augenbrauen, Nägel, Make-up und mehr.">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/global.css">
+<link rel="stylesheet" href="../../assets/css/pages/nav.css">
+<style>
+  .page-hero {
+    min-height: 45vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: calc(var(--nav-height) + var(--space-lg)) var(--space-md) var(--space-lg);
+    background: radial-gradient(ellipse at 50% 0%, #2a0a2a 0%, var(--black) 70%);
+  }
+  .page-hero h1 { color: var(--gold); }
+
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-md);
+    margin-top: var(--space-lg);
+  }
+  .service-tile {
+    display: block;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(212,175,106,0.12);
+    border-radius: 4px;
+    overflow: hidden;
+    text-decoration: none;
+    transition: border-color 0.25s ease, transform 0.25s ease;
+  }
+  .service-tile:hover {
+    border-color: rgba(212,175,106,0.5);
+    transform: translateY(-4px);
+    color: inherit;
+  }
+  .service-tile img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    display: block;
+  }
+  .service-tile-body { padding: var(--space-sm) var(--space-md) var(--space-md); }
+  .service-tile h3 { color: var(--gold); margin-bottom: 8px; font-size: 1.1rem; }
+  .service-tile p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: var(--space-sm); }
+  .service-tile .price { color: var(--gold-light); font-size: 0.85rem; letter-spacing: 0.1em; }
+</style>
+</head>
+<body>
+
+<nav id="site-nav">
+  <a class="nav-logo" href="/">GiGi Beauty</a>
+  <ul class="nav-links">
+    <li><a href="/pages/services/" class="active">Leistungen</a></li>
+    <li><a href="/pages/galerie.html">Galerie</a></li>
+    <li><a href="/pages/ueber-uns.html">Über uns</a></li>
+    <li><a href="/pages/kontakt.html">Kontakt</a></li>
+  </ul>
+  <a class="nav-cta" href="/pages/booking.html">Termin buchen</a>
+</nav>
+
+<section class="page-hero">
+  <h1>Unsere Leistungen</h1>
+  <div class="divider"></div>
+  <p style="color: var(--text-muted); letter-spacing: 0.12em;">Für dein schönstes Ich</p>
+</section>
+
+<main class="container section">
+  <div class="services-grid fade-in">
+
+    <a class="service-tile" href="/pages/services/kuenstliche-wimpern.html">
+      <img src="../../public/images/services/kuenstliche-wimpern/preview.jpg" alt="Künstliche Wimpern"
+           onerror="this.style.background='#1a1a2a';this.style.minHeight='180px'">
+      <div class="service-tile-body">
+        <h3>Künstliche Wimpern</h3>
+        <p>Voluminöse und natürlich wirkende Wimpernverlängerungen für jeden Typ.</p>
+        <span class="price">ab CHF <!-- Preis --></span>
+      </div>
+    </a>
+
+    <a class="service-tile" href="/pages/services/wimpern-lifting.html">
+      <img src="../../public/images/services/wimpern-lifting/preview.jpg" alt="Wimpern Lifting"
+           onerror="this.style.background='#1a1a2a';this.style.minHeight='180px'">
+      <div class="service-tile-body">
+        <h3>Wimpern Lifting</h3>
+        <p>Natürlich geschwungene Wimpern durch eine professionelle Daueraufrollung.</p>
+        <span class="price">ab CHF <!-- Preis --></span>
+      </div>
+    </a>
+
+    <a class="service-tile" href="/pages/services/augenbrauen-tattoo.html">
+      <img src="../../public/images/services/augenbrauen-tattoo/preview.jpg" alt="Augenbrauen Tattoo"
+           onerror="this.style.background='#1a1a2a';this.style.minHeight='180px'">
+      <div class="service-tile-body">
+        <h3>Augenbrauen Tattoo</h3>
+        <p>Dauerhaft perfekte Augenbrauen durch präzises Permanent Make-up.</p>
+        <span class="price">ab CHF <!-- Preis --></span>
+      </div>
+    </a>
+
+    <a class="service-tile" href="/pages/services/augenbrauen-styling.html">
+      <img src="../../public/images/services/augenbrauen-styling/preview.jpg" alt="Augenbrauen Styling"
+           onerror="this.style.background='#1a1a2a';this.style.minHeight='180px'">
+      <div class="service-tile-body">
+        <h3>Augenbrauen Styling</h3>
+        <p>Formen, Zupfen und Färben für den perfekten Bogen.</p>
+        <span class="price">ab CHF <!-- Preis --></span>
+      </div>
+    </a>
+
+    <a class="service-tile" href="/pages/services/microblading.html">
+      <img src="../../public/images/services/microblading/preview.jpg" alt="Microblading"
+           onerror="this.style.background='#1a1a2a';this.style.minHeight='180px'">
+      <div class="service-tile-body">
+        <h3>Microblading</h3>
+        <p>Haarfeine Striche für natürlich aussehende, volle Augenbrauen.</p>
+        <span class="price">ab CHF <!-- Preis --></span>
+      </div>
+    </a>
+
+    <a class="service-tile" href="/pages/services/gelnaegel.html">
+      <img src="../../public/images/services/gelnaegel/preview.jpg" alt="Gelnägel"
+           onerror="this.style.background='#1a1a2a';this.style.minHeight='180px'">
+      <div class="service-tile-body">
+        <h3>Gelnägel</h3>
+        <p>Langanhaltende, strahlende Gelnägel in jeder Länge und Farbe.</p>
+        <span class="price">ab CHF <!-- Preis --></span>
+      </div>
+    </a>
+
+    <a class="service-tile" href="/pages/services/nail-art.html">
+      <img src="../../public/images/services/nail-art/preview.jpg" alt="Nail Art"
+           onerror="this.style.background='#1a1a2a';this.style.minHeight='180px'">
+      <div class="service-tile-body">
+        <h3>Nail Art</h3>
+        <p>Kreative Nagelkunst — von dezent bis extravagant, alles ist möglich.</p>
+        <span class="price">ab CHF <!-- Preis --></span>
+      </div>
+    </a>
+
+    <a class="service-tile" href="/pages/services/make-up.html">
+      <img src="../../public/images/services/make-up/preview.jpg" alt="Make-up"
+           onerror="this.style.background='#1a1a2a';this.style.minHeight='180px'">
+      <div class="service-tile-body">
+        <h3>Make-up</h3>
+        <p>Professionelles Make-up für jeden Anlass — Alltag, Event oder Hochzeit.</p>
+        <span class="price">ab CHF <!-- Preis --></span>
+      </div>
+    </a>
+
+  </div>
+</main>
+
+<footer id="site-footer">
+  <div class="footer-logo">GiGi Beauty</div>
+  <p class="footer-tagline">Luxury Beauty Studio · Zürich</p>
+  <ul class="footer-links">
+    <li><a href="/pages/services/">Leistungen</a></li>
+    <li><a href="/pages/galerie.html">Galerie</a></li>
+    <li><a href="/pages/ueber-uns.html">Über uns</a></li>
+    <li><a href="/pages/kontakt.html">Kontakt</a></li>
+    <li><a href="/pages/booking.html">Termin buchen</a></li>
+  </ul>
+  <p class="footer-copy">© 2025 GiGi Beauty · www.gigibeauty.ch</p>
+</footer>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

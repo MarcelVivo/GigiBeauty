@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nail Art — GiGi Beauty</title>
+<meta name="description" content="Nail Art bei GiGi Beauty Zürich. Deine Nägel als Kunstwerk">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/global.css">
+<link rel="stylesheet" href="../../assets/css/pages/nav.css">
+<style>
+  /* ── Page entrance */
+  body { animation: pageEnter 0.55s cubic-bezier(0.22,1,0.36,1) both; }
+  @keyframes pageEnter {
+    from { opacity: 0; transform: translateY(32px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Hero */
+  .svc-hero {
+    min-height: 58vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: calc(var(--nav-height) + 5rem) var(--space-md) var(--space-lg);
+    position: relative;
+    overflow: hidden;
+    background: radial-gradient(ellipse at 20% 60%, #2d0a2a 0%, #0f050f 55%, #180d08 100%);
+  }
+  .svc-hero-img {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0.35;
+  }
+  .svc-hero-inner { position: relative; z-index: 1; max-width: 680px; }
+  .breadcrumb {
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: var(--space-md);
+  }
+  .breadcrumb a { color: var(--text-muted); }
+  .breadcrumb a:hover { color: var(--gold); }
+  .svc-hero h1 {
+    color: var(--gold);
+    font-size: clamp(2rem, 5vw, 3.8rem);
+    margin-bottom: 0.6rem;
+  }
+  .svc-hero .tagline {
+    font-family: var(--font-body);
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: rgba(245,230,200,0.75);
+    margin-bottom: var(--space-md);
+  }
+  .svc-stats {
+    display: flex;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+  }
+  .svc-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .svc-stat .stat-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .svc-stat .stat-val {
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    color: var(--gold);
+  }
+
+  /* ── Content layout */
+  .svc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-lg);
+    align-items: start;
+    margin-bottom: var(--space-xl);
+  }
+  @media (max-width: 768px) { .svc-grid { grid-template-columns: 1fr; } }
+
+  .svc-img-wrap {
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+  .svc-img-wrap img {
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    display: block;
+  }
+  .svc-img-placeholder {
+    width: 100%;
+    aspect-ratio: 3/4;
+    background: linear-gradient(160deg, #1a0a1a 0%, #0f0a0f 100%);
+    border: 1px solid rgba(212,175,106,0.1);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(212,175,106,0.2);
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+  }
+
+  .svc-text h2 {
+    color: var(--gold);
+    margin-bottom: var(--space-sm);
+  }
+  .svc-text p {
+    color: rgba(245,230,200,0.8);
+    font-size: 1rem;
+    line-height: 1.8;
+    margin-bottom: var(--space-sm);
+  }
+
+  /* ── Features */
+  .features-section { margin-bottom: var(--space-xl); }
+  .features-section h2 {
+    color: var(--gold);
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+  }
+  .feature-card {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: flex-start;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(212,175,106,0.1);
+    border-radius: 4px;
+    padding: var(--space-sm) var(--space-md);
+    transition: border-color 0.2s ease;
+  }
+  .feature-card:hover { border-color: rgba(212,175,106,0.4); }
+  .feature-dot {
+    width: 6px; height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    margin-top: 0.55rem;
+    flex-shrink: 0;
+  }
+  .feature-card h4 {
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    color: var(--gold-light);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .feature-card p {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* ── Price table */
+  .price-section { margin-bottom: var(--space-xl); }
+  .price-section h2 {
+    color: var(--gold);
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+  .price-table-wrap {
+    max-width: 680px;
+    margin: var(--space-lg) auto 0;
+    border: 1px solid rgba(212,175,106,0.15);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .price-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .price-table tr {
+    border-bottom: 1px solid rgba(212,175,106,0.08);
+    transition: background 0.15s ease;
+  }
+  .price-table tr:last-child { border-bottom: none; }
+  .price-table tr:hover { background: rgba(212,175,106,0.04); }
+  .price-table td {
+    padding: 15px 24px;
+    font-size: 0.92rem;
+    color: rgba(245,230,200,0.85);
+  }
+  .price-table td.price-val {
+    text-align: right;
+    color: var(--gold);
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* ── FAQ */
+  .faq-section { margin-bottom: var(--space-xl); }
+  .faq-section h2 {
+    color: var(--gold);
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+  .faq-list {
+    max-width: 720px;
+    margin: var(--space-lg) auto 0;
+  }
+  .faq-item {
+    border-bottom: 1px solid rgba(212,175,106,0.1);
+  }
+  .faq-item summary {
+    padding: 18px 0;
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    color: var(--gold-light);
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after {
+    content: '+';
+    color: var(--gold);
+    font-size: 1.4rem;
+    line-height: 1;
+    transition: transform 0.2s ease;
+  }
+  .faq-item[open] summary::after { transform: rotate(45deg); }
+  .faq-item p {
+    padding: 0 0 18px;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  /* ── CTA Banner */
+  .cta-banner {
+    background: linear-gradient(135deg, #1a0a1a 0%, #0f050f 100%);
+    border: 1px solid rgba(212,175,106,0.2);
+    border-radius: 8px;
+    padding: var(--space-lg) var(--space-md);
+    text-align: center;
+    margin-bottom: var(--space-xl);
+  }
+  .cta-banner h2 {
+    color: var(--gold);
+    margin-bottom: var(--space-sm);
+    font-style: italic;
+  }
+  .cta-banner p {
+    color: var(--text-muted);
+    margin-bottom: var(--space-md);
+    font-size: 0.95rem;
+  }
+  .cta-buttons {
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* ── Related */
+  .related-section { margin-bottom: var(--space-xl); }
+  .related-section h2 {
+    color: var(--gold);
+    margin-bottom: var(--space-md);
+  }
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-sm);
+  }
+  .related-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(212,175,106,0.12);
+    border-radius: 4px;
+    color: var(--gold-light);
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    text-decoration: none;
+  }
+  .related-card:hover {
+    border-color: var(--gold);
+    background: rgba(212,175,106,0.06);
+    color: var(--gold);
+  }
+  .arrow-r { color: var(--gold); opacity: 0.6; }
+</style>
+</head>
+<body>
+
+<nav id="site-nav">
+  <a class="nav-logo" href="../../index.html">GiGi Beauty</a>
+  <ul class="nav-links">
+    <li><a href="../services/" class="active">Leistungen</a></li>
+    <li><a href="../galerie.html">Galerie</a></li>
+    <li><a href="../ueber-uns.html">Über uns</a></li>
+    <li><a href="../kontakt.html">Kontakt</a></li>
+  </ul>
+  <a class="nav-cta" href="../booking.html">Termin buchen</a>
+</nav>
+
+<section class="svc-hero">
+  <img class="svc-hero-img"
+       src="../../public/images/services/nail-art/hero.jpg"
+       alt="Nail Art"
+       onerror="this.style.display='none'">
+  <div class="svc-hero-inner">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="../../index.html">Home</a> &nbsp;/&nbsp;
+      <a href="../services/">Leistungen</a> &nbsp;/&nbsp;
+      Nail Art
+    </nav>
+    <h1>Nail Art</h1>
+    <p class="tagline">Deine Nägel als Kunstwerk</p>
+    <div class="svc-stats">
+      <div class="svc-stat">
+        <span class="stat-label">Dauer</span>
+        <span class="stat-val">30–90 Min</span>
+      </div>
+      <div class="svc-stat">
+        <span class="stat-label">Haltbarkeit</span>
+        <span class="stat-val">3–4 Wochen</span>
+      </div>
+      <div class="svc-stat">
+        <span class="stat-label">Ab Preis</span>
+        <span class="stat-val">CHF 10</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="container">
+
+  <!-- Description -->
+  <section class="section svc-grid">
+    <div class="svc-img-wrap">
+      <img src="../../public/images/services/nail-art/detail.jpg"
+           alt="Nail Art Detail"
+           onerror="this.outerHTML='<div class=&quot;svc-img-placeholder&quot;>Bild folgt</div>'">
+    </div>
+    <div class="svc-text">
+      <h2>Was ist Nail Art?</h2>
+      <div class="divider" style="margin: var(--space-sm) 0;"></div>
+      <p>Kreative Nagelkunst ohne Grenzen. Von dezenten Akzenten bis zu aufwendigen 3D-Designs – bei uns werden deine Nägel zum Kunstwerk. Lass deiner Kreativität freien Lauf.</p>
+      <p>Unser Nail Art Service kann als Ergänzung zu Gelnägeln oder Gel-Lack gebucht werden. Wir bieten Freehand-Designs, Stamping, Folien, Rhinestones, Charms und vieles mehr. Bring uns deine Inspirationsbilder – wir setzen sie für dich um.</p>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="section features-section">
+    <h2>Was wir anbieten</h2>
+    <div class="divider"></div>
+    <div class="features-grid">
+
+    <div class="feature-card">
+      <div class="feature-dot"></div>
+      <div>
+        <h4>Freehand Designs</h4>
+        <p>Gemalte Motive direkt auf den Nagel – komplett individuell</p>
+      </div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-dot"></div>
+      <div>
+        <h4>Rhinestones & Steine</h4>
+        <p>Glitzernd und glamourös für besondere Anlässe</p>
+      </div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-dot"></div>
+      <div>
+        <h4>Chrome & Mirror Effect</h4>
+        <p>Spiegelnder Metallic-Look für modernen Glam</p>
+      </div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-dot"></div>
+      <div>
+        <h4>Folien & Sticker</h4>
+        <p>Schnelle Designs mit grosser Wirkung</p>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- Prices -->
+  <section class="section price-section">
+    <h2>Preisliste</h2>
+    <div class="divider"></div>
+    <div class="price-table-wrap">
+      <table class="price-table">
+
+      <tr>
+        <td>Einfaches Design (pro Nagel)</td>
+        <td class="price-val">ab CHF 5</td>
+      </tr>
+      <tr>
+        <td>Mittleres Design (pro Nagel)</td>
+        <td class="price-val">ab CHF 8</td>
+      </tr>
+      <tr>
+        <td>Aufwendiges Design (pro Nagel)</td>
+        <td class="price-val">ab CHF 12</td>
+      </tr>
+      <tr>
+        <td>Rhinestones / Steine (pro Nagel)</td>
+        <td class="price-val">ab CHF 3</td>
+      </tr>
+      <tr>
+        <td>Komplettes Nail Art Set (10 Nägel)</td>
+        <td class="price-val">ab CHF 45</td>
+      </tr>
+      <tr>
+        <td>Freehand Art komplettes Set</td>
+        <td class="price-val">ab CHF 70</td>
+      </tr>
+      </table>
+    </div>
+    <p style="text-align:center; margin-top: var(--space-sm); font-size: 0.8rem; color: var(--text-muted); letter-spacing: 0.1em;">
+      Alle Preise in CHF inkl. MwSt. &nbsp;·&nbsp; Änderungen vorbehalten.
+    </p>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section faq-section">
+    <h2>Häufige Fragen</h2>
+    <div class="divider"></div>
+    <div class="faq-list">
+
+    <details class="faq-item">
+      <summary>Kann ich eigene Motive mitbringen?</summary>
+      <p>Selbstverständlich! Bring deine Inspirationsbilder (Pinterest, Instagram etc.) mit und wir besprechen, was möglich ist.</p>
+    </details>
+    <details class="faq-item">
+      <summary>Wie lange dauert ein Nail Art Set?</summary>
+      <p>Das hängt stark vom Motiv ab – einfache Designs benötigen 30–45 Min zusätzlich, aufwendige Freehand-Designs bis zu 90 Min.</p>
+    </details>
+    <details class="faq-item">
+      <summary>Auf welchem Untergrund funktioniert Nail Art?</summary>
+      <p>Nail Art kann auf Gel, Gel-Lack oder Naturalnagel aufgebracht werden.</p>
+    </details>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section cta-banner">
+    <h2>Bereit für deine Verwandlung?</h2>
+    <p>Buche deinen Termin online oder ruf uns an — wir freuen uns auf dich.</p>
+    <div class="cta-buttons">
+      <a class="btn" href="../booking.html?service=nail-art">Termin buchen</a>
+      <a class="btn btn-outline" href="../kontakt.html">Kontakt aufnehmen</a>
+    </div>
+  </section>
+
+  <!-- Related -->
+  <section class="section related-section">
+    <h2>Weitere Leistungen</h2>
+    <div class="related-grid">
+
+      <a class="related-card" href="gelnaegel.html">
+        <span>Gelnägel</span>
+        <span class="arrow-r">→</span>
+      </a>
+      <a class="related-card" href="make-up.html">
+        <span>Make-up</span>
+        <span class="arrow-r">→</span>
+      </a>
+      <a class="related-card" href="kuenstliche-wimpern.html">
+        <span>Künstliche Wimpern</span>
+        <span class="arrow-r">→</span>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer id="site-footer">
+  <div class="footer-logo">GiGi Beauty</div>
+  <p class="footer-tagline">Luxury Beauty Studio · Zürich</p>
+  <ul class="footer-links">
+    <li><a href="../services/">Leistungen</a></li>
+    <li><a href="../galerie.html">Galerie</a></li>
+    <li><a href="../ueber-uns.html">Über uns</a></li>
+    <li><a href="../kontakt.html">Kontakt</a></li>
+    <li><a href="../booking.html">Termin buchen</a></li>
+  </ul>
+  <p class="footer-copy">© 2025 GiGi Beauty · www.gigibeauty.ch</p>
+</footer>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

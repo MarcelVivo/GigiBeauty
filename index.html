@@ -1953,6 +1953,22 @@
 
 
   // ─── Mouse X → helix rotation ─────────────────────────────────────────────
+  // Smoothly scroll to the first service section (easeOutCubic, 700 ms)
+  function triggerFirstSection() {
+    _lastMouseX = null;
+    const heroEl = document.getElementById('hero-scroll');
+    const target = heroEl.offsetHeight - window.innerHeight + 60;
+    const startY = window.scrollY;
+    const t0     = performance.now();
+    const dur    = 700;
+    const ease   = t => 1 - Math.pow(1 - t, 3);
+    (function step(now) {
+      const p = Math.min((now - t0) / dur, 1);
+      window.scrollTo(0, startY + (target - startY) * ease(p));
+      if (p < 1) requestAnimationFrame(step);
+    })(t0);
+  }
+
   // #hero-scroll has pointer-events:none, so listen on window instead
   window.addEventListener('mousemove', (e) => {
     // ── Mouse left/right drives virtual scroll progress (no DOM scrollBy) ──
@@ -2053,33 +2069,38 @@
       return;
     }
 
-    // ── Edge-zone: cursor pinned at left/right border continues the animation ──
-    //    Direction check (_lastDx) ensures moving away from the edge stops it.
+    // ── Edge-zone: cursor strictly moving toward an edge continues the animation ──
+    //    _lastDx < 0  = actively moving left  → left  edge advances progress
+    //    _lastDx > 0  = actively moving right → right edge reverses progress
+    //    _lastDx === 0 (stationary) → edge zone is silent
     if (!isPastHero && _mouseXCurrent >= 0) {
       const EDGE = 90;
       const W    = window.innerWidth;
-      if (_mouseXCurrent < EDGE && _lastDx <= 0) {
+      if (_mouseXCurrent < EDGE && _lastDx < 0) {
         const str = (EDGE - _mouseXCurrent) / EDGE;
         mouseTargetProgress = Math.min(1, mouseTargetProgress + 0.0036 * str);
-      } else if (_mouseXCurrent > W - EDGE && _lastDx >= 0) {
+      } else if (_mouseXCurrent > W - EDGE && _lastDx > 0) {
         const str = (_mouseXCurrent - (W - EDGE)) / EDGE;
         mouseTargetProgress = Math.max(0, mouseTargetProgress - 0.0036 * str);
       }
     }
 
-    // mouseTargetProgress is the sole animation driver — lerp scrollProgress toward it
-    scrollProgress = lerp(scrollProgress, mouseTargetProgress, IS_MOBILE ? 0.26 : 0.07);
-    const eased = easeInOut(scrollProgress);
-
-    // Sync physical page scroll to scrollProgress every rAF frame.
-    // This makes left/right mouse and wheel bidirectional without DOM calls in event handlers.
-    {
-      const _maxScr = window.innerHeight * 1199; // 1200vh - 1vh
-      const _targetY = Math.round(scrollProgress * (_maxScr + 60));
-      if (Math.abs(window.scrollY - _targetY) > 1) {
-        window.scrollTo(0, _targetY);
-      }
+    // Trigger section reveal when animation reaches 100% (mouse OR wheel, any path)
+    if (!isPastHero && mouseTargetProgress >= 1 && !_firstSvcLaunched) {
+      _firstSvcLaunched = true;
+      triggerFirstSection();
     }
+
+    // Reset flags when user goes back to the very beginning
+    if (!isPastHero && mouseTargetProgress < 0.05 && targetScrollProgress < 0.05) {
+      _firstSvcLaunched = false;
+      _ctaGestureCount  = 0;
+    }
+
+    // Animation progress: merge physical scroll + virtual mouse progress
+    const _effectiveTarget = Math.max(targetScrollProgress, mouseTargetProgress);
+    scrollProgress = lerp(scrollProgress, _effectiveTarget, IS_MOBILE ? 0.26 : 0.07);
+    const eased = easeInOut(scrollProgress);
 
     // ── Lipstick rotation (full 360° over scroll)
     const targetRotY = eased * Math.PI * 2 + smoothedMouseRot * 0.5;
