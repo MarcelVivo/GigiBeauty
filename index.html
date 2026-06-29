@@ -2000,8 +2000,8 @@
       if (dx !== 0) {
         const heroEl = document.getElementById('hero-scroll');
         const maxScrl = heroEl.offsetHeight - window.innerHeight;
-        // Full screen width = 55% of hero scroll; multiple sweeps to traverse all
-        const scrollPx = -dx * (maxScrl * 0.55 / window.innerWidth);
+        // Full screen width = 110% of hero scroll (doubled speed)
+        const scrollPx = -dx * (maxScrl * 1.10 / window.innerWidth);
         window.scrollBy({ top: scrollPx, behavior: 'instant' });
       }
     }
@@ -2090,12 +2090,12 @@
         const str = (EDGE - _mouseXCurrent) / EDGE;
         const heroEl  = document.getElementById('hero-scroll');
         const maxScrl = heroEl.offsetHeight - window.innerHeight;
-        edgePx = maxScrl * 0.0018 * str;        // up to ~0.18 % of hero per frame
+        edgePx = maxScrl * 0.0036 * str;        // up to ~0.18 % of hero per frame
       } else if (_mouseXCurrent > W - EDGE) {
         const str = (_mouseXCurrent - (W - EDGE)) / EDGE;
         const heroEl  = document.getElementById('hero-scroll');
         const maxScrl = heroEl.offsetHeight - window.innerHeight;
-        edgePx = -(maxScrl * 0.0018 * str);
+        edgePx = -(maxScrl * 0.0036 * str);
       }
       if (edgePx !== 0) window.scrollBy({ top: edgePx, behavior: 'instant' });
     }
