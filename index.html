@@ -1113,6 +1113,23 @@
   divider.position.y = 1.14;
   lipstickGroup.add(divider);
 
+  // Creates a cylinder whose top face is cut at a diagonal angle (classic lipstick bullet)
+  function makeAngledTip(rTop, rBottom, height, cutAngleDeg, segments) {
+    const geo = new THREE.CylinderGeometry(rTop, rBottom, height, segments, 1, false);
+    const pos = geo.attributes.position;
+    const halfH = height / 2;
+    const slope = Math.tan(cutAngleDeg * Math.PI / 180);
+    for (let i = 0; i < pos.count; i++) {
+      if (pos.getY(i) >= halfH - 0.001) {
+        // Tilt the top face: y = halfH + x * slope  →  exact tilted plane
+        pos.setY(i, halfH + pos.getX(i) * slope);
+      }
+    }
+    pos.needsUpdate = true;
+    geo.computeVertexNormals();
+    return geo;
+  }
+
   // Lipstick tip group (animates upward on scroll)
   const tipGroup = new THREE.Group();
   tipGroup.position.y = 0;
@@ -1133,17 +1150,13 @@
   tipBody.position.y = 1.665;
   tipGroup.add(tipBody);
 
-  // Upper tapered cone — creates the classic lipstick bullet narrowing
-  const upperGeo = new THREE.CylinderGeometry(0.20, 0.33, 0.55, 32);
-  const upperBody = new THREE.Mesh(upperGeo, lipstickMat);
-  upperBody.position.y = 2.465;
-  tipGroup.add(upperBody);
-
-  // Smooth rounded dome at the very tip — classic rounded lipstick bullet top
-  const tipCapGeo = new THREE.SphereGeometry(0.20, 32, 16, 0, Math.PI * 2, 0, Math.PI * 0.62);
-  const tipCap = new THREE.Mesh(tipCapGeo, lipstickMat);
-  tipCap.position.y = 2.735;
-  tipGroup.add(tipCap);
+  // Upper section with classic diagonal cut (reference: angled lipstick bullet)
+  // tipBody top is at y = 1.665 + 1.05/2 = 2.19, radius 0.33
+  // This section: bottom r=0.33 (seamless join), top r=0.22 (slight taper), cut at 40°
+  const angledGeo = makeAngledTip(0.22, 0.33, 0.68, 40, 64);
+  const angledTip = new THREE.Mesh(angledGeo, lipstickMat);
+  angledTip.position.y = 2.19 + 0.68 / 2; // = 2.53
+  tipGroup.add(angledTip);
 
   // Label strip — same gold as bottom ring
   const labelBandGeo = new THREE.CylinderGeometry(0.435, 0.435, 0.5, 32);
