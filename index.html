@@ -1491,7 +1491,7 @@
 
     // Griff-Material: dunkles Rosenholz, lackiert
     const handleMat = new THREE.MeshStandardMaterial({
-      color: 0x2b1508, roughness: 0.25, metalness: 0.05,
+      color: 0x2b1508, roughness: 0.38, metalness: 0.04,
       normalMap: handleNormTex, normalScale: new THREE.Vector2(0.35, 0.35),
     });
 
@@ -1507,7 +1507,7 @@
       color: 0xB76E50, roughness: 0.05, metalness: 0.95,
     });
     const copperMat = new THREE.MeshStandardMaterial({
-      color: 0x8B4513, roughness: 0.35, metalness: 0.75,
+      color: 0x2b1508, roughness: 0.35, metalness: 0.75,
     });
     const fBotY  = hBotR + hH;                  // Unterkante Ferrule
     const fBotR  = 0.09 * S, fTopR = 0.12 * S, fH = 0.45 * S;
@@ -1766,7 +1766,7 @@
 
     // Griff: dunkles Ebenholz, hochglanz-lackiert (wie Referenz)
     const handleMat = new THREE.MeshPhysicalMaterial({
-      color: 0x2b1508, roughness: 0.07, metalness: 0.0,
+      color: 0x2b1508, roughness: 0.38, metalness: 0.04,
       normalMap: hNormTex, normalScale: new THREE.Vector2(0.13, 0.13),
       clearcoat: 1.0, clearcoatRoughness: 0.03,
     });
