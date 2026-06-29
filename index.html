@@ -2625,8 +2625,9 @@
     const rayTex = new THREE.CanvasTexture(tc);
 
     const fanGroup = new THREE.Group();
-    fanGroup.position.set(0, OY, OZ);
-    lipstickGroup.add(fanGroup);
+    // Fest in Weltkoordinaten: lipstickGroup startet bei y=-1.1, OY relativ dazu
+    fanGroup.position.set(0, -1.1 + OY, OZ);
+    scene.add(fanGroup);
 
     const rays = [];
     for (let i = 0; i < NUM; i++) {
