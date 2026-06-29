@@ -1660,11 +1660,11 @@
     abNormTex.wrapS = abNormTex.wrapT = THREE.RepeatWrapping;
     abNormTex.repeat.set(2, 10);
 
-    // Abrasiv: matt-grau, porös — emissive sorgt für Sichtbarkeit trotz dunklem Ambient
+    // Abrasiv: matt-grau, porös — stark emissive damit die Klinge sichtbar ist
     const abrasiveMat = new THREE.MeshStandardMaterial({
-      color:    0xC2C2C4, roughness: 0.94, metalness: 0.04,
-      emissive: 0x343434, emissiveIntensity: 0.45,
-      normalMap: abNormTex, normalScale: new THREE.Vector2(2.00, 2.00),
+      color:    0xC8C8CA, roughness: 0.93, metalness: 0.03,
+      emissive: 0x909090, emissiveIntensity: 0.80,
+      normalMap: abNormTex, normalScale: new THREE.Vector2(1.80, 1.80),
     });
     // Klingenränder: polierter Edelstahl
     const edgeMat = new THREE.MeshStandardMaterial({
@@ -1775,8 +1775,8 @@
       steps:          1,
     });
 
-    // Material-Array: Kanten polierter Stahl (idx 0), Fläche abrasiv (idx 1)
-    const blade = new THREE.Mesh(bladeGeo, [edgeMat, abrasiveMat]);
+    // Einzelnes Material für alle Flächen — kein Gruppen-Problem möglich
+    const blade = new THREE.Mesh(bladeGeo, abrasiveMat);
     // In Z zentrieren und auf Ferrule-Oberkante setzen
     blade.position.set(0, blBaseY, -0.007 * S);
     grp.add(blade);
