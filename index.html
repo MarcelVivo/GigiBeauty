@@ -1443,12 +1443,7 @@
     eNorm.repeat.set(4, 1);
     window._eyelinerNorm = eNorm;
   })();
-  const eyelinerMat = new THREE.MeshPhysicalMaterial({
-    color: 0x2b1508, roughness: 0.06, metalness: 0.0,
-    normalMap: window._eyelinerNorm,
-    normalScale: new THREE.Vector2(0.20, 0.20),
-    clearcoat: 1.0, clearcoatRoughness: 0.03,
-  });
+  const eyelinerMat = woodMat;
   const eyelinerTipMat = new THREE.MeshStandardMaterial({
     color: 0x080808, roughness: 0.72, metalness: 0.0,
   });
@@ -1489,11 +1484,8 @@
     handleNormTex.wrapS = handleNormTex.wrapT = THREE.RepeatWrapping;
     handleNormTex.repeat.set(3, 2);
 
-    // Griff-Material: dunkles Rosenholz, lackiert
-    const handleMat = new THREE.MeshStandardMaterial({
-      color: 0x2b1508, roughness: 0.38, metalness: 0.04,
-      normalMap: handleNormTex, normalScale: new THREE.Vector2(0.35, 0.35),
-    });
+    // Griff: exakt gleich wie Mascara-Holz
+    const handleMat = woodMat;
 
     // Griff: verjüngt von r=0.09 (oben, Ferrule) zu r=0.07 (unten), h=1.6
     const hBotR = 0.07 * S, hTopR = 0.09 * S, hH = 1.6 * S;
@@ -1764,12 +1756,8 @@
     hNormTex.wrapS = hNormTex.wrapT = THREE.RepeatWrapping;
     hNormTex.repeat.set(3, 1);
 
-    // Griff: dunkles Ebenholz, hochglanz-lackiert (wie Referenz)
-    const handleMat = new THREE.MeshPhysicalMaterial({
-      color: 0x2b1508, roughness: 0.38, metalness: 0.04,
-      normalMap: hNormTex, normalScale: new THREE.Vector2(0.13, 0.13),
-      clearcoat: 1.0, clearcoatRoughness: 0.03,
-    });
+    // Griff: exakt gleich wie Mascara-Holz
+    const handleMat = woodMat;
 
     // ── End-Cap: abgerundete Halbkugel, dunkel-lackiert ──────────────────
     const ecR = 0.053 * S;
