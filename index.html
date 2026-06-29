@@ -1887,10 +1887,12 @@
   let smoothedHelixRot = 0;
   let smoothedCameraY = 0;
   let isPastHero = false;
-  let _firstSvcTimer    = null;   // timeout handle for first-section reveal delay
-  let _ctaGestureCount  = 0;     // scroll gestures counted after CTA is fully visible
-  let _lastGestureTime  = 0;     // debounce: ms timestamp of last counted gesture
-  let _firstSvcLaunched = false; // prevents re-triggering the slide-up
+  let _firstSvcTimer       = null;   // timeout handle for first-section reveal delay
+  let _ctaGestureCount     = 0;     // scroll gestures counted after CTA is fully visible
+  let _lastGestureTime     = 0;     // debounce: ms timestamp of last counted gesture
+  let _firstSvcLaunched    = false; // prevents re-triggering the slide-up
+  let _isAnimatingToSec    = false; // true while triggerFirstSection rAF is running
+  let _lastMouseX          = null;  // previous mousemove clientX for delta calculation
 
   // ─── Mouse-driven rotation offset ─────────────────────────────────────────
   let targetMouseRot   = 0;   // desired rotation based on mouse X (±π)
@@ -1965,6 +1967,8 @@
 
   // Smoothly scroll page to the first service section (easeOutCubic, 700ms)
   function triggerFirstSection() {
+    _isAnimatingToSec = true;
+    _lastMouseX       = null; // reset delta so no stale jump on next mousemove
     const heroEl  = document.getElementById('hero-scroll');
     const target  = heroEl.offsetHeight - window.innerHeight + 60;
     const startY  = window.scrollY;
@@ -1974,7 +1978,7 @@
     (function step(now) {
       const p = Math.min((now - t0) / dur, 1);
       window.scrollTo(0, startY + (target - startY) * ease(p));
-      if (p < 1) requestAnimationFrame(step);
+      if (p < 1) { requestAnimationFrame(step); } else { _isAnimatingToSec = false; }
     })(t0);
   }
 
@@ -1983,11 +1987,35 @@
   window.addEventListener('mousemove', (e) => {
     if (isPastHero) {
       targetMouseRot = 0;
+      _lastMouseX    = null;
       return;
     }
-    const normalizedX = e.clientX / window.innerWidth;   // 0 (left) → 1 (right)
-    targetMouseRot = (normalizedX - 0.5) * Math.PI * 2; // ±π rotation range
+
+    // ── Mouse left/right drives scroll (same UX as scrolling down/up) ──────
+    // Moving LEFT  → scroll DOWN  (progress increases → service sections)
+    // Moving RIGHT → scroll UP    (progress decreases → back to top)
+    if (!_isAnimatingToSec && _lastMouseX !== null) {
+      const dx = e.clientX - _lastMouseX;
+      if (dx !== 0) {
+        const heroEl = document.getElementById('hero-scroll');
+        const maxScrl = heroEl.offsetHeight - window.innerHeight;
+        // Full screen width = 55% of hero scroll; multiple sweeps to traverse all
+        const scrollPx = -dx * (maxScrl * 0.55 / window.innerWidth);
+        window.scrollBy({ top: scrollPx, behavior: 'instant' });
+      }
+    }
+    _lastMouseX = e.clientX;
+
+    // ── Helix rotation offset (existing) ───────────────────────────────────
+    const normalizedX = e.clientX / window.innerWidth;
+    targetMouseRot = (normalizedX - 0.5) * Math.PI * 2;
   }, { passive: true });
+
+  // Reset delta tracking when mouse leaves the window
+  window.addEventListener('mouseleave', () => {
+    _lastMouseX    = null;
+    targetMouseRot = 0;
+  });
 
   // ─── Project 3D to 2D ─────────────────────────────────────────────────────
   const _v3 = new THREE.Vector3();
