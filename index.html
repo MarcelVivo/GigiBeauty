@@ -2855,9 +2855,6 @@
     targetScrollProgress = Math.max(0, Math.min(1, currentScrollY / maxScroll));
     isPastHero = currentScrollY > maxScroll + 40;
 
-    // Show global dust when in service sections
-    const gd = document.getElementById('global-dust');
-    if (gd) gd.classList.toggle('visible', isPastHero);
 
     // Hide scroll hint: desktop → after 60 px; mobile → only once past hero
     const hint = document.getElementById('scroll-hint');
