@@ -3833,7 +3833,8 @@
 
     // ── Butterfly canvases
     btflyItems.forEach(({ ctx, pts }) => {
-      ctx.clearRect(0, 0, 300, 330);
+      ctx.fillStyle = '#180d08';
+      ctx.fillRect(0, 0, 300, 330);
       drawParticles(ctx, pts, null, 330, t, 330);
     });
   }
@@ -4427,7 +4428,8 @@
       }
 
       var ctx = sys.ctx;
-      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = '#180d08';
+      ctx.fillRect(0, 0, W, H);
 
       sys.particles.forEach(function(p, idx) {
         p.x += p.vx;
