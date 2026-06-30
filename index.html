@@ -4593,5 +4593,85 @@
 })();
 </script>
 
+<!-- ── Side scroll indicator ─────────────────────────────────────────────── -->
+<div id="side-scroll-hint" aria-hidden="true">
+  <svg class="ssh-arrow ssh-arrow-up" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M1 5L5 1.5L9 5" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <div class="ssh-track"><div class="ssh-thumb"></div></div>
+  <svg class="ssh-arrow ssh-arrow-down" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M1 1L5 4.5L9 1" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</div>
+
+<style>
+  #side-scroll-hint {
+    position: fixed;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    color: rgba(212,175,106,0.45);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.7s ease;
+  }
+  #side-scroll-hint.ssh-visible { opacity: 1; }
+  .ssh-arrow { width: 10px; height: 6px; flex-shrink: 0; }
+  .ssh-arrow-up   { animation: ssh-pulse-up   2.4s ease-in-out infinite; }
+  .ssh-arrow-down { animation: ssh-pulse-down 2.4s ease-in-out infinite; }
+  @keyframes ssh-pulse-up {
+    0%,100% { opacity: 0.3; transform: translateY(0); }
+    50%     { opacity: 0.8; transform: translateY(-2px); }
+  }
+  @keyframes ssh-pulse-down {
+    0%,100% { opacity: 0.3; transform: translateY(0); }
+    50%     { opacity: 0.8; transform: translateY(2px); }
+  }
+  .ssh-track {
+    width: 1px;
+    height: 54px;
+    background: rgba(212,175,106,0.18);
+    position: relative;
+    overflow: hidden;
+    border-radius: 1px;
+  }
+  .ssh-thumb {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 18px;
+    background: linear-gradient(to bottom, transparent, rgba(212,175,106,0.75), transparent);
+    animation: ssh-thumb 2.4s ease-in-out infinite;
+    will-change: transform;
+  }
+  @keyframes ssh-thumb {
+    0%   { transform: translateY(-18px); }
+    50%  { transform: translateY(54px); }
+    100% { transform: translateY(-18px); }
+  }
+</style>
+<script>
+(function () {
+  var hint = document.getElementById('side-scroll-hint');
+  var hero = document.getElementById('canvas-container');
+  function update() {
+    var threshold = hero ? hero.offsetHeight * 0.6 : window.innerHeight * 0.6;
+    if (window.scrollY > threshold) {
+      hint.classList.add('ssh-visible');
+    } else {
+      hint.classList.remove('ssh-visible');
+    }
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+})();
+</script>
+
 </body>
 </html>
