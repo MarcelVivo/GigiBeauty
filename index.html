@@ -4664,14 +4664,14 @@
 </style>
 <script>
 (function () {
-  var hint = document.getElementById('side-scroll-hint');
-  var hero = document.getElementById('canvas-container');
+  var hint    = document.getElementById('side-scroll-hint');
+  var firstSec = document.getElementById('section-gel-acryl-nails');
   function update() {
-    var threshold = hero ? hero.offsetHeight * 0.8 : window.innerHeight * 0.8;
-    if (window.scrollY < threshold) {
-      hint.classList.add('ssh-visible');
-    } else {
+    var top = firstSec ? firstSec.getBoundingClientRect().top : Infinity;
+    if (top < window.innerHeight * 0.95) {
       hint.classList.remove('ssh-visible');
+    } else {
+      hint.classList.add('ssh-visible');
     }
   }
   window.addEventListener('scroll', update, { passive: true });
