@@ -4662,17 +4662,7 @@
 <script>
 (function () {
   var hint = document.getElementById('side-scroll-hint');
-  var hero = document.getElementById('canvas-container');
-  function update() {
-    var threshold = hero ? hero.offsetHeight * 0.6 : window.innerHeight * 0.6;
-    if (window.scrollY > threshold) {
-      hint.classList.add('ssh-visible');
-    } else {
-      hint.classList.remove('ssh-visible');
-    }
-  }
-  window.addEventListener('scroll', update, { passive: true });
-  update();
+  hint.classList.add('ssh-visible');
 })();
 </script>
 
