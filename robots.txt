@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://marcelvivo.github.io/GigiBeauty/sitemap.xml
+
+# TODO: Bei Domain-Wechsel auf gigibeauty.ch ersetzen:
+# Sitemap: https://www.gigibeauty.ch/sitemap.xml

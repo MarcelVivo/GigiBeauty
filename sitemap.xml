@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Hauptseite -->
+  <url>
+    <loc>https://marcelvivo.github.io/GigiBeauty/</loc>
+    <lastmod>2026-06-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Über GiGi Beauty -->
+  <url>
+    <loc>https://marcelvivo.github.io/GigiBeauty/ueber-liliane.html</loc>
+    <lastmod>2026-06-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Impressum -->
+  <url>
+    <loc>https://marcelvivo.github.io/GigiBeauty/impressum.html</loc>
+    <lastmod>2026-06-30</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+</urlset>
