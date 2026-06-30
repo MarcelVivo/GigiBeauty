@@ -764,20 +764,6 @@
     height: 216px;
   }
 
-  /* Smoke canvas injected by JS — sits behind the img */
-  .svc-butterfly-wrap canvas {
-    position: absolute;
-    inset: -40px;         /* extend beyond the img so smoke spills out */
-    width: calc(100% + 80px);
-    height: calc(100% + 80px);
-    pointer-events: none;
-    z-index: 0;
-    mix-blend-mode: screen;   /* dark/transparent areas vanish; only gold light shows */
-    background: transparent;
-  }
-  @media (max-width: 767px) {
-    .svc-butterfly-wrap canvas { display: none; }
-  }
 
   .svc-butterfly {
     position: relative;
@@ -1131,15 +1117,7 @@
     pointer-events: none;
   }
 
-  /* ── Per-butterfly rising particles */
   .svc-head-left { position: relative; }
-  .btfly-dust {
-    position: absolute;
-    top: -40px; left: -30px;
-    width: 300px; height: 330px;
-    pointer-events: none;
-    z-index: 2;
-  }
 </style>
 </head>
 <body>
@@ -3774,11 +3752,9 @@
 
 <script>
 /* ═══════════════════════════════════════════════════════════════════════════
-   GOLD DUST PARTICLE SYSTEMS
-   1. #global-dust  — full-page fixed canvas (z=15), rising particles across
-                      the entire viewport, fades in when entering sections.
-   2. .btfly-dust   — per-section canvas near each butterfly image,
-                      denser cluster of rising gold particles.
+   GOLD DUST PARTICLE SYSTEM
+   #global-dust — full-page fixed canvas (z=15), rising particles across
+                  the entire viewport, fades in when entering sections.
 ════════════════════════════════════════════════════════════════════════════ */
 (function initGoldDust() {
 
@@ -3859,34 +3835,6 @@
   });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // 2 · BUTTERFLY DUST CANVASES  (.btfly-dust)
-  //     Created programmatically next to each .svc-butterfly image.
-  // ─────────────────────────────────────────────────────────────────────────
-  const btflyItems = [];
-
-  document.querySelectorAll('.svc-butterfly').forEach(img => {
-    const cvs = document.createElement('canvas');
-    cvs.className = 'btfly-dust';
-    cvs.width  = 300;
-    cvs.height = 330;
-    // Insert before the img so it sits behind it in z-order
-    img.parentNode.insertBefore(cvs, img);
-
-    const ctx  = cvs.getContext('2d');
-    // Particles start from the lower half (beneath the butterfly)
-    const pts  = makeParticles(35, 300, 330, {
-      minR: 0.7, maxR: 2.2,
-      minVy: 0.28, maxVy: 0.72,
-      minOp: 0.18, maxOp: 0.60,
-      drift: 0.12,
-    });
-    // Distribute initial y in lower portion so they rise INTO the butterfly
-    pts.forEach(p => { p.y = 180 + Math.random() * 150; });
-
-    btflyItems.push({ cvs, ctx, pts });
-  });
-
-  // ─────────────────────────────────────────────────────────────────────────
   // Unified animation loop (own RAF — independent of Three.js)
   // ─────────────────────────────────────────────────────────────────────────
   let t = 0;
@@ -3897,12 +3845,6 @@
     // ── Global dust
     gCx.clearRect(0, 0, gc.width, gc.height);
     drawParticles(gCx, gPts, gc.width, gc.height, t);
-
-    // ── Butterfly canvases
-    btflyItems.forEach(({ ctx, pts }) => {
-      ctx.clearRect(0, 0, 300, 330);
-      drawParticles(ctx, pts, null, 330, t, 330);
-    });
   }
   dustLoop();
 
@@ -4432,97 +4374,6 @@
       ctx.restore();
     }
   }
-  loop();
-})();
-</script>
-
-<!-- ── Golden smoke behind service butterflies ──────────────────────────────── -->
-<script>
-(function() {
-  var wrappers = document.querySelectorAll('.svc-butterfly-wrap');
-  var systems  = [];
-
-  wrappers.forEach(function(wrap) {
-    var cvs = document.createElement('canvas');
-    wrap.insertBefore(cvs, wrap.firstChild);
-
-    var ctx = cvs.getContext('2d');
-    var PCOUNT = 32;
-    var particles = [];
-
-    function spawn(W, H) {
-      /* Spawn from the center of the butterfly image.
-         The canvas is (wrap + 80) px; the butterfly center sits at W/2, H/2. */
-      var cx = W / 2, cy = H / 2;
-      var angle = Math.random() * Math.PI * 2;
-      var dist  = Math.random() * W * 0.28;
-      return {
-        x:  cx + Math.cos(angle) * dist,
-        y:  cy + Math.sin(angle) * dist,
-        vx: (Math.random() - 0.5) * 0.055,
-        vy: -(0.018 + Math.random() * 0.045),
-        r:  W * 0.10 + Math.random() * W * 0.14,
-        a:  0.10 + Math.random() * 0.22,
-        da: 0.00012 + Math.random() * 0.00022,
-        gr: 0.008 + Math.random() * 0.014,
-        hue: 32 + Math.random() * 18
-      };
-    }
-
-    /* Pre-age particles so the effect is already running on first frame */
-    for (var i = 0; i < PCOUNT; i++) {
-      var W0 = 296, H0 = 296; /* fallback before first resize */
-      var p = spawn(W0, H0);
-      p.y -= p.vy * (Math.random() * 100);
-      p.a  = Math.random() * 0.18;
-      particles.push(p);
-    }
-
-    systems.push({ cvs: cvs, ctx: ctx, particles: particles, wrap: wrap, spawn: spawn });
-  });
-
-  function loop() {
-    requestAnimationFrame(loop);
-    systems.forEach(function(sys) {
-      var wrap = sys.wrap;
-      var cvs  = sys.cvs;
-      var W    = wrap.offsetWidth  + 80;
-      var H    = wrap.offsetHeight + 80;
-      if (cvs.width !== W || cvs.height !== H) {
-        cvs.width  = W;
-        cvs.height = H;
-      }
-
-      var ctx = sys.ctx;
-      ctx.clearRect(0, 0, W, H);
-
-      sys.particles.forEach(function(p, idx) {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.r += p.gr;
-        p.a -= p.da;
-
-        if (p.a <= 0 || p.y + p.r < 0) {
-          sys.particles[idx] = sys.spawn(W, H);
-          return;
-        }
-
-        var g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
-        var c1 = 'rgba(255,' + (195 + Math.round(p.hue)) + ',80,' + p.a + ')';
-        var c2 = 'rgba(212,175,106,' + (p.a * 0.45) + ')';
-        var c3 = 'rgba(180,130,50,0)';
-        g.addColorStop(0,   c1);
-        g.addColorStop(0.4, c2);
-        g.addColorStop(1,   c3);
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = g;
-        ctx.fill();
-      });
-    });
-  }
-
   loop();
 })();
 </script>
