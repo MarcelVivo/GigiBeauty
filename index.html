@@ -401,10 +401,13 @@
     transform: translateX(-50%);
     z-index: 4;
     text-align: center;
-    pointer-events: none;
+    pointer-events: auto;
+    cursor: pointer;
     opacity: 1;
     transition: opacity 0.5s ease;
   }
+
+  #scroll-hint:hover span { color: rgba(212,175,106,0.85); }
 
   #scroll-hint span {
     display: block;
@@ -2821,11 +2824,7 @@
   let _lastGestureTime     = 0;     // debounce: ms timestamp of last counted gesture
   let _firstSvcLaunched    = false; // prevents re-triggering the slide-up
   let _isAnimatingToSec    = false; // true while triggerFirstSection rAF is running
-  let _lastMouseX          = null;  // previous mousemove clientX for delta calculation
-  let _mouseXCurrent       = -1;    // latest known mouse X (for edge-zone continuous scroll)
-  let _lastDx              = 0;     // last horizontal mouse delta (negative=left, positive=right)
-  let _lastMoveTime        = 0;     // performance.now() timestamp of last real mousemove
-  let mouseTargetProgress  = 0;    // virtual 0-1 progress driven by mouse (no DOM scroll)
+  let mouseTargetProgress  = 0;    // virtual 0-1 progress driven by wheel (no DOM scroll)
 
   // ─── Mouse-driven rotation offset ─────────────────────────────────────────
   let targetMouseRot   = 0;   // desired rotation based on mouse X (±π)
@@ -2882,7 +2881,6 @@
   // ─── Mouse X → helix rotation ─────────────────────────────────────────────
   // Smoothly scroll to the first service section (easeOutCubic, 700 ms)
   function triggerFirstSection() {
-    _lastMouseX = null;
     const heroEl = document.getElementById('hero-scroll');
     const target = heroEl.offsetHeight - window.innerHeight + 60;
     const startY = window.scrollY;
@@ -2898,35 +2896,17 @@
 
   // #hero-scroll has pointer-events:none, so listen on window instead
   window.addEventListener('mousemove', (e) => {
-    _lastMoveTime = performance.now();
-    // ── Mouse left/right drives virtual scroll progress (no DOM scrollBy) ──
-    // Moving LEFT  → progress ↑  (toward service sections)
-    // Moving RIGHT → progress ↓  (back to top, even when section already visible)
-    if (_lastMouseX !== null) {
-      const dx = e.clientX - _lastMouseX;
-      if (dx !== 0) {
-        _lastDx = dx;
-        mouseTargetProgress = Math.max(0, Math.min(1,
-          mouseTargetProgress - dx * (1.10 / window.innerWidth)
-        ));
-      }
-    }
-    _lastMouseX    = e.clientX;
-
     if (isPastHero) {
       targetMouseRot = 0;
-      return; // skip helix rotation and _mouseXCurrent update when past hero
+      return;
     }
-    _mouseXCurrent = e.clientX;
-
-    // ── Helix rotation offset (existing) ───────────────────────────────────
+    // ── Helix rotation offset — lipstick gently tilts toward the cursor ──────
     const normalizedX = e.clientX / window.innerWidth;
     targetMouseRot = (normalizedX - 0.5) * Math.PI * 2;
   }, { passive: true });
 
-  // Reset delta tracking when mouse leaves the window
+  // Reset rotation offset when mouse leaves the window
   window.addEventListener('mouseleave', () => {
-    _lastMouseX    = null;
     targetMouseRot = 0;
   });
 
@@ -2938,6 +2918,13 @@
     const dir = e.deltaY > 0 ? 1 : -1;
     mouseTargetProgress = Math.max(0, Math.min(1, mouseTargetProgress + dir * 0.22));
   }, { passive: true });
+
+  // ─── "Scrollen" hint → click to jump straight into the first section ──────
+  document.getElementById('scroll-hint').addEventListener('click', () => {
+    if (isPastHero || _firstSvcLaunched) return;
+    _firstSvcLaunched = true;
+    triggerFirstSection();
+  });
 
   // ─── Project 3D to 2D ─────────────────────────────────────────────────────
   const _v3 = new THREE.Vector3();
@@ -3074,28 +3061,7 @@
       return;
     }
 
-    // ── Edge-zone: cursor strictly moving toward an edge continues the animation ──
-    //    _lastDx < 0  = actively moving left  → left  edge advances progress
-    //    _lastDx > 0  = actively moving right → right edge reverses progress
-    //    _lastDx === 0 (stationary) → edge zone is silent
-    // Mouse has been motionless for a while — cancel any lingering direction
-    // so the edge-zone nudge below cannot keep advancing forever while idle.
-    if (performance.now() - _lastMoveTime > 150) {
-      _lastDx = 0;
-    }
-    if (!isPastHero && _mouseXCurrent >= 0) {
-      const EDGE = 90;
-      const W    = window.innerWidth;
-      if (_mouseXCurrent < EDGE && _lastDx < 0) {
-        const str = (EDGE - _mouseXCurrent) / EDGE;
-        mouseTargetProgress = Math.min(1, mouseTargetProgress + 0.0036 * str);
-      } else if (_mouseXCurrent > W - EDGE && _lastDx > 0) {
-        const str = (_mouseXCurrent - (W - EDGE)) / EDGE;
-        mouseTargetProgress = Math.max(0, mouseTargetProgress - 0.0036 * str);
-      }
-    }
-
-    // Trigger section reveal when animation reaches 100% (mouse OR wheel, any path)
+    // Trigger section reveal when animation reaches 100% (via wheel)
     if (!isPastHero && mouseTargetProgress >= 1 && !_firstSvcLaunched) {
       _firstSvcLaunched = true;
       triggerFirstSection();
