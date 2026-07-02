@@ -2854,14 +2854,17 @@
     const _newTarget = Math.max(0, Math.min(1, currentScrollY / maxScroll));
 
     // Measure real velocity here (progress-change per 60fps-equivalent tick),
-    // straight from consecutive real scroll events — NOT re-derived later
-    // from an already-synced animate() value, which would read back as ~0
-    // and silently kill the coast the instant scrolling actually stops.
+    // straight from consecutive real scroll events. Also hard-sync the
+    // display progress to the real position on every event, so active
+    // scrolling always tracks exactly — the coast in animate() then simply
+    // keeps integrating this same velocity once events stop, with no mode
+    // switch and no pause in between (that gap was the stutter reported).
     const _dt = _prevScrollEventTime ? _lastScrollEventTime - _prevScrollEventTime : 16.6667;
     if (_dt > 0 && _dt < 400) {
       const _instVel = (_newTarget - targetScrollProgress) / _dt * 16.6667;
       _scrollVelocity = Math.max(-0.05, Math.min(0.05, _instVel));
     }
+    scrollProgress = _newTarget;
 
     targetScrollProgress = _newTarget;
     isPastHero = currentScrollY > maxScroll + 40;
@@ -3061,17 +3064,14 @@
       _ctaGestureCount  = 0;
     }
 
-    // Animation progress: tracks real scroll 1:1 while the user is actively
-    // scrolling, so rotation speed always matches scroll speed directly with
-    // no lag. Once scrolling stops, the last known velocity briefly carries
-    // the animation forward and decays smoothly to a stop — a light coast,
-    // not a chase — instead of snapping dead the instant input ends.
-    const _scrollIsLive = (_now - _lastScrollEventTime) < 120;
-    if (_scrollIsLive) {
-      // Real velocity is measured in the scroll handler itself (see above) —
-      // just track the live position directly here, with zero lag.
-      scrollProgress = targetScrollProgress;
-    } else if (Math.abs(_scrollVelocity) > 0.0002) {
+    // Animation progress: continuously integrates the measured scroll
+    // velocity every single frame — no live/coast mode switch and no
+    // waiting period, so there is never a pause between "scrolling" and
+    // "coasting". Each real scroll event (above) hard-syncs scrollProgress
+    // and refreshes the velocity, which keeps this perfectly matched to
+    // scroll speed while active; once events stop, the exact same line
+    // keeps carrying the last velocity forward while it decays to zero.
+    if (Math.abs(_scrollVelocity) > 0.00005) {
       scrollProgress = Math.max(0, Math.min(1, scrollProgress + _scrollVelocity * _frameTicks));
       _scrollVelocity *= Math.pow(0.91, _frameTicks);
     } else {
