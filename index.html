@@ -2824,6 +2824,7 @@
   let _lastMouseX          = null;  // previous mousemove clientX for delta calculation
   let _mouseXCurrent       = -1;    // latest known mouse X (for edge-zone continuous scroll)
   let _lastDx              = 0;     // last horizontal mouse delta (negative=left, positive=right)
+  let _lastMoveTime        = 0;     // performance.now() timestamp of last real mousemove
   let mouseTargetProgress  = 0;    // virtual 0-1 progress driven by mouse (no DOM scroll)
 
   // ─── Mouse-driven rotation offset ─────────────────────────────────────────
@@ -2897,6 +2898,7 @@
 
   // #hero-scroll has pointer-events:none, so listen on window instead
   window.addEventListener('mousemove', (e) => {
+    _lastMoveTime = performance.now();
     // ── Mouse left/right drives virtual scroll progress (no DOM scrollBy) ──
     // Moving LEFT  → progress ↑  (toward service sections)
     // Moving RIGHT → progress ↓  (back to top, even when section already visible)
@@ -3076,6 +3078,11 @@
     //    _lastDx < 0  = actively moving left  → left  edge advances progress
     //    _lastDx > 0  = actively moving right → right edge reverses progress
     //    _lastDx === 0 (stationary) → edge zone is silent
+    // Mouse has been motionless for a while — cancel any lingering direction
+    // so the edge-zone nudge below cannot keep advancing forever while idle.
+    if (performance.now() - _lastMoveTime > 150) {
+      _lastDx = 0;
+    }
     if (!isPastHero && _mouseXCurrent >= 0) {
       const EDGE = 90;
       const W    = window.innerWidth;
