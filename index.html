@@ -2819,6 +2819,8 @@
   let smoothedHelixRot = 0;
   let smoothedCameraY = 0;
   let isPastHero = false;
+  let _scrollVelocity      = 0;   // per-frame rate of change, used to coast after input stops
+  let _lastScrollEventTime = 0;   // performance.now() of the last real 'scroll' event
   let _firstSvcTimer       = null;   // timeout handle for first-section reveal delay
   let _ctaGestureCount     = 0;     // scroll gestures counted after CTA is fully visible
   let _lastGestureTime     = 0;     // debounce: ms timestamp of last counted gesture
@@ -2835,6 +2837,7 @@
   }
 
   window.addEventListener('scroll', () => {
+    _lastScrollEventTime = performance.now();
     const currentScrollY = window.scrollY;
 
     // Unfreeze when user intentionally scrolls again
@@ -3018,10 +3021,18 @@
     return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
   }
 
+  let _lastFrameTime = performance.now();
+
   function animate() {
     requestAnimationFrame(animate);
 
     const elapsed = clock.getElapsedTime();
+    const _now = performance.now();
+    // How many 60fps-equivalent "ticks" elapsed since the last frame — keeps
+    // the coast-and-decay below at the same real-world speed regardless of
+    // the display's actual refresh rate.
+    const _frameTicks = Math.min(4, (_now - _lastFrameTime) / 16.6667);
+    _lastFrameTime = _now;
 
     // ── Exit animation: lipstick sinks below screen
     if (isExiting) {
@@ -3037,10 +3048,21 @@
       _ctaGestureCount  = 0;
     }
 
-    // Animation progress: driven 1:1 by real scroll position — no smoothing/
-    // easing here, so rotation speed always matches scroll speed directly
-    // (fast scroll = fast spin, slow scroll = slow spin, no lag/catch-up).
-    scrollProgress = targetScrollProgress;
+    // Animation progress: tracks real scroll 1:1 while the user is actively
+    // scrolling, so rotation speed always matches scroll speed directly with
+    // no lag. Once scrolling stops, the last known velocity briefly carries
+    // the animation forward and decays smoothly to a stop — a light coast,
+    // not a chase — instead of snapping dead the instant input ends.
+    const _scrollIsLive = (_now - _lastScrollEventTime) < 120;
+    if (_scrollIsLive) {
+      _scrollVelocity = Math.max(-0.05, Math.min(0.05, targetScrollProgress - scrollProgress));
+      scrollProgress = targetScrollProgress;
+    } else if (Math.abs(_scrollVelocity) > 0.0002) {
+      scrollProgress = Math.max(0, Math.min(1, scrollProgress + _scrollVelocity * _frameTicks));
+      _scrollVelocity *= Math.pow(0.91, _frameTicks);
+    } else {
+      _scrollVelocity = 0;
+    }
     const eased = scrollProgress;
 
     // ── Lipstick rotation (full 360° over scroll)
