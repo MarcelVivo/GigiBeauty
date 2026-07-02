@@ -9,12 +9,12 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--space-md);
-  background: linear-gradient(to bottom, rgba(69,60,48,0.95), transparent);
+  background: linear-gradient(to bottom, rgba(47,37,28,0.95), transparent);
   transition: background 0.3s ease;
 }
 
 #site-nav.scrolled {
-  background: rgba(69, 60, 48, 0.97);
+  background: rgba(47, 37, 28, 0.97);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(212, 175, 106, 0.12);
@@ -69,7 +69,7 @@
 
 /* ── Footer */
 #site-footer {
-  background: #2f2921;
+  background: #1a1713;
   border-top: 1px solid rgba(212, 175, 106, 0.1);
   padding: var(--space-lg) 0 var(--space-md);
   text-align: center;
