@@ -2826,10 +2826,6 @@
   let _isAnimatingToSec    = false; // true while triggerFirstSection rAF is running
   let mouseTargetProgress  = 0;    // virtual 0-1 progress driven by wheel (no DOM scroll)
 
-  // ─── Mouse-driven rotation offset ─────────────────────────────────────────
-  let targetMouseRot   = 0;   // desired rotation based on mouse X (±π)
-  let smoothedMouseRot = 0;   // lerped version applied in animate()
-
   // ─── Freeze state (click-to-pause) ────────────────────────────────────────
   let heroFrozen = false;
   let lastScrollY = window.scrollY;
@@ -2893,22 +2889,6 @@
       if (p < 1) requestAnimationFrame(step);
     })(t0);
   }
-
-  // #hero-scroll has pointer-events:none, so listen on window instead
-  window.addEventListener('mousemove', (e) => {
-    if (isPastHero) {
-      targetMouseRot = 0;
-      return;
-    }
-    // ── Helix rotation offset — lipstick gently tilts toward the cursor ──────
-    const normalizedX = e.clientX / window.innerWidth;
-    targetMouseRot = (normalizedX - 0.5) * Math.PI * 2;
-  }, { passive: true });
-
-  // Reset rotation offset when mouse leaves the window
-  window.addEventListener('mouseleave', () => {
-    targetMouseRot = 0;
-  });
 
   // ─── Mouse wheel → virtual scroll progress ────────────────────────────────
   // Each notch advances/reverses the hero animation by 22 %.
@@ -3079,7 +3059,7 @@
     const eased = easeInOut(scrollProgress);
 
     // ── Lipstick rotation (full 360° over scroll)
-    const targetRotY = eased * Math.PI * 2 + smoothedMouseRot * 0.5;
+    const targetRotY = eased * Math.PI * 2;
     smoothedRotY = lerp(smoothedRotY, targetRotY, 0.05);
     lipstickGroup.rotation.y = smoothedRotY;
 
@@ -3257,11 +3237,8 @@
     goldLight.position.x = Math.cos(elapsed * 0.7 + Math.PI) * 3;
     goldLight.position.z = Math.sin(elapsed * 0.7 + Math.PI) * 3;
 
-    // ── Mouse rotation offset (lerped separately so it can return to 0)
-    smoothedMouseRot = lerp(smoothedMouseRot, targetMouseRot, 0.04);
-
     // ── Update service card positions in helix
-    const helixRot = eased * Math.PI * 2 + smoothedMouseRot;
+    const helixRot = eased * Math.PI * 2;
     smoothedHelixRot = lerp(smoothedHelixRot, helixRot, IS_MOBILE ? 0.10 : 0.05);
 
     SERVICES.forEach((svc, i) => {
