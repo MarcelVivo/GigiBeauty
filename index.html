@@ -2900,7 +2900,7 @@
     // event) means normal scrolling gradually pays the lead back down, so
     // headroom is available again well before the next stop.
     const _leadBeforeErosion = scrollProgress - targetScrollProgress;
-    scrollProgress -= _leadBeforeErosion * 0.02;
+    scrollProgress -= _leadBeforeErosion * 0.1;
     targetScrollProgress = _newTarget;
     // Apply the REAL change as a relative nudge, not an absolute snap. The
     // coast can leave scrollProgress ahead of (or behind) targetScrollProgress
