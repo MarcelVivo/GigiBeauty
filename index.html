@@ -2863,9 +2863,10 @@
     // independently. Real velocity is measured here too, from consecutive
     // events, so the coast phase (once scrolling stops) can start from the
     // genuine last speed instead of a guess.
+    const _realDelta = _newTarget - targetScrollProgress;
     const _dt = _prevScrollEventTime ? (_lastScrollEventTime - _prevScrollEventTime) / 1000 : 1 / 60;
     if (_dt > 0 && _dt < 0.4) {
-      const _instVel = (_newTarget - targetScrollProgress) / _dt;
+      const _instVel = _realDelta / _dt;
       // Smoothed across recent events (not just the last one) so a single
       // irregularly-timed event can't seed the coast with a spiky velocity —
       // that mismatch was causing a small one-frame correction blip right at
@@ -2873,7 +2874,13 @@
       _measuredVel = lerp(_measuredVel, _instVel, 0.5);
     }
     targetScrollProgress = _newTarget;
-    scrollProgress = _newTarget;
+    // Apply the REAL change as a relative nudge, not an absolute snap. The
+    // coast can leave scrollProgress ahead of (or behind) targetScrollProgress
+    // on purpose — snapping to the absolute value here undid that the moment
+    // scrolling resumed, jumping the butterflies back to where they were
+    // before the run-out. Adding the delta instead means new scrolling always
+    // continues from wherever the display currently is.
+    scrollProgress = Math.max(0, Math.min(1, scrollProgress + _realDelta));
     _coastSeeded = false; // still scrolling — next stop should reseed fresh
     isPastHero = currentScrollY > maxScroll + 40;
 
