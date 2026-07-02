@@ -2814,6 +2814,14 @@
   // ─── Scroll state ─────────────────────────────────────────────────────────
   let scrollProgress = 0;
   let targetScrollProgress = 0;
+  // Max distance the coast is allowed to carry scrollProgress away from
+  // targetScrollProgress. Without a cap, repeated coasts each bank a little
+  // extra "free" rotation that's never paid back by any real scroll
+  // distance, so the rotation gradually finishes earlier and earlier
+  // relative to the actual scroll range — leaving a dead stretch of
+  // scrolling at the end with nothing left to animate. Capping it keeps the
+  // full rotation mapped to the full real scroll length, top to bottom.
+  const _MAX_COAST_LEAD = 0.035;
   let _scrollVel      = 0;     // SmoothDamp velocity, used only once coasting starts
   let _measuredVel    = 0;     // real velocity measured from consecutive scroll events
   let _coastSeeded    = false; // true once _scrollVel has been seeded for the current coast
@@ -2880,7 +2888,11 @@
     // scrolling resumed, jumping the butterflies back to where they were
     // before the run-out. Adding the delta instead means new scrolling always
     // continues from wherever the display currently is.
-    scrollProgress = Math.max(0, Math.min(1, scrollProgress + _realDelta));
+    scrollProgress = Math.max(
+      targetScrollProgress - _MAX_COAST_LEAD,
+      Math.min(targetScrollProgress + _MAX_COAST_LEAD, scrollProgress + _realDelta)
+    );
+    scrollProgress = Math.max(0, Math.min(1, scrollProgress));
     _coastSeeded = false; // still scrolling — next stop should reseed fresh
     isPastHero = currentScrollY > maxScroll + 40;
 
@@ -3101,7 +3113,17 @@
         _scrollVel = _measuredVel;
         _coastSeeded = true;
       }
-      scrollProgress = Math.max(0, Math.min(1, scrollProgress + _scrollVel * (_frameTicks / 60)));
+      // Soft-limit velocity as the coast approaches the max-lead cushion, so
+      // it eases up to the boundary rather than getting clipped mid-motion.
+      const _leadUsed = Math.abs(scrollProgress - targetScrollProgress) / _MAX_COAST_LEAD;
+      const _roomFactor = Math.max(0, Math.min(1, (1 - _leadUsed) / 0.3));
+      _scrollVel *= _roomFactor;
+      const _nextPos = scrollProgress + _scrollVel * (_frameTicks / 60);
+      scrollProgress = Math.max(
+        targetScrollProgress - _MAX_COAST_LEAD,
+        Math.min(targetScrollProgress + _MAX_COAST_LEAD, _nextPos)
+      );
+      scrollProgress = Math.max(0, Math.min(1, scrollProgress));
       _scrollVel *= Math.pow(0.97, _frameTicks); // ≈3× the settle time of the earlier 0.91 tuning
     }
     const eased = scrollProgress;
