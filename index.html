@@ -2814,11 +2814,15 @@
   // ─── Scroll state ─────────────────────────────────────────────────────────
   let scrollProgress = 0;
   let targetScrollProgress = 0;
+  let _scrollVel      = 0;     // SmoothDamp velocity, used only once coasting starts
+  let _measuredVel    = 0;     // real velocity measured from consecutive scroll events
+  let _coastSeeded    = false; // true once _scrollVel has been seeded for the current coast
   let smoothedTipY = 0;
   let smoothedRotY = 0;
   let smoothedHelixRot = 0;
   let smoothedCameraY = 0;
   let isPastHero = false;
+  let _lastScrollEventTime = 0;   // performance.now() of the last real 'scroll' event
   let _firstSvcTimer       = null;   // timeout handle for first-section reveal delay
   let _ctaGestureCount     = 0;     // scroll gestures counted after CTA is fully visible
   let _lastGestureTime     = 0;     // debounce: ms timestamp of last counted gesture
@@ -2835,6 +2839,8 @@
   }
 
   window.addEventListener('scroll', () => {
+    const _prevScrollEventTime = _lastScrollEventTime;
+    _lastScrollEventTime = performance.now();
     const currentScrollY = window.scrollY;
 
     // Unfreeze when user intentionally scrolls again
@@ -2847,14 +2853,28 @@
     if (heroFrozen) return;   // still frozen — ignore scroll updates
     const heroEl = document.getElementById('hero-scroll');
     const maxScroll = heroEl.offsetHeight - window.innerHeight;
+    const _newTarget = Math.max(0, Math.min(1, currentScrollY / maxScroll));
 
-    // Ground truth only — no smoothing here. scrollProgress (the value that
-    // actually drives rotation) is the single responsibility of animate(),
-    // which eases toward this target once per frame. Touching scrollProgress
-    // from two places (an event handler AND a per-frame loop) is what caused
-    // the earlier jitter: both were nudging the same value independently and
-    // fighting each other.
-    targetScrollProgress = Math.max(0, Math.min(1, currentScrollY / maxScroll));
+    // While real scroll events are actively arriving, this handler is the
+    // ONLY thing allowed to write scrollProgress — animate() skips it during
+    // this window (see _isLive below), so there is never more than one
+    // writer at a time. That was the actual source of the earlier jitter:
+    // an event handler and a per-frame loop both nudging the same value
+    // independently. Real velocity is measured here too, from consecutive
+    // events, so the coast phase (once scrolling stops) can start from the
+    // genuine last speed instead of a guess.
+    const _dt = _prevScrollEventTime ? (_lastScrollEventTime - _prevScrollEventTime) / 1000 : 1 / 60;
+    if (_dt > 0 && _dt < 0.4) {
+      const _instVel = (_newTarget - targetScrollProgress) / _dt;
+      // Smoothed across recent events (not just the last one) so a single
+      // irregularly-timed event can't seed the coast with a spiky velocity —
+      // that mismatch was causing a small one-frame correction blip right at
+      // the live→coast handoff.
+      _measuredVel = lerp(_measuredVel, _instVel, 0.5);
+    }
+    targetScrollProgress = _newTarget;
+    scrollProgress = _newTarget;
+    _coastSeeded = false; // still scrolling — next stop should reseed fresh
     isPastHero = currentScrollY > maxScroll + 40;
 
 
@@ -3052,15 +3072,31 @@
       _ctaGestureCount  = 0;
     }
 
-    // Animation progress: a single frame-rate-independent exponential ease
-    // toward the real scroll position, computed in exactly one place. While
-    // scrolling, scrollProgress trails targetScrollProgress by a near-zero,
-    // constant gap — so speed still tracks scroll speed closely — and this
-    // same formula naturally decelerates into a smooth stop the moment the
-    // target stops moving, with no separate velocity/coast bookkeeping and
-    // therefore nothing left to fight over (that fight was the jitter).
-    const _followFactor = 1 - Math.pow(0.35, _frameTicks);
-    scrollProgress = lerp(scrollProgress, targetScrollProgress, _followFactor);
+    // Animation progress. While real scroll events are still arriving
+    // (_isLive), the scroll handler above is the sole writer of
+    // scrollProgress — this frame does nothing to it, so tracking is exact
+    // with zero added lag. The instant events stop, the last real measured
+    // velocity is captured ONCE and this frame becomes the sole writer for
+    // the coast: pure momentum (velocity decaying via friction), NOT a
+    // spring pulling back toward a fixed point. A spring was tried first,
+    // but a spring's restoring force overshoots slightly past the stop and
+    // then visibly pulls back toward it — a small reverse blip. Friction-
+    // style decay only ever continues in the direction it was already
+    // moving and eases down, which is what "runs on a little, then brakes
+    // smoothly" actually means, and it can't reverse direction so it can't
+    // produce that blip. Never more than one writer at a time, so none of
+    // this can oscillate — the seed is a handoff, not a second update.
+    const _isLive = (_now - _lastScrollEventTime) < 50;
+    if (_isLive) {
+      _coastSeeded = false;
+    } else {
+      if (!_coastSeeded) {
+        _scrollVel = _measuredVel;
+        _coastSeeded = true;
+      }
+      scrollProgress = Math.max(0, Math.min(1, scrollProgress + _scrollVel * (_frameTicks / 60)));
+      _scrollVel *= Math.pow(0.97, _frameTicks); // ≈3× the settle time of the earlier 0.91 tuning
+    }
     const eased = scrollProgress;
 
     // ── Lipstick rotation (full 360° over scroll)
