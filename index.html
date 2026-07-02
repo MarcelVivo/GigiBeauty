@@ -2837,6 +2837,7 @@
   }
 
   window.addEventListener('scroll', () => {
+    const _prevScrollEventTime = _lastScrollEventTime;
     _lastScrollEventTime = performance.now();
     const currentScrollY = window.scrollY;
 
@@ -2850,7 +2851,19 @@
     if (heroFrozen) return;   // still frozen — ignore scroll updates
     const heroEl = document.getElementById('hero-scroll');
     const maxScroll = heroEl.offsetHeight - window.innerHeight;
-    targetScrollProgress = Math.max(0, Math.min(1, currentScrollY / maxScroll));
+    const _newTarget = Math.max(0, Math.min(1, currentScrollY / maxScroll));
+
+    // Measure real velocity here (progress-change per 60fps-equivalent tick),
+    // straight from consecutive real scroll events — NOT re-derived later
+    // from an already-synced animate() value, which would read back as ~0
+    // and silently kill the coast the instant scrolling actually stops.
+    const _dt = _prevScrollEventTime ? _lastScrollEventTime - _prevScrollEventTime : 16.6667;
+    if (_dt > 0 && _dt < 400) {
+      const _instVel = (_newTarget - targetScrollProgress) / _dt * 16.6667;
+      _scrollVelocity = Math.max(-0.05, Math.min(0.05, _instVel));
+    }
+
+    targetScrollProgress = _newTarget;
     isPastHero = currentScrollY > maxScroll + 40;
 
 
@@ -3055,7 +3068,8 @@
     // not a chase — instead of snapping dead the instant input ends.
     const _scrollIsLive = (_now - _lastScrollEventTime) < 120;
     if (_scrollIsLive) {
-      _scrollVelocity = Math.max(-0.05, Math.min(0.05, targetScrollProgress - scrollProgress));
+      // Real velocity is measured in the scroll handler itself (see above) —
+      // just track the live position directly here, with zero lag.
       scrollProgress = targetScrollProgress;
     } else if (Math.abs(_scrollVelocity) > 0.0002) {
       scrollProgress = Math.max(0, Math.min(1, scrollProgress + _scrollVelocity * _frameTicks));
