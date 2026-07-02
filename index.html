@@ -3042,7 +3042,7 @@
     // How many 60fps-equivalent "ticks" elapsed since the last frame — keeps
     // the coast-and-decay below at the same real-world speed regardless of
     // the display's actual refresh rate.
-    const _frameTicks = Math.min(4, (_now - _lastFrameTime) / 16.6667);
+    const _frameTicks = Math.max(0, Math.min(4, (_now - _lastFrameTime) / 16.6667));
     _lastFrameTime = _now;
 
     // ── Exit animation: lipstick sinks below screen
