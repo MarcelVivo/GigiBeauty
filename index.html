@@ -2854,17 +2854,19 @@
     const _newTarget = Math.max(0, Math.min(1, currentScrollY / maxScroll));
 
     // Measure real velocity here (progress-change per 60fps-equivalent tick),
-    // straight from consecutive real scroll events. Also hard-sync the
-    // display progress to the real position on every event, so active
-    // scrolling always tracks exactly — the coast in animate() then simply
-    // keeps integrating this same velocity once events stop, with no mode
-    // switch and no pause in between (that gap was the stutter reported).
+    // straight from consecutive real scroll events. Between events, animate()
+    // extrapolates scrollProgress forward using this velocity so motion never
+    // freezes — but that prediction can slightly overshoot the next real
+    // event's true position. Correcting with a hard snap made that overshoot
+    // visible as a tiny backward jump every event, so pull toward the real
+    // target quickly instead of teleporting to it — close enough per frame
+    // to feel instant, without ever producing a visible snap.
     const _dt = _prevScrollEventTime ? _lastScrollEventTime - _prevScrollEventTime : 16.6667;
     if (_dt > 0 && _dt < 400) {
       const _instVel = (_newTarget - targetScrollProgress) / _dt * 16.6667;
       _scrollVelocity = Math.max(-0.05, Math.min(0.05, _instVel));
     }
-    scrollProgress = _newTarget;
+    scrollProgress = lerp(scrollProgress, _newTarget, 0.75);
 
     targetScrollProgress = _newTarget;
     isPastHero = currentScrollY > maxScroll + 40;
