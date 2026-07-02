@@ -2821,10 +2821,21 @@
   // relative to the actual scroll range — leaving a dead stretch of
   // scrolling at the end with nothing left to animate. Capping it keeps the
   // full rotation mapped to the full real scroll length, top to bottom.
-  const _MAX_COAST_LEAD = 0.09;
-  let _scrollVel      = 0;     // SmoothDamp velocity, used only once coasting starts
-  let _measuredVel    = 0;     // real velocity measured from consecutive scroll events
-  let _coastSeeded    = false; // true once _scrollVel has been seeded for the current coast
+  const _MAX_COAST_LEAD = 0.15;
+  // Exponential (friction-style) decay, not a fixed-duration linear-velocity
+  // ramp: a fixed-duration ramp reaches zero velocity exactly on schedule,
+  // but decelerating at a CONSTANT rate front-loads almost all of the
+  // visible motion into roughly the first quarter of the duration, so it
+  // reads as "stops abruptly" well before the timer is actually up.
+  // Exponential decay reduces speed by the same RELATIVE amount every
+  // tick, which keeps motion perceptible much further into the run-out.
+  // 0.981 per 60fps-tick ≈ 9% of the original speed still remaining at the
+  // 2-second mark — a long, gradually-tapering coast instead of one that
+  // visibly finishes early.
+  const _COAST_DECAY_PER_TICK = 0.981;
+  let _scrollVel       = 0;     // current coast velocity — written only inside animate()
+  let _measuredVel     = 0;     // real velocity measured from consecutive scroll events
+  let _coastSeeded     = false; // true once _scrollVel has been seeded for this run-out
   let smoothedTipY = 0;
   let smoothedRotY = 0;
   let smoothedHelixRot = 0;
@@ -3094,17 +3105,12 @@
     // Animation progress. While real scroll events are still arriving
     // (_isLive), the scroll handler above is the sole writer of
     // scrollProgress — this frame does nothing to it, so tracking is exact
-    // with zero added lag. The instant events stop, the last real measured
-    // velocity is captured ONCE and this frame becomes the sole writer for
-    // the coast: pure momentum (velocity decaying via friction), NOT a
-    // spring pulling back toward a fixed point. A spring was tried first,
-    // but a spring's restoring force overshoots slightly past the stop and
-    // then visibly pulls back toward it — a small reverse blip. Friction-
-    // style decay only ever continues in the direction it was already
-    // moving and eases down, which is what "runs on a little, then brakes
-    // smoothly" actually means, and it can't reverse direction so it can't
-    // produce that blip. Never more than one writer at a time, so none of
-    // this can oscillate — the seed is a handoff, not a second update.
+    // with zero added lag. The instant events stop, the coast is seeded ONCE
+    // with the last real measured velocity and this frame becomes the sole
+    // writer: velocity decays exponentially (friction), which stays
+    // perceptible much longer than a fixed-duration linear ramp — never
+    // more than one writer at a time, so this can't oscillate; the seed is
+    // a handoff, not a second simultaneous update.
     const _isLive = (_now - _lastScrollEventTime) < 50;
     if (_isLive) {
       _coastSeeded = false;
@@ -3113,18 +3119,13 @@
         _scrollVel = _measuredVel;
         _coastSeeded = true;
       }
-      // Soft-limit velocity as the coast approaches the max-lead cushion, so
-      // it eases up to the boundary rather than getting clipped mid-motion.
-      const _leadUsed = Math.abs(scrollProgress - targetScrollProgress) / _MAX_COAST_LEAD;
-      const _roomFactor = Math.max(0, Math.min(1, (1 - _leadUsed) / 0.12));
-      _scrollVel *= _roomFactor;
       const _nextPos = scrollProgress + _scrollVel * (_frameTicks / 60);
       scrollProgress = Math.max(
         targetScrollProgress - _MAX_COAST_LEAD,
         Math.min(targetScrollProgress + _MAX_COAST_LEAD, _nextPos)
       );
       scrollProgress = Math.max(0, Math.min(1, scrollProgress));
-      _scrollVel *= Math.pow(0.97, _frameTicks); // ≈3× the settle time of the earlier 0.91 tuning
+      _scrollVel *= Math.pow(_COAST_DECAY_PER_TICK, _frameTicks);
     }
     const eased = scrollProgress;
 
