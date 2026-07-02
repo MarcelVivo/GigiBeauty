@@ -2819,8 +2819,6 @@
   let smoothedHelixRot = 0;
   let smoothedCameraY = 0;
   let isPastHero = false;
-  let _scrollVelocity      = 0;   // per-frame rate of change, used to coast after input stops
-  let _lastScrollEventTime = 0;   // performance.now() of the last real 'scroll' event
   let _firstSvcTimer       = null;   // timeout handle for first-section reveal delay
   let _ctaGestureCount     = 0;     // scroll gestures counted after CTA is fully visible
   let _lastGestureTime     = 0;     // debounce: ms timestamp of last counted gesture
@@ -2837,8 +2835,6 @@
   }
 
   window.addEventListener('scroll', () => {
-    const _prevScrollEventTime = _lastScrollEventTime;
-    _lastScrollEventTime = performance.now();
     const currentScrollY = window.scrollY;
 
     // Unfreeze when user intentionally scrolls again
@@ -2851,24 +2847,14 @@
     if (heroFrozen) return;   // still frozen — ignore scroll updates
     const heroEl = document.getElementById('hero-scroll');
     const maxScroll = heroEl.offsetHeight - window.innerHeight;
-    const _newTarget = Math.max(0, Math.min(1, currentScrollY / maxScroll));
 
-    // Measure real velocity here (progress-change per 60fps-equivalent tick),
-    // straight from consecutive real scroll events. Between events, animate()
-    // extrapolates scrollProgress forward using this velocity so motion never
-    // freezes — but that prediction can slightly overshoot the next real
-    // event's true position. Correcting with a hard snap made that overshoot
-    // visible as a tiny backward jump every event, so pull toward the real
-    // target quickly instead of teleporting to it — close enough per frame
-    // to feel instant, without ever producing a visible snap.
-    const _dt = _prevScrollEventTime ? _lastScrollEventTime - _prevScrollEventTime : 16.6667;
-    if (_dt > 0 && _dt < 400) {
-      const _instVel = (_newTarget - targetScrollProgress) / _dt * 16.6667;
-      _scrollVelocity = Math.max(-0.05, Math.min(0.05, _instVel));
-    }
-    scrollProgress = lerp(scrollProgress, _newTarget, 0.75);
-
-    targetScrollProgress = _newTarget;
+    // Ground truth only — no smoothing here. scrollProgress (the value that
+    // actually drives rotation) is the single responsibility of animate(),
+    // which eases toward this target once per frame. Touching scrollProgress
+    // from two places (an event handler AND a per-frame loop) is what caused
+    // the earlier jitter: both were nudging the same value independently and
+    // fighting each other.
+    targetScrollProgress = Math.max(0, Math.min(1, currentScrollY / maxScroll));
     isPastHero = currentScrollY > maxScroll + 40;
 
 
@@ -3066,19 +3052,15 @@
       _ctaGestureCount  = 0;
     }
 
-    // Animation progress: continuously integrates the measured scroll
-    // velocity every single frame — no live/coast mode switch and no
-    // waiting period, so there is never a pause between "scrolling" and
-    // "coasting". Each real scroll event (above) hard-syncs scrollProgress
-    // and refreshes the velocity, which keeps this perfectly matched to
-    // scroll speed while active; once events stop, the exact same line
-    // keeps carrying the last velocity forward while it decays to zero.
-    if (Math.abs(_scrollVelocity) > 0.00005) {
-      scrollProgress = Math.max(0, Math.min(1, scrollProgress + _scrollVelocity * _frameTicks));
-      _scrollVelocity *= Math.pow(0.91, _frameTicks);
-    } else {
-      _scrollVelocity = 0;
-    }
+    // Animation progress: a single frame-rate-independent exponential ease
+    // toward the real scroll position, computed in exactly one place. While
+    // scrolling, scrollProgress trails targetScrollProgress by a near-zero,
+    // constant gap — so speed still tracks scroll speed closely — and this
+    // same formula naturally decelerates into a smooth stop the moment the
+    // target stops moving, with no separate velocity/coast bookkeeping and
+    // therefore nothing left to fight over (that fight was the jitter).
+    const _followFactor = 1 - Math.pow(0.35, _frameTicks);
+    scrollProgress = lerp(scrollProgress, targetScrollProgress, _followFactor);
     const eased = scrollProgress;
 
     // ── Lipstick rotation (full 360° over scroll)
