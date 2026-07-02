@@ -2892,6 +2892,15 @@
       // the live→coast handoff.
       _measuredVel = lerp(_measuredVel, _instVel, 0.5);
     }
+    // Slightly erode any banked lead from a previous coast on every real
+    // scroll event, before applying this event's own delta. Without this,
+    // a coast that used up the full cushion left zero headroom for the
+    // *next* coast — it would hit the boundary immediately and look like it
+    // wasn't running at all. Eroding it gently (imperceptible on any single
+    // event) means normal scrolling gradually pays the lead back down, so
+    // headroom is available again well before the next stop.
+    const _leadBeforeErosion = scrollProgress - targetScrollProgress;
+    scrollProgress -= _leadBeforeErosion * 0.02;
     targetScrollProgress = _newTarget;
     // Apply the REAL change as a relative nudge, not an absolute snap. The
     // coast can leave scrollProgress ahead of (or behind) targetScrollProgress
