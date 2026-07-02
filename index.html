@@ -2824,7 +2824,6 @@
   let _lastGestureTime     = 0;     // debounce: ms timestamp of last counted gesture
   let _firstSvcLaunched    = false; // prevents re-triggering the slide-up
   let _isAnimatingToSec    = false; // true while triggerFirstSection rAF is running
-  let mouseTargetProgress  = 0;    // virtual 0-1 progress driven by wheel (no DOM scroll)
 
   // ─── Freeze state (click-to-pause) ────────────────────────────────────────
   let heroFrozen = false;
@@ -2889,15 +2888,6 @@
       if (p < 1) requestAnimationFrame(step);
     })(t0);
   }
-
-  // ─── Mouse wheel → virtual scroll progress ────────────────────────────────
-  // Each notch advances/reverses the hero animation by 22 %.
-  // Down = forward (toward service sections), up = backward.
-  window.addEventListener('wheel', (e) => {
-    if (isPastHero) return;
-    const dir = e.deltaY > 0 ? 1 : -1;
-    mouseTargetProgress = Math.max(0, Math.min(1, mouseTargetProgress + dir * 0.22));
-  }, { passive: true });
 
   // ─── "Scrollen" hint → click to jump straight into the first section ──────
   document.getElementById('scroll-hint').addEventListener('click', () => {
@@ -3041,31 +3031,26 @@
       return;
     }
 
-    // Trigger section reveal when animation reaches 100% (via wheel)
-    if (!isPastHero && mouseTargetProgress >= 1 && !_firstSvcLaunched) {
-      _firstSvcLaunched = true;
-      triggerFirstSection();
-    }
-
     // Reset flags when user goes back to the very beginning
-    if (!isPastHero && mouseTargetProgress < 0.05 && targetScrollProgress < 0.05) {
+    if (!isPastHero && targetScrollProgress < 0.05) {
       _firstSvcLaunched = false;
       _ctaGestureCount  = 0;
     }
 
-    // Animation progress: merge physical scroll + virtual mouse progress
-    const _effectiveTarget = Math.max(targetScrollProgress, mouseTargetProgress);
-    scrollProgress = lerp(scrollProgress, _effectiveTarget, IS_MOBILE ? 0.26 : 0.07);
-    const eased = easeInOut(scrollProgress);
+    // Animation progress: driven 1:1 by real scroll position — no smoothing/
+    // easing here, so rotation speed always matches scroll speed directly
+    // (fast scroll = fast spin, slow scroll = slow spin, no lag/catch-up).
+    scrollProgress = targetScrollProgress;
+    const eased = scrollProgress;
 
     // ── Lipstick rotation (full 360° over scroll)
     const targetRotY = eased * Math.PI * 2;
-    smoothedRotY = lerp(smoothedRotY, targetRotY, 0.05);
+    smoothedRotY = targetRotY;
     lipstickGroup.rotation.y = smoothedRotY;
 
     // ── Tip extension (rises 0.85 units up)
     const targetTipY = eased * 0.85;
-    smoothedTipY = lerp(smoothedTipY, targetTipY, 0.06);
+    smoothedTipY = targetTipY;
     tipGroup.position.y = smoothedTipY;
 
     // ── CTA + overlay + 3D hero objects: hide when in service sections
@@ -3239,7 +3224,7 @@
 
     // ── Update service card positions in helix
     const helixRot = eased * Math.PI * 2;
-    smoothedHelixRot = lerp(smoothedHelixRot, helixRot, IS_MOBILE ? 0.10 : 0.05);
+    smoothedHelixRot = helixRot;
 
     SERVICES.forEach((svc, i) => {
       const pos3d = getHelixPos(i, SERVICES.length, smoothedHelixRot);
