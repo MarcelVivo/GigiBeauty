@@ -538,6 +538,13 @@
       drop-shadow(1px 2px 4px rgba(5, 20, 13, 0.16));
   }
 
+  .gel-botanical-extra-leaf {
+    opacity: 0.56;
+    filter:
+      brightness(0.92)
+      drop-shadow(1px 2px 4px rgba(5, 20, 13, 0.18));
+  }
+
   .gel-botanical-leaf-surface {
     fill: url(#gel-extension-leaf-gradient);
     stroke: rgba(105, 137, 101, 0.30);
@@ -4720,6 +4727,7 @@
       <use class="gel-botanical-extension-leaf gel-botanical-extension-leaf--tertiary" href="#gel-extension-leaf-oval-art" transform="translate(443 36) rotate(117) scale(.10 .13)"/>
       <use class="gel-botanical-extension-leaf gel-botanical-extension-leaf--tertiary" href="#gel-extension-leaf-round-art" transform="translate(475 35) rotate(-60) scale(.10 .13)"/>
     </g>
+    <g id="gel-botanical-extra-leaf-layer"></g>
 
     <g class="gel-botanical-accent-flower" transform="translate(212 40) scale(.28 .31)" style="--botanical-flower-color:#f0dab7">
       <ellipse class="botanical-flower-petal" cy="-11" rx="6.5" ry="13"/>
@@ -6160,7 +6168,7 @@
       { depth: 'back',  start:  -80, end: 2980, offset: -41, amplitude: 11, cycles: 4.2, phase: 3.35 },
       { depth: 'back',  start:  -30, end: 2930, offset:  42, amplitude: 12, cycles: 4.5, phase: 5.10 }
     ];
-    var leafSpacing = window.innerWidth < 768 ? 78 : 56;
+    var leafSpacing = window.innerWidth < 768 ? 39 : 28;
     var leafDetails = {
       slim: {
         shadow: 'M-1 -5 C-9 -42 -5 -94 6 -140',
@@ -6577,9 +6585,47 @@
     });
   }
 
+  function buildGelExtraLeaves() {
+    var continuationSvg = document.querySelector('.gel-botanical-extension');
+    var continuationStem = document.getElementById('gel-botanical-continuous-stem');
+    var extraLayer = document.getElementById('gel-botanical-extra-leaf-layer');
+    if (!continuationSvg || !continuationStem || !extraLayer) return;
+
+    extraLayer.replaceChildren();
+    var baseLeafCount = continuationSvg.querySelectorAll('.gel-botanical-extension-leaf:not(.gel-botanical-extra-leaf)').length;
+    var pathLength = continuationStem.getTotalLength();
+    var leafKinds = ['slim', 'oval', 'round', 'slim', 'oval'];
+
+    for (var leafIndex = 0; leafIndex < baseLeafCount; leafIndex++) {
+      /* Half-step placement produces a complete second rhythm between the
+         authored leaves while remaining perfectly even over the whole path. */
+      var distance = pathLength * ((leafIndex + 0.5) / baseLeafCount);
+      var point = continuationStem.getPointAtLength(distance);
+      var before = continuationStem.getPointAtLength(Math.max(0, distance - 1.5));
+      var after = continuationStem.getPointAtLength(Math.min(pathLength, distance + 1.5));
+      var tangent = Math.atan2(after.y - before.y, after.x - before.x) * 180 / Math.PI;
+      var side = leafIndex % 2 === 0 ? -1 : 1;
+      var spread = 49 + (leafIndex % 5) * 4 + Math.sin(leafIndex * 1.37) * 3;
+      var rotation = tangent + 90 + side * spread;
+      var scaleX = 0.095 + (leafIndex % 4) * 0.009;
+      var scaleY = 0.125 + ((leafIndex * 3) % 5) * 0.008;
+      var leaf = createSvgElement('use');
+      leaf.setAttribute('class', 'gel-botanical-extension-leaf gel-botanical-extra-leaf');
+      leaf.setAttribute('href', '#gel-extension-leaf-' + leafKinds[leafIndex % leafKinds.length] + '-art');
+      var baseTransform =
+        'translate(' + point.x.toFixed(2) + ' ' + point.y.toFixed(2) + ') ' +
+        'rotate(' + rotation.toFixed(2) + ') ' +
+        'scale(' + scaleX.toFixed(3) + ' ' + scaleY.toFixed(3) + ')';
+      leaf._gelBaseTransform = baseTransform;
+      leaf.setAttribute('transform', baseTransform);
+      extraLayer.appendChild(leaf);
+    }
+  }
+
   layoutBotanicalRail();
   buildBotanicalGrowth();
   alignGelBotanicalContinuation();
+  buildGelExtraLeaves();
   refreshGelContinuationLeaves();
 
   function updateBotanicalRail() {
@@ -6621,6 +6667,7 @@
       layoutBotanicalRail();
       buildBotanicalGrowth();
       alignGelBotanicalContinuation();
+      buildGelExtraLeaves();
       refreshGelContinuationLeaves();
       updateBotanicalRail();
     });
