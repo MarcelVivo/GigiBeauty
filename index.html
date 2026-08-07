@@ -525,10 +525,17 @@
   }
 
   .gel-botanical-extension-leaf--secondary {
-    opacity: 0.62;
+    opacity: 0.70;
     filter:
       brightness(0.94)
       drop-shadow(2px 2px 5px rgba(5, 20, 13, 0.18));
+  }
+
+  .gel-botanical-extension-leaf--tertiary {
+    opacity: 0.50;
+    filter:
+      brightness(0.90)
+      drop-shadow(1px 2px 4px rgba(5, 20, 13, 0.16));
   }
 
   .gel-botanical-leaf-surface {
@@ -4699,6 +4706,19 @@
       <use class="gel-botanical-extension-leaf gel-botanical-extension-leaf--secondary" href="#gel-extension-leaf-round-art" transform="translate(445 35) rotate(129) scale(.12 .14)"/>
       <use class="gel-botanical-extension-leaf gel-botanical-extension-leaf--secondary" href="#gel-extension-leaf-oval-art" transform="translate(466 35) rotate(48) scale(.13 .15)"/>
       <use class="gel-botanical-extension-leaf gel-botanical-extension-leaf--secondary" href="#gel-extension-leaf-slim-art" transform="translate(487 35) rotate(-51) scale(.11 .14)"/>
+
+      <use class="gel-botanical-extension-leaf gel-botanical-extension-leaf--tertiary" href="#gel-extension-leaf-slim-art" transform="translate(108 12) rotate(151) scale(.10 .13)"/>
+      <use class="gel-botanical-extension-leaf gel-botanical-extension-leaf--tertiary" href="#gel-extension-leaf-oval-art" transform="translate(140 24) rotate(-62) scale(.11 .14)"/>
+      <use class="gel-botanical-extension-leaf gel-botanical-extension-leaf--tertiary" href="#gel-extension-leaf-round-art" transform="translate(174 34) rotate(113) scale(.10 .13)"/>
+      <use class="gel-botanical-extension-leaf gel-botanical-extension-leaf--tertiary" href="#gel-extension-leaf-slim-art" transform="translate(209 48) rotate(-61) scale(.11 .14)"/>
+      <use class="gel-botanical-extension-leaf gel-botanical-extension-leaf--tertiary" href="#gel-extension-leaf-oval-art" transform="translate(244 48) rotate(116) scale(.10 .13)"/>
+      <use class="gel-botanical-extension-leaf gel-botanical-extension-leaf--tertiary" href="#gel-extension-leaf-round-art" transform="translate(278 36) rotate(-63) scale(.11 .14)"/>
+      <use class="gel-botanical-extension-leaf gel-botanical-extension-leaf--tertiary" href="#gel-extension-leaf-slim-art" transform="translate(311 31) rotate(119) scale(.10 .13)"/>
+      <use class="gel-botanical-extension-leaf gel-botanical-extension-leaf--tertiary" href="#gel-extension-leaf-oval-art" transform="translate(344 47) rotate(-59) scale(.11 .14)"/>
+      <use class="gel-botanical-extension-leaf gel-botanical-extension-leaf--tertiary" href="#gel-extension-leaf-round-art" transform="translate(377 50) rotate(112) scale(.10 .13)"/>
+      <use class="gel-botanical-extension-leaf gel-botanical-extension-leaf--tertiary" href="#gel-extension-leaf-slim-art" transform="translate(410 44) rotate(-64) scale(.11 .14)"/>
+      <use class="gel-botanical-extension-leaf gel-botanical-extension-leaf--tertiary" href="#gel-extension-leaf-oval-art" transform="translate(443 36) rotate(117) scale(.10 .13)"/>
+      <use class="gel-botanical-extension-leaf gel-botanical-extension-leaf--tertiary" href="#gel-extension-leaf-round-art" transform="translate(475 35) rotate(-60) scale(.10 .13)"/>
     </g>
 
     <g class="gel-botanical-accent-flower" transform="translate(212 40) scale(.28 .31)" style="--botanical-flower-color:#f0dab7">
@@ -4732,9 +4752,9 @@
       <circle class="botanical-flower-center" r="7.2"/>
     </g>
 
-    <g class="gel-botanical-terminal gel-botanical-terminal-wing" transform="translate(500 14) scale(.23 .31)" style="--botanical-wing-fill:url(#gel-extension-butterfly-gradient)">
-      <use class="botanical-butterfly-wing" href="#gel-extension-wing"/>
-      <use class="botanical-butterfly-wing" href="#gel-extension-wing" transform="scale(-1 1)"/>
+    <g class="gel-botanical-terminal gel-botanical-terminal-wing" transform="translate(500 21) scale(.28 .38)" style="--botanical-wing-fill:url(#gel-extension-butterfly-gradient)">
+      <use id="gel-terminal-left-wing" class="botanical-butterfly-wing" href="#gel-extension-wing"/>
+      <use id="gel-terminal-right-wing" class="botanical-butterfly-wing" href="#gel-extension-wing" transform="scale(-1 1)"/>
       <ellipse class="botanical-butterfly-body" rx="3.6" ry="15"/>
       <circle class="botanical-butterfly-body" cy="-14" r="4.1"/>
       <path class="botanical-butterfly-antenna" d="M-1-17 C-7-25-12-26-15-23 M1-17 C7-25 12-26 15-23"/>
@@ -5900,6 +5920,12 @@
   var botanicalLastScrollY = window.scrollY;
   var botanicalLastScrollSampleTime = performance.now();
   var botanicalLastWindInputTime = performance.now();
+  var gelContinuationLeaves = [];
+  var gelContinuationJoinX = 60;
+  var gelTerminalLeftWing = document.getElementById('gel-terminal-left-wing');
+  var gelTerminalRightWing = document.getElementById('gel-terminal-right-wing');
+  var gelButterflyWingUntil = 0;
+  var gelButterflyWingPhase = 0;
 
   function createSvgElement(name) {
     return document.createElementNS('http://www.w3.org/2000/svg', name);
@@ -6134,7 +6160,7 @@
       { depth: 'back',  start:  -80, end: 2980, offset: -41, amplitude: 11, cycles: 4.2, phase: 3.35 },
       { depth: 'back',  start:  -30, end: 2930, offset:  42, amplitude: 12, cycles: 4.5, phase: 5.10 }
     ];
-    var leafSpacing = window.innerWidth < 768 ? 92 : 66;
+    var leafSpacing = window.innerWidth < 768 ? 78 : 56;
     var leafDetails = {
       slim: {
         shadow: 'M-1 -5 C-9 -42 -5 -94 6 -140',
@@ -6335,6 +6361,56 @@
     }
   }
 
+  function refreshGelContinuationLeaves() {
+    var bendX = gelContinuationJoinX + 50;
+    gelContinuationLeaves = Array.from(document.querySelectorAll('.gel-botanical-extension-leaf')).map(function (leaf) {
+      var baseTransform = leaf._gelBaseTransform || leaf.getAttribute('transform') || '';
+      leaf._gelBaseTransform = baseTransform;
+      var match = baseTransform.match(/translate\(\s*(-?[\d.]+)[ ,]+(-?[\d.]+)/);
+      var x = match ? parseFloat(match[1]) : bendX;
+      var y = match ? parseFloat(match[2]) : 35;
+      var progress;
+      if (x <= bendX + 6) {
+        progress = Math.max(0, Math.min(0.24, (170 - y) / 158 * 0.24));
+      } else {
+        progress = 0.24 + Math.max(0, Math.min(1, (x - bendX) / Math.max(1, 500 - bendX))) * 0.76;
+      }
+      if (typeof leaf._gelOpenness !== 'number') leaf._gelOpenness = 0.04;
+      return { element: leaf, progress: progress };
+    }).sort(function (a, b) { return a.progress - b.progress; });
+  }
+
+  function updateGelContinuationMotion(now, deltaSeconds, visible) {
+    var moving = false;
+    var sectionRect = botanicalFirst.getBoundingClientRect();
+    var reveal = Math.max(0, Math.min(1, (window.innerHeight - sectionRect.top) / Math.max(1, window.innerHeight * 0.72)));
+
+    gelContinuationLeaves.forEach(function (leafData) {
+      var leaf = leafData.element;
+      var revealStart = leafData.progress * 0.52;
+      var localReveal = Math.max(0, Math.min(1, (reveal - revealStart) / 0.28));
+      var target = visible ? localReveal * localReveal * (3 - 2 * localReveal) : 0;
+      if (botanicalReducedMotion && visible) target = 1;
+      var follow = 1 - Math.exp(-4.1 * deltaSeconds);
+      leaf._gelOpenness += (target - leaf._gelOpenness) * follow;
+      var open = 0.5 - Math.cos(leaf._gelOpenness * Math.PI) * 0.5;
+      var width = 0.26 + open * 0.74;
+      leaf.setAttribute('transform', leaf._gelBaseTransform + ' scale(' + width.toFixed(4) + ' 1)');
+      if (Math.abs(target - leaf._gelOpenness) > 0.001) moving = true;
+    });
+
+    var wingActive = visible && !botanicalReducedMotion && now < gelButterflyWingUntil;
+    if (wingActive) gelButterflyWingPhase += deltaSeconds * 7.2;
+    var wingPulse = wingActive ? 0.5 + 0.5 * Math.sin(gelButterflyWingPhase) : 0;
+    var wingAngle = 2 + wingPulse * 5.5;
+    var wingWidth = 0.94 + wingPulse * 0.06;
+    if (gelTerminalLeftWing && gelTerminalRightWing) {
+      gelTerminalLeftWing.setAttribute('transform', 'rotate(' + (-wingAngle).toFixed(2) + ') scale(' + wingWidth.toFixed(4) + ' 1)');
+      gelTerminalRightWing.setAttribute('transform', 'rotate(' + wingAngle.toFixed(2) + ') scale(' + (-wingWidth).toFixed(4) + ' 1)');
+    }
+    return moving || wingActive;
+  }
+
   function animateBotanicalWave(now) {
     var deltaSeconds = Math.max(1 / 240, Math.min(0.05, (now - botanicalWaveTime) / 1000));
     botanicalWaveTime = now;
@@ -6442,7 +6518,9 @@
       if (Math.abs(markerTarget - marker.openness) > 0.001) stillMoving = true;
     });
 
-    if (stillMoving || windMoving) {
+    var gelMoving = updateGelContinuationMotion(now, deltaSeconds, visible);
+
+    if (stillMoving || windMoving || gelMoving) {
       botanicalWaveFrame = requestAnimationFrame(animateBotanicalWave);
     } else {
       botanicalWaveFrame = 0;
@@ -6468,6 +6546,7 @@
     var railJoinPixels = botanicalArt.clientWidth * (130 / 520);
     var joinX = railJoinPixels / Math.max(1, continuationSvg.clientWidth) * 1000;
     joinX = Math.max(30, Math.min(88, joinX));
+    gelContinuationJoinX = joinX;
     var bendX = joinX + 50;
 
     continuationStem.setAttribute(
@@ -6492,16 +6571,16 @@
     cornerLeaves.forEach(function (leafData) {
       var leaf = document.getElementById(leafData[0]);
       if (!leaf) return;
-      leaf.setAttribute(
-        'transform',
-        'translate(' + leafData[1].toFixed(2) + ' ' + leafData[2] + ') rotate(' + leafData[3] + ') scale(' + leafData[4] + ')'
-      );
+      var baseTransform = 'translate(' + leafData[1].toFixed(2) + ' ' + leafData[2] + ') rotate(' + leafData[3] + ') scale(' + leafData[4] + ')';
+      leaf._gelBaseTransform = baseTransform;
+      leaf.setAttribute('transform', baseTransform);
     });
   }
 
   layoutBotanicalRail();
   buildBotanicalGrowth();
   alignGelBotanicalContinuation();
+  refreshGelContinuationLeaves();
 
   function updateBotanicalRail() {
     botanicalTicking = false;
@@ -6523,6 +6602,7 @@
       var scrollVelocity = scrollDelta / scrollSampleDuration;
       botanicalWindTarget = Math.max(-1, Math.min(1, scrollVelocity / 1.15));
       botanicalLastWindInputTime = scrollSampleTime;
+      if (scrollDelta > 0) gelButterflyWingUntil = scrollSampleTime + 920;
     }
 
     startBotanicalWave();
@@ -6541,6 +6621,7 @@
       layoutBotanicalRail();
       buildBotanicalGrowth();
       alignGelBotanicalContinuation();
+      refreshGelContinuationLeaves();
       updateBotanicalRail();
     });
   }
