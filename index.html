@@ -508,6 +508,7 @@
 
   #section-gel-acryl-nails .svc-inner {
     z-index: 13;
+    padding-top: clamp(210px, 23vh, 270px);
   }
 
   .gel-botanical-extension-stem--fine {
@@ -554,6 +555,28 @@
       drop-shadow(2px 2px 6px rgba(5, 20, 13, 0.21));
   }
 
+  .gel-botanical-authored-leaves,
+  .gel-botanical-authored-clusters {
+    display: none;
+  }
+
+  .gel-botanical-organic-branch {
+    fill: none;
+    stroke: url(#gel-extension-stem-gradient);
+    stroke-width: 0.74;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+    opacity: 0.42;
+    filter: drop-shadow(1px 1px 3px rgba(5, 20, 13, 0.18));
+  }
+
+  .gel-botanical-organic-leaf {
+    opacity: var(--organic-leaf-opacity, 0.78);
+    filter:
+      brightness(var(--organic-leaf-light, 1))
+      drop-shadow(2px 3px 7px rgba(5, 20, 13, 0.24));
+  }
+
   .gel-botanical-leaf-surface {
     fill: url(#gel-extension-leaf-gradient);
     stroke: rgba(105, 137, 101, 0.30);
@@ -597,6 +620,7 @@
       height: 128px;
       opacity: 0.78;
     }
+    #section-gel-acryl-nails .svc-inner { padding-top: 154px; }
     .gel-botanical-terminal { transform-box: fill-box; }
   }
 
@@ -4676,7 +4700,7 @@
          service vine and then settles into an irregular horizontal rhythm. -->
     <path id="gel-botanical-continuous-stem" class="gel-botanical-extension-stem gel-botanical-extension-stem--corner" d="M60 170 C60 126 60 81 60 48 C60 21 79 12 110 12 C140 12 164 28 190 34 C215 40 235 50 260 45 C286 40 299 28 325 30 C351 32 370 50 396 48 C423 46 448 35 500 35"/>
 
-    <g opacity="0.76">
+    <g class="gel-botanical-authored-leaves" opacity="0.76">
       <use id="gel-corner-leaf-1" class="gel-botanical-extension-leaf" href="#gel-extension-leaf-slim-art" transform="translate(60 151) rotate(-36) scale(.17 .20)"/>
       <use id="gel-corner-leaf-2" class="gel-botanical-extension-leaf" href="#gel-extension-leaf-oval-art" transform="translate(60 101) rotate(139) scale(.16 .19)"/>
       <use id="gel-corner-leaf-3" class="gel-botanical-extension-leaf" href="#gel-extension-leaf-round-art" transform="translate(60 53) rotate(-35) scale(.16 .18)"/>
@@ -4739,7 +4763,7 @@
 
     <!-- Eight hand-composed botanical nodes add premium fullness without
          filling every remaining pixel or competing with the flowers. -->
-    <g aria-hidden="true">
+    <g class="gel-botanical-authored-clusters" aria-hidden="true">
       <path class="gel-botanical-cluster-stem" d="M135 17 Q130 26 126 33 M135 17 Q140 11 143 6"/>
       <path class="gel-botanical-cluster-stem" d="M172 31 Q166 40 162 46 M172 31 Q179 24 183 18"/>
       <path class="gel-botanical-cluster-stem" d="M255 46 Q249 54 244 60 M255 46 Q262 38 267 32"/>
@@ -4766,6 +4790,11 @@
       <use class="gel-botanical-extension-leaf gel-botanical-extension-leaf--cluster" href="#gel-extension-leaf-round-art" transform="translate(454 50) rotate(136) scale(.14 .17)"/>
       <use class="gel-botanical-extension-leaf gel-botanical-extension-leaf--cluster" href="#gel-extension-leaf-oval-art" transform="translate(477 21) rotate(-50) scale(.12 .15)"/>
     </g>
+
+    <!-- Built from the continuous stem at runtime so every leaf keeps its
+         natural proportions even though this wide SVG scales responsively. -->
+    <g id="gel-botanical-organic-branch-layer"></g>
+    <g id="gel-botanical-organic-leaf-layer"></g>
 
     <g class="gel-botanical-accent-flower" transform="translate(212 40) scale(.28 .31)" style="--botanical-flower-color:#f0dab7">
       <ellipse class="botanical-flower-petal" cy="-11" rx="6.5" ry="13"/>
@@ -6274,18 +6303,24 @@
         var leafCount = Math.max(5, Math.floor(stemLength / verticalStretch / leafSpacing));
 
         for (var leafIndex = 1; leafIndex <= leafCount; leafIndex++) {
-          var distanceOnStem = stemLength * (leafIndex / (leafCount + 1));
+          /* A small deterministic displacement breaks the ruler-like spacing
+             while retaining an even overall density from top to bottom. */
+          var baseLeafProgress = leafIndex / (leafCount + 1);
+          var spacingJitter = Math.sin(leafIndex * 2.17 + stemIndex * 1.31) * (0.27 / (leafCount + 1));
+          var leafProgress = Math.max(0.012, Math.min(0.988, baseLeafProgress + spacingJitter));
+          var distanceOnStem = stemLength * leafProgress;
           var point = stem.getPointAtLength(distanceOnStem);
           var before = stem.getPointAtLength(Math.max(0, distanceOnStem - 2));
           var after = stem.getPointAtLength(Math.min(stemLength, distanceOnStem + 2));
           var tangentAngle = Math.atan2(after.x - before.x, before.y - after.y) * 180 / Math.PI;
-          var side = (leafIndex + stemIndex) % 2 === 0 ? -1 : 1;
+          var side = Math.sin(leafIndex * 2.03 + stemIndex * 1.69) > -0.10 ? 1 : -1;
           var organicPhase = Math.sin((leafIndex + 1) * 1.47 + stemIndex * 0.83);
           var openAngle = tangentAngle + side * (26 + (organicPhase + 1) * 4);
           var closedAngle = tangentAngle + side * (2.5 + (leafIndex % 3) * 0.8);
           var leafScaleBase = window.innerWidth < 768 ? 0.48 : 0.38;
           var leafScaleStep = window.innerWidth < 768 ? 0.022 : 0.018;
-          var leafScale = leafScaleBase + ((leafIndex * 5 + stemIndex * 3) % 6) * leafScaleStep;
+          var sizeDrift = 0.5 + 0.5 * Math.sin(leafIndex * 1.71 + stemIndex * 0.93);
+          var leafScale = leafScaleBase + sizeDrift * leafScaleStep * 5;
           var leafPattern = (leafIndex * 3 + stemIndex * 5) % 11;
           var leafKind = leafPattern === 0
             ? 'round'
@@ -6409,7 +6444,7 @@
 
   function refreshGelContinuationLeaves() {
     var bendX = gelContinuationJoinX + 50;
-    gelContinuationLeaves = Array.from(document.querySelectorAll('.gel-botanical-extension-leaf')).map(function (leaf) {
+    gelContinuationLeaves = Array.from(document.querySelectorAll('#gel-botanical-organic-leaf-layer .gel-botanical-extension-leaf')).map(function (leaf) {
       var baseTransform = leaf._gelBaseTransform || leaf.getAttribute('transform') || '';
       leaf._gelBaseTransform = baseTransform;
       var match = baseTransform.match(/translate\(\s*(-?[\d.]+)[ ,]+(-?[\d.]+)/);
@@ -6600,8 +6635,9 @@
       'M' + joinX.toFixed(2) + ' 170 ' +
       'C' + joinX.toFixed(2) + ' 126 ' + joinX.toFixed(2) + ' 81 ' + joinX.toFixed(2) + ' 48 ' +
       'C' + joinX.toFixed(2) + ' 21 ' + (joinX + 19).toFixed(2) + ' 12 ' + bendX.toFixed(2) + ' 12 ' +
-      'C140 12 164 28 190 34 C215 40 235 50 260 45 ' +
-      'C286 40 299 28 325 30 C351 32 370 50 396 48 C423 46 448 35 500 35'
+      'C136 10 151 22 174 28 C198 35 216 30 238 39 ' +
+      'C260 48 280 44 298 34 C318 23 338 24 358 36 ' +
+      'C379 50 399 48 420 39 C443 29 465 34 500 35'
     );
 
     var cornerLeaves = [
@@ -6623,9 +6659,147 @@
     });
   }
 
+  function buildGelOrganicCanopy() {
+    var continuationSvg = document.querySelector('.gel-botanical-extension');
+    var continuationStem = document.getElementById('gel-botanical-continuous-stem');
+    var branchLayer = document.getElementById('gel-botanical-organic-branch-layer');
+    var leafLayer = document.getElementById('gel-botanical-organic-leaf-layer');
+    if (!continuationSvg || !continuationStem || !branchLayer || !leafLayer) return;
+
+    branchLayer.replaceChildren();
+    leafLayer.replaceChildren();
+
+    var pxPerX = Math.max(0.001, continuationSvg.clientWidth / 1000);
+    var pxPerY = Math.max(0.001, continuationSvg.clientHeight / 220);
+    var stemLength = continuationStem.getTotalLength();
+    var naturalLeafLengths = { slim: 151, oval: 126, round: 111 };
+
+    /* Uneven intervals and deliberately imperfect group sizes create the
+       cadence of a real climbing plant, not a repeated decorative border. */
+    var nodeWeights = [
+      0.76, 1.18, 0.84, 1.05, 0.68, 1.24, 0.91,
+      1.10, 0.73, 0.96, 1.21, 0.81, 1.08, 0.66,
+      1.17, 0.89, 1.04, 0.72, 1.22, 0.86, 1.11,
+      0.77, 0.94, 1.16, 0.69, 1.08, 0.88, 1.14
+    ];
+    var totalWeight = nodeWeights.reduce(function (sum, weight) { return sum + weight; }, 0);
+    var cumulativeWeight = 0;
+
+    function pointFromScreenVector(origin, angle, pixels) {
+      return {
+        x: origin.x + Math.cos(angle) * pixels / pxPerX,
+        y: origin.y + Math.sin(angle) * pixels / pxPerY
+      };
+    }
+
+    function svgLeafRotation(screenAngle) {
+      var svgDx = Math.cos(screenAngle) / pxPerX;
+      var svgDy = Math.sin(screenAngle) / pxPerY;
+      return Math.atan2(svgDy, svgDx) * 180 / Math.PI + 90;
+    }
+
+    function addBranch(start, end, bowDirection, strength) {
+      var middle = {
+        x: (start.x + end.x) * 0.5 - Math.sin(bowDirection) * strength / pxPerX,
+        y: (start.y + end.y) * 0.5 + Math.cos(bowDirection) * strength / pxPerY
+      };
+      var branch = createSvgElement('path');
+      branch.setAttribute('class', 'gel-botanical-organic-branch');
+      branch.setAttribute(
+        'd',
+        'M' + start.x.toFixed(2) + ' ' + start.y.toFixed(2) +
+        ' Q' + middle.x.toFixed(2) + ' ' + middle.y.toFixed(2) +
+        ' ' + end.x.toFixed(2) + ' ' + end.y.toFixed(2)
+      );
+      branchLayer.appendChild(branch);
+    }
+
+    function addLeaf(base, screenAngle, screenLength, kind, nodeIndex, leafIndex, opacity) {
+      var naturalLength = naturalLeafLengths[kind];
+      var scaleY = screenLength / (naturalLength * pxPerY);
+      /* Counteract preserveAspectRatio="none": x and y now resolve to the
+         same physical scale, keeping every blade slender and botanical. */
+      var scaleX = scaleY * pxPerY / pxPerX;
+      var rotation = svgLeafRotation(screenAngle);
+      var baseTransform =
+        'translate(' + base.x.toFixed(2) + ' ' + base.y.toFixed(2) + ') ' +
+        'rotate(' + rotation.toFixed(2) + ') ' +
+        'scale(' + scaleX.toFixed(4) + ' ' + scaleY.toFixed(4) + ')';
+      var leaf = createSvgElement('use');
+      leaf.setAttribute('class', 'gel-botanical-extension-leaf gel-botanical-organic-leaf');
+      leaf.setAttribute('href', '#gel-extension-leaf-' + kind + '-art');
+      leaf.setAttribute('transform', baseTransform);
+      leaf.style.setProperty('--organic-leaf-opacity', opacity.toFixed(2));
+      leaf.style.setProperty('--organic-leaf-light', (0.91 + ((nodeIndex * 3 + leafIndex * 2) % 7) * 0.025).toFixed(3));
+      leaf._gelBaseTransform = baseTransform;
+      leaf._gelOpenness = 0.04;
+      leafLayer.appendChild(leaf);
+    }
+
+    nodeWeights.forEach(function (weight, nodeIndex) {
+      cumulativeWeight += weight;
+      var progress = 0.018 + (cumulativeWeight / totalWeight) * 0.922;
+      var distance = stemLength * progress;
+      var point = continuationStem.getPointAtLength(distance);
+      var before = continuationStem.getPointAtLength(Math.max(0, distance - 2.5));
+      var after = continuationStem.getPointAtLength(Math.min(stemLength, distance + 2.5));
+      var tangent = Math.atan2((after.y - before.y) * pxPerY, (after.x - before.x) * pxPerX);
+      var side = Math.sin(nodeIndex * 2.21 + 0.45) > -0.18 ? 1 : -1;
+      var nodeBreath = 0.5 + 0.5 * Math.sin(nodeIndex * 1.37 + 0.8);
+      var branchReach = 7.5 + nodeBreath * 5.5;
+      var primaryAngle = tangent + side * (1.02 + 0.16 * Math.sin(nodeIndex * 1.73));
+      var secondaryAngle = tangent - side * (0.88 + 0.21 * Math.cos(nodeIndex * 1.19));
+      var primaryBase = pointFromScreenVector(point, primaryAngle, branchReach);
+      var secondaryBase = pointFromScreenVector(point, secondaryAngle, branchReach * (0.76 + nodeBreath * 0.14));
+
+      addBranch(point, primaryBase, tangent, 1.15 + nodeBreath);
+      addBranch(point, secondaryBase, tangent, 0.9 + (1 - nodeBreath));
+
+      var primaryKind = nodeIndex % 5 === 0 ? 'round' : (nodeIndex % 3 === 0 ? 'oval' : 'slim');
+      var secondaryKind = nodeIndex % 4 === 1 ? 'round' : (nodeIndex % 3 === 1 ? 'oval' : 'slim');
+      addLeaf(
+        primaryBase,
+        primaryAngle + side * (0.12 + nodeBreath * 0.10),
+        27 + nodeBreath * 12,
+        primaryKind,
+        nodeIndex,
+        0,
+        0.76 + nodeBreath * 0.12
+      );
+      addLeaf(
+        secondaryBase,
+        secondaryAngle - side * (0.08 + (1 - nodeBreath) * 0.12),
+        23 + (1 - nodeBreath) * 10,
+        secondaryKind,
+        nodeIndex,
+        1,
+        0.67 + (1 - nodeBreath) * 0.12
+      );
+
+      /* Only selected joints carry a small emergent blade. This gives the
+         silhouette occasional lush moments without repeating a three-leaf icon. */
+      if ([2, 6, 9, 13, 17, 20, 24, 26].indexOf(nodeIndex) !== -1) {
+        var sproutSide = nodeIndex % 2 === 0 ? -1 : 1;
+        var sproutAngle = tangent + sproutSide * (0.42 + (nodeIndex % 3) * 0.12);
+        var sproutBase = pointFromScreenVector(point, sproutAngle, 6.5 + (nodeIndex % 4));
+        addBranch(point, sproutBase, tangent, 0.75);
+        addLeaf(
+          sproutBase,
+          sproutAngle + sproutSide * 0.14,
+          19 + (nodeIndex % 4) * 1.8,
+          nodeIndex % 2 === 0 ? 'slim' : 'oval',
+          nodeIndex,
+          2,
+          0.58 + (nodeIndex % 3) * 0.045
+        );
+      }
+    });
+  }
+
   layoutBotanicalRail();
   buildBotanicalGrowth();
   alignGelBotanicalContinuation();
+  buildGelOrganicCanopy();
   refreshGelContinuationLeaves();
 
   function updateBotanicalRail() {
@@ -6667,6 +6841,7 @@
       layoutBotanicalRail();
       buildBotanicalGrowth();
       alignGelBotanicalContinuation();
+      buildGelOrganicCanopy();
       refreshGelContinuationLeaves();
       updateBotanicalRail();
     });
