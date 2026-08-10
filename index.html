@@ -4549,9 +4549,9 @@
         + Math.sin(mirroredIndex * 1.37) * 0.30;
       const width = 0.48 + (mirroredIndex % 3) * 0.075
         + (1 - fromCenter) * 0.10;
-      const baseOp = (IS_MOBILE ? 0.080 : 0.088)
-        + (1 - fromCenter) * (IS_MOBILE ? 0.105 : 0.125)
-        + (0.5 + 0.5 * Math.sin(mirroredIndex * 1.61)) * 0.018;
+      const baseOp = (IS_MOBILE ? 0.128 : 0.122)
+        + (1 - fromCenter) * (IS_MOBILE ? 0.158 : 0.174)
+        + (0.5 + 0.5 * Math.sin(mirroredIndex * 1.61)) * 0.026;
 
       const geo = new THREE.PlaneGeometry(width, length);
       geo.translate(0, length / 2, 0);
@@ -5089,7 +5089,7 @@
     // ── Fan skylights: remain open through the helix, then gather at its end ─
     const fanExitTarget = isPastHero
       ? 1
-      : smoothstepLocal(0.84, 1.0, Math.max(0, Math.min(1, scrollProgress)));
+      : smoothstepLocal(0.90, 1.0, Math.max(0, Math.min(1, scrollProgress)));
     _fanCollapseT = lerp(_fanCollapseT, fanExitTarget, 0.075);
     const _fanVisible = _fanCollapseT < 0.99;
     _fanRays.forEach(function (r) {
