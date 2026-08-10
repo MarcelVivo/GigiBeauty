@@ -1942,6 +1942,7 @@
       scroll-margin-top: 64px;
       overflow: hidden;
       overflow: clip;
+      z-index: auto;
     }
     #botanical-rail { width: 80px; }
     #botanical-rail.is-visible { opacity: 0.76; }
@@ -1953,7 +1954,31 @@
     .botanical-complete-plant,
     .botanical-stem-connectors {
       top: calc(var(--botanical-top-join, 0px) - 20px);
+      left: var(--botanical-mobile-art-left, 0px);
+      width: var(--botanical-mobile-art-width, 100%);
       height: calc(100% - var(--botanical-top-join, 0px) + 20px);
+    }
+    .botanical-complete-plant {
+      /* The artwork keeps its exact 383:6414 geometry. Only a softly faded
+         window of the naturally wide vine enters the mobile text canvas. */
+      -webkit-mask-image: linear-gradient(
+        to right,
+        #000 0%,
+        #000 56%,
+        rgba(0, 0, 0, 0.82) 68%,
+        rgba(0, 0, 0, 0.26) 84%,
+        transparent 96%
+      );
+      mask-image: linear-gradient(
+        to right,
+        #000 0%,
+        #000 56%,
+        rgba(0, 0, 0, 0.82) 68%,
+        rgba(0, 0, 0, 0.26) 84%,
+        transparent 96%
+      );
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
     }
     .botanical-top-branch,
     .botanical-complete-plant {
@@ -1970,6 +1995,7 @@
     .svc-inner,
     #section-gel-acryl-nails .svc-inner {
       padding: 38px 20px 68px;
+      z-index: 12;
     }
     .svc-section:not(#section-booking) .svc-inner,
     #section-gel-acryl-nails .svc-inner {
@@ -5897,6 +5923,22 @@
       botanicalRail.style.removeProperty('width');
     }
 
+    /* On phones the former fixed 80 px rail compressed the complete artwork
+       horizontally. Keep the source aspect ratio instead, move the naturally
+       wider canvas behind the left edge, and reveal it through the CSS fade. */
+    if (window.innerWidth <= 767) {
+      var mobileArtHeight = plantHeight + 20;
+      var mobileArtWidth = mobileArtHeight * botanicalSourceWidth / botanicalSourceHeight;
+      var mobileStemTargetX = Math.min(78, window.innerWidth * 0.19);
+      var mobileStemSourceX = 206;
+      var mobileArtLeft = mobileStemTargetX - mobileArtWidth * mobileStemSourceX / botanicalSourceWidth;
+      botanicalRail.style.setProperty('--botanical-mobile-art-width', mobileArtWidth.toFixed(2) + 'px');
+      botanicalRail.style.setProperty('--botanical-mobile-art-left', mobileArtLeft.toFixed(2) + 'px');
+    } else {
+      botanicalRail.style.removeProperty('--botanical-mobile-art-width');
+      botanicalRail.style.removeProperty('--botanical-mobile-art-left');
+    }
+
     /* The two generated artworks have different intrinsic join axes. Align
        those exact source pixels after responsive sizing, then overlap them
        slightly in CSS so the raster edges merge into one continuous stem. */
@@ -5917,6 +5959,12 @@
       if (!flower) return;
       var markerX = flower.x;
       var markerY = flower.y;
+
+      /* Keep mobile butterflies fully visible even when their naturally
+         proportioned flower sits inside the softly cropped outer canvas. */
+      if (window.innerWidth <= 767 && plan.artwork !== 'top') {
+        markerX = Math.max(36, Math.min(118, markerX));
+      }
 
       var marker = document.createElement('div');
       marker.className = 'botanical-service-butterfly';
