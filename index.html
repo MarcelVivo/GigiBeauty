@@ -4494,11 +4494,10 @@
     }, IS_MOBILE ? 0 : 50);
   });
 
-  // ── Volumetric skylights through warm suspended mist ─────────────────────
+  // ── Volumetric fan skylights through warm suspended mist ─────────────────
   const _fanRays = (function buildFanRays() {
-    /* The former rays all met at the lipstick base and read as a graphic
-       starburst. These broad, almost parallel shafts instead enter from high
-       above the scene, as daylight would through ceiling apertures. */
+    /* Preserve the authored fan choreography while replacing its hard graphic
+       spokes with broad, feathered shafts that read through suspended haze. */
     const TW = 192, TH = 512;
     const tc  = document.createElement('canvas');
     tc.width  = TW; tc.height = TH;
@@ -4509,19 +4508,23 @@
       for (let px = 0; px < TW; px++) {
         const v = py / (TH - 1);
         const u = px / (TW - 1) * 2 - 1;
-        const edgeFeather = Math.exp(-Math.pow(Math.abs(u) * 1.72, 2.35));
-        const topFeather = Math.min(1, v / 0.10);
-        const lowerDissolve = 1 - Math.max(0, (v - 0.54) / 0.46);
-        const fogVariation = 0.90
-          + Math.sin(v * 31.0 + u * 2.4) * 0.035
-          + Math.sin(v * 73.0 - u * 5.1) * 0.020;
+        const core = Math.exp(-Math.pow(Math.abs(u) / 0.075, 2));
+        const innerGlow = Math.exp(-Math.pow(Math.abs(u) / 0.24, 2));
+        const fogHalo = Math.exp(-Math.pow(Math.abs(u) / 0.72, 2));
+        const topFeather = Math.min(1, v / 0.075);
+        const upperMist = 0.62 + 0.38 * (1 - v);
+        const fogVariation = 0.86
+          + Math.sin(v * 27.0 + Math.sin(u * 5.4) * 1.8) * 0.070
+          + Math.sin(v * 61.0 - u * 7.2) * 0.035
+          + Math.sin(v * 113.0 + u * 13.0) * 0.018;
         const a = Math.max(0, Math.min(1,
-          edgeFeather * topFeather * (0.28 + 0.72 * lowerDissolve) * fogVariation
+          (core * 0.92 + innerGlow * 0.34 + fogHalo * 0.095)
+          * topFeather * upperMist * fogVariation
         ));
         const idx = (py * TW + px) * 4;
-        d[idx]     = 238;
-        d[idx + 1] = 199;
-        d[idx + 2] = 124;
+        d[idx]     = 232;
+        d[idx + 1] = 184;
+        d[idx + 2] = 94;
         d[idx + 3] = Math.round(a * 255);
       }
     }
@@ -4531,52 +4534,50 @@
     rayTex.magFilter = THREE.LinearFilter;
 
     const fanGroup = new THREE.Group();
-    fanGroup.position.set(0, 0.15, -2.65);
+    fanGroup.position.set(0, -2.48, -1.65);
     scene.add(fanGroup);
 
     const rays = [];
-    const beamSpecs = IS_MOBILE ? [
-      {x:-3.25, y:1.05, w:1.15, h:10.4, a:-0.105, o:0.075},
-      {x:-1.86, y:1.30, w:0.82, h:10.9, a:-0.060, o:0.105},
-      {x:-0.62, y:1.18, w:1.22, h:10.7, a:-0.018, o:0.135},
-      {x: 0.72, y:1.24, w:1.05, h:10.8, a: 0.030, o:0.115},
-      {x: 2.08, y:1.12, w:0.88, h:10.5, a: 0.072, o:0.085},
-      {x: 3.42, y:1.28, w:1.18, h:10.8, a: 0.112, o:0.060},
-    ] : [
-      {x:-6.10, y:1.15, w:1.80, h:11.4, a:-0.145, o:0.060},
-      {x:-4.20, y:1.30, w:1.15, h:11.8, a:-0.108, o:0.075},
-      {x:-2.55, y:1.05, w:1.72, h:11.2, a:-0.070, o:0.090},
-      {x:-0.92, y:1.28, w:1.30, h:11.7, a:-0.025, o:0.120},
-      {x: 0.92, y:1.22, w:1.55, h:11.6, a: 0.030, o:0.110},
-      {x: 2.72, y:1.08, w:1.22, h:11.3, a: 0.072, o:0.085},
-      {x: 4.45, y:1.26, w:1.62, h:11.7, a: 0.112, o:0.070},
-      {x: 6.20, y:1.12, w:1.25, h:11.4, a: 0.150, o:0.050},
-    ];
+    const NUM = IS_MOBILE ? 11 : 15;
+    const SPREAD = IS_MOBILE ? Math.PI * 0.58 : Math.PI * 0.72;
+    for (let i = 0; i < NUM; i++) {
+      const t = i / (NUM - 1);
+      const fromCenter = Math.abs(t - 0.5) * 2;
+      const mirroredIndex = Math.min(i, NUM - 1 - i);
+      const angle = -SPREAD * 0.5 + SPREAD * t;
+      const length = 8.5 + (1 - fromCenter) * 2.8
+        + Math.sin(mirroredIndex * 1.37) * 0.30;
+      const width = 0.48 + (mirroredIndex % 3) * 0.075
+        + (1 - fromCenter) * 0.10;
+      const baseOp = (IS_MOBILE ? 0.080 : 0.088)
+        + (1 - fromCenter) * (IS_MOBILE ? 0.105 : 0.125)
+        + (0.5 + 0.5 * Math.sin(mirroredIndex * 1.61)) * 0.018;
 
-    beamSpecs.forEach(function (cfg, i) {
-      const geo = new THREE.PlaneGeometry(cfg.w, cfg.h);
+      const geo = new THREE.PlaneGeometry(width, length);
+      geo.translate(0, length / 2, 0);
 
       const mat = new THREE.MeshBasicMaterial({
-        map: rayTex, transparent: true, opacity: cfg.o,
+        map: rayTex, transparent: true, opacity: baseOp,
         depthWrite: false, blending: THREE.AdditiveBlending,
         side: THREE.DoubleSide,
       });
 
       const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.set(cfg.x, cfg.y, (i % 3) * -0.12);
-      mesh.rotation.z = cfg.a;
+      const originX = (mirroredIndex % 2 ? 0.035 : -0.035) * Math.sign(i - (NUM - 1) / 2);
+      mesh.position.set(originX, 0, (mirroredIndex % 3) * -0.10);
+      mesh.rotation.z = angle;
       fanGroup.add(mesh);
 
       rays.push({
-        mesh, mat, angle: cfg.a,
-        baseOp: cfg.o,
-        amp: cfg.o * 0.10,
+        mesh, mat, angle, originX,
+        baseOp,
+        amp: baseOp * 0.11,
         phase: i * 1.37 + 0.45,
         sp1: 0.10 + i * 0.009,
         sp2: 0.21 + i * 0.013,
         sp3: 0.055 + i * 0.006,
       });
-    });
+    }
 
     /* Soft suspended golden haze catches the shafts without forming another
        visible shape. It remains behind the opaque product geometry. */
@@ -4592,9 +4593,9 @@
     hazeCtx.fillRect(0, 0, 256, 256);
     const hazeTexture = new THREE.CanvasTexture(hazeCanvas);
     [
-      {x:-2.5, y:-0.60, z:-0.35, sx:5.8, sy:4.1, o:0.095},
-      {x: 0.0, y:-0.85, z:-0.20, sx:7.2, sy:4.7, o:0.120},
-      {x: 2.6, y:-0.55, z:-0.40, sx:5.5, sy:3.9, o:0.085},
+      {x:-2.5, y:1.88, z:-0.35, sx:5.8, sy:4.1, o:0.095},
+      {x: 0.0, y:1.63, z:-0.20, sx:7.2, sy:4.7, o:0.120},
+      {x: 2.6, y:1.93, z:-0.40, sx:5.5, sy:3.9, o:0.085},
     ].forEach(function (cfg, i) {
       const mat = new THREE.SpriteMaterial({
         map: hazeTexture,
@@ -4620,7 +4621,7 @@
     return rays;
   })();
 
-  let _fanCollapseT = 0;   // 0 = skylights visible, 1 = faded with hero
+  let _fanCollapseT = 0;   // 0 = fan open, 1 = gathered and faded with hero
 
   // ─── Animate loop ─────────────────────────────────────────────────────────
   const clock = new THREE.Clock();
@@ -5085,17 +5086,24 @@
       lbl.style.zIndex    = Math.round(depth * 10 + 51);
     });
 
-    // ── Skylights: almost still, with only the slow breathing of moving haze ─
-    _fanCollapseT = lerp(_fanCollapseT, isPastHero ? 1 : 0, 0.055);
+    // ── Fan skylights: remain open through the helix, then gather at its end ─
+    const fanExitTarget = isPastHero
+      ? 1
+      : smoothstepLocal(0.84, 1.0, Math.max(0, Math.min(1, scrollProgress)));
+    _fanCollapseT = lerp(_fanCollapseT, fanExitTarget, 0.075);
     const _fanVisible = _fanCollapseT < 0.99;
     _fanRays.forEach(function (r) {
       if (_fanVisible) {
-        if (!r.isHaze) r.mesh.rotation.z = r.angle;
+        if (!r.isHaze) {
+          r.mesh.rotation.z = r.angle * (1 - _fanCollapseT);
+          r.mesh.position.x = r.originX * (1 - _fanCollapseT);
+        }
         const n = Math.sin(elapsed * r.sp1 + r.phase)        * 0.50
                 + Math.sin(elapsed * r.sp2 + r.phase * 1.87) * 0.32
                 + Math.sin(elapsed * r.sp3 + r.phase * 0.61) * 0.18;
         const pulsed = Math.max(0.003, r.baseOp + n * r.amp);
-        r.mat.opacity = pulsed * (1 - _fanCollapseT);
+        const exitFade = 1 - smoothstepLocal(0.72, 1.0, _fanCollapseT);
+        r.mat.opacity = pulsed * exitFade;
         r.mesh.visible = true;
       } else {
         r.mesh.visible = false;
