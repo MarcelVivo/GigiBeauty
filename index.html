@@ -4494,17 +4494,12 @@
     }, IS_MOBILE ? 0 : 50);
   });
 
-  // ── Fächerförmige Goldstrahlen hinter dem Bouquet ────────────────────────
+  // ── Volumetric skylights through warm suspended mist ─────────────────────
   const _fanRays = (function buildFanRays() {
-    const NUM    = 18;
-    const SPREAD = Math.PI * 0.78;
-    const OY     = -1.55;
-    const OZ     = -0.85;
-
-    // 2-D Kegel-Textur: pro Pixel Gaussian-Kegelform berechnet
-    // canvas-oben (py=0)  → UV.v=1 → Geometrie-Spitze: breit & transparent
-    // canvas-unten (py=TH)→ UV.v=0 → Geometrie-Ursprung: schmal & hell
-    const TW = 64, TH = 128;
+    /* The former rays all met at the lipstick base and read as a graphic
+       starburst. These broad, almost parallel shafts instead enter from high
+       above the scene, as daylight would through ceiling apertures. */
+    const TW = 192, TH = 512;
     const tc  = document.createElement('canvas');
     tc.width  = TW; tc.height = TH;
     const tx  = tc.getContext('2d');
@@ -4512,63 +4507,120 @@
     const d   = img.data;
     for (let py = 0; py < TH; py++) {
       for (let px = 0; px < TW; px++) {
-        const v  = py / (TH - 1);          // 0 = Spitze, 1 = Ursprung
-        const u  = px / (TW - 1) - 0.5;   // -0.5 … +0.5 zentriert
-        const vertA  = Math.pow(v, 1.2);   // hell am Ursprung, transparent an Spitze
-        const halfW  = 0.04 + (1 - v) * 0.46;  // schmal am Ursprung, breit an Spitze
-        const sigma  = halfW * 0.55;
-        const horiA  = Math.exp(-(u * u) / (2 * sigma * sigma));
-        const a = Math.min(1, vertA * horiA);
+        const v = py / (TH - 1);
+        const u = px / (TW - 1) * 2 - 1;
+        const edgeFeather = Math.exp(-Math.pow(Math.abs(u) * 1.72, 2.35));
+        const topFeather = Math.min(1, v / 0.10);
+        const lowerDissolve = 1 - Math.max(0, (v - 0.54) / 0.46);
+        const fogVariation = 0.90
+          + Math.sin(v * 31.0 + u * 2.4) * 0.035
+          + Math.sin(v * 73.0 - u * 5.1) * 0.020;
+        const a = Math.max(0, Math.min(1,
+          edgeFeather * topFeather * (0.28 + 0.72 * lowerDissolve) * fogVariation
+        ));
         const idx = (py * TW + px) * 4;
-        d[idx]     = 212;
-        d[idx + 1] = 175;
-        d[idx + 2] = 106;
+        d[idx]     = 238;
+        d[idx + 1] = 199;
+        d[idx + 2] = 124;
         d[idx + 3] = Math.round(a * 255);
       }
     }
     tx.putImageData(img, 0, 0);
     const rayTex = new THREE.CanvasTexture(tc);
+    rayTex.minFilter = THREE.LinearFilter;
+    rayTex.magFilter = THREE.LinearFilter;
 
     const fanGroup = new THREE.Group();
-    fanGroup.position.set(0, -1.1 + OY, OZ);
-    fanGroup.scale.setScalar(2);
+    fanGroup.position.set(0, 0.15, -2.65);
     scene.add(fanGroup);
 
     const rays = [];
-    for (let i = 0; i < NUM; i++) {
-      const t      = i / (NUM - 1);
-      const angle  = -SPREAD / 2 + SPREAD * t + (Math.random() - 0.5) * 0.20;
-      const len    = 2.4 + Math.random() * 2.8;
-      const hw     = 0.06  + Math.random() * 0.08;   // breiter für Kegeleffekt
-      const baseOp = 0.04  + Math.random() * 0.40;
+    const beamSpecs = IS_MOBILE ? [
+      {x:-3.25, y:1.05, w:1.15, h:10.4, a:-0.105, o:0.075},
+      {x:-1.86, y:1.30, w:0.82, h:10.9, a:-0.060, o:0.105},
+      {x:-0.62, y:1.18, w:1.22, h:10.7, a:-0.018, o:0.135},
+      {x: 0.72, y:1.24, w:1.05, h:10.8, a: 0.030, o:0.115},
+      {x: 2.08, y:1.12, w:0.88, h:10.5, a: 0.072, o:0.085},
+      {x: 3.42, y:1.28, w:1.18, h:10.8, a: 0.112, o:0.060},
+    ] : [
+      {x:-6.10, y:1.15, w:1.80, h:11.4, a:-0.145, o:0.060},
+      {x:-4.20, y:1.30, w:1.15, h:11.8, a:-0.108, o:0.075},
+      {x:-2.55, y:1.05, w:1.72, h:11.2, a:-0.070, o:0.090},
+      {x:-0.92, y:1.28, w:1.30, h:11.7, a:-0.025, o:0.120},
+      {x: 0.92, y:1.22, w:1.55, h:11.6, a: 0.030, o:0.110},
+      {x: 2.72, y:1.08, w:1.22, h:11.3, a: 0.072, o:0.085},
+      {x: 4.45, y:1.26, w:1.62, h:11.7, a: 0.112, o:0.070},
+      {x: 6.20, y:1.12, w:1.25, h:11.4, a: 0.150, o:0.050},
+    ];
 
-      const geo = new THREE.PlaneGeometry(hw * 2, len);
-      geo.translate(0, len / 2, 0);
+    beamSpecs.forEach(function (cfg, i) {
+      const geo = new THREE.PlaneGeometry(cfg.w, cfg.h);
 
       const mat = new THREE.MeshBasicMaterial({
-        map: rayTex, transparent: true, opacity: baseOp,
+        map: rayTex, transparent: true, opacity: cfg.o,
         depthWrite: false, blending: THREE.AdditiveBlending,
         side: THREE.DoubleSide,
       });
 
       const mesh = new THREE.Mesh(geo, mat);
-      mesh.rotation.z = angle;
+      mesh.position.set(cfg.x, cfg.y, (i % 3) * -0.12);
+      mesh.rotation.z = cfg.a;
       fanGroup.add(mesh);
 
       rays.push({
-        mesh, mat, angle,   // angle + mesh needed for collapse animation
-        baseOp,
-        amp:   baseOp * (0.28 + Math.random() * 0.58),
-        phase: Math.random() * Math.PI * 2,
-        sp1:   0.18 + Math.random() * 0.55,
-        sp2:   0.50 + Math.random() * 1.10,
-        sp3:   0.07 + Math.random() * 0.30,
+        mesh, mat, angle: cfg.a,
+        baseOp: cfg.o,
+        amp: cfg.o * 0.10,
+        phase: i * 1.37 + 0.45,
+        sp1: 0.10 + i * 0.009,
+        sp2: 0.21 + i * 0.013,
+        sp3: 0.055 + i * 0.006,
       });
-    }
+    });
+
+    /* Soft suspended golden haze catches the shafts without forming another
+       visible shape. It remains behind the opaque product geometry. */
+    const hazeCanvas = document.createElement('canvas');
+    hazeCanvas.width = 256; hazeCanvas.height = 256;
+    const hazeCtx = hazeCanvas.getContext('2d');
+    const hazeGradient = hazeCtx.createRadialGradient(128, 128, 0, 128, 128, 128);
+    hazeGradient.addColorStop(0.00, 'rgba(236,190,104,0.34)');
+    hazeGradient.addColorStop(0.34, 'rgba(205,151,66,0.19)');
+    hazeGradient.addColorStop(0.72, 'rgba(148,96,33,0.06)');
+    hazeGradient.addColorStop(1.00, 'rgba(0,0,0,0)');
+    hazeCtx.fillStyle = hazeGradient;
+    hazeCtx.fillRect(0, 0, 256, 256);
+    const hazeTexture = new THREE.CanvasTexture(hazeCanvas);
+    [
+      {x:-2.5, y:-0.60, z:-0.35, sx:5.8, sy:4.1, o:0.095},
+      {x: 0.0, y:-0.85, z:-0.20, sx:7.2, sy:4.7, o:0.120},
+      {x: 2.6, y:-0.55, z:-0.40, sx:5.5, sy:3.9, o:0.085},
+    ].forEach(function (cfg, i) {
+      const mat = new THREE.SpriteMaterial({
+        map: hazeTexture,
+        transparent: true,
+        opacity: cfg.o * (IS_MOBILE ? 0.82 : 1),
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const mesh = new THREE.Sprite(mat);
+      mesh.position.set(cfg.x, cfg.y, cfg.z);
+      mesh.scale.set(cfg.sx, cfg.sy, 1);
+      fanGroup.add(mesh);
+      rays.push({
+        mesh, mat, angle: 0,
+        baseOp: cfg.o * (IS_MOBILE ? 0.82 : 1),
+        amp: cfg.o * 0.045,
+        phase: 4.8 + i * 1.7,
+        sp1: 0.065, sp2: 0.12, sp3: 0.038,
+        isHaze: true,
+      });
+    });
+
     return rays;
   })();
 
-  let _fanCollapseT = 0;   // 0 = Fächer offen, 1 = kollabiert & ausgeblendet
+  let _fanCollapseT = 0;   // 0 = skylights visible, 1 = faded with hero
 
   // ─── Animate loop ─────────────────────────────────────────────────────────
   const clock = new THREE.Clock();
@@ -5033,18 +5085,16 @@
       lbl.style.zIndex    = Math.round(depth * 10 + 51);
     });
 
-    // ── Goldstrahl-Fächer: pulsieren + beim isPastHero zur Mitte kollabieren ─
+    // ── Skylights: almost still, with only the slow breathing of moving haze ─
     _fanCollapseT = lerp(_fanCollapseT, isPastHero ? 1 : 0, 0.055);
     const _fanVisible = _fanCollapseT < 0.99;
     _fanRays.forEach(function (r) {
       if (_fanVisible) {
-        // Winkel: von originalem Fächer-Winkel → 0 (vertikal) beim Kollaps
-        r.mesh.rotation.z = r.angle * (1 - _fanCollapseT);
-        // Puls-Rauschen
+        if (!r.isHaze) r.mesh.rotation.z = r.angle;
         const n = Math.sin(elapsed * r.sp1 + r.phase)        * 0.50
                 + Math.sin(elapsed * r.sp2 + r.phase * 1.87) * 0.32
                 + Math.sin(elapsed * r.sp3 + r.phase * 0.61) * 0.18;
-        const pulsed = Math.max(0.005, r.baseOp + n * r.amp);
+        const pulsed = Math.max(0.003, r.baseOp + n * r.amp);
         r.mat.opacity = pulsed * (1 - _fanCollapseT);
         r.mesh.visible = true;
       } else {
