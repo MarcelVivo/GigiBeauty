@@ -1916,14 +1916,19 @@
     }
     .card-label-floating::before { margin-bottom: 3px; }
     #cta a {
-      top: min(71svh, calc(100svh - 174px));
+      /* Use the calm lower third of the phone viewport. The butterfly orbit
+         ends well above this point, so no treatment portrait can pass behind
+         the booking ribbon while the carousel rotates. */
+      top: min(82svh, calc(100svh - 128px));
       min-width: min(250px, calc(100vw - 48px));
       padding: 13px 24px;
       font-size: 0.83rem;
       letter-spacing: 0.24em;
       text-align: center;
     }
-    #scroll-hint { top: min(calc(71svh + 58px), calc(100svh - 108px)); }
+    #scroll-hint {
+      top: min(calc(82svh + 58px), calc(100svh - 68px));
+    }
     #scroll-hint span {
       margin-bottom: 7px;
       font-size: 0.64rem;
