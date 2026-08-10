@@ -41,7 +41,7 @@
   font-weight: 400;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(245, 230, 200, 0.7);
+  color: rgba(255, 240, 216, 0.88);
   transition: color 0.2s ease;
 }
 .nav-links a:hover,
@@ -149,6 +149,6 @@
 
 .footer-copy {
   font-size: 0.7rem;
-  color: rgba(245, 230, 200, 0.25);
+  color: rgba(255, 240, 216, 0.56);
   letter-spacing: 0.1em;
 }

@@ -2160,6 +2160,173 @@
     #cta a { top: calc(100svh - 78px); }
     #scroll-hint { display: none; }
   }
+
+  /* ── High-contrast luxury pass ─────────────────────────────────────────
+     Preserve the deep espresso background while lifting typography, flowers
+     and animated butterflies onto clearly separated luminance planes. */
+  .nav-links a,
+  .nav-links .nav-about-btn {
+    color: rgba(255, 240, 216, 0.92);
+  }
+
+  .card-label-floating {
+    color: #fff3db;
+    text-shadow:
+      0 1px 2px rgba(14, 7, 4, 1),
+      0 5px 18px rgba(10, 5, 3, 0.88),
+      0 0 12px rgba(229, 187, 108, 0.18);
+  }
+
+  .svc-title {
+    color: #e8c579;
+    text-shadow:
+      0 0 34px rgba(232, 197, 121, 0.30),
+      0 2px 12px rgba(0, 0, 0, 0.92);
+  }
+  .svc-description h3,
+  .svc-prices h3,
+  .booking-form label {
+    color: rgba(232, 197, 121, 0.94);
+  }
+  .svc-description p,
+  .price-name,
+  .booking-intro,
+  .custom-select-options li {
+    color: rgba(255, 242, 218, 0.95);
+    text-shadow: 0 1px 7px rgba(0, 0, 0, 0.88);
+  }
+  .price-chf,
+  .price-amount,
+  .price-value {
+    color: #e8c579;
+  }
+  .custom-select-trigger {
+    color: rgba(255, 242, 218, 0.70);
+  }
+
+  /* The hero butterflies are at least one third larger at every breakpoint. */
+  .service-card img,
+  .hero-service-butterfly {
+    width: clamp(130px, 40vw, 300px);
+    height: clamp(130px, 40vw, 300px);
+    filter:
+      saturate(1.16)
+      contrast(1.14)
+      brightness(1.20)
+      drop-shadow(0 10px 24px rgba(7, 3, 2, 0.82))
+      drop-shadow(0 0 8px rgba(255, 227, 164, 0.62))
+      drop-shadow(0 0 22px rgba(212, 166, 74, 0.28));
+  }
+  .hero-service-wing-image {
+    filter: saturate(1.12) contrast(1.16) brightness(1.20);
+  }
+  .hero-service-butterfly-art {
+    filter:
+      saturate(1.12)
+      contrast(1.10)
+      drop-shadow(0 3px 3px rgba(19, 8, 4, 0.78))
+      drop-shadow(0 0 4px rgba(255, 231, 174, 0.58));
+  }
+
+  /* Raise the flowers without brightening the service photography behind
+     the text. Leaves keep their deep olive character; blossoms gain clarity. */
+  .hero-botanical-photo {
+    filter:
+      saturate(1.00)
+      contrast(1.08)
+      brightness(1.02)
+      sepia(0.04)
+      drop-shadow(0 9px 20px rgba(5, 12, 6, 0.52))
+      drop-shadow(0 0 10px rgba(238, 207, 143, 0.24));
+  }
+  .hero-botanical-photo--rear { opacity: 0.84; }
+  .hero-botanical-photo--climber { opacity: 0.92; }
+  .hero-botanical-photo--front { opacity: 0.90; }
+
+  .botanical-top-branch,
+  .botanical-complete-plant {
+    opacity: 0.98;
+    filter:
+      saturate(0.94)
+      contrast(1.10)
+      brightness(1.02)
+      sepia(0.04)
+      drop-shadow(6px 6px 20px rgba(4, 12, 6, 0.48))
+      drop-shadow(0 0 7px rgba(235, 207, 150, 0.20));
+  }
+
+  .botanical-service-butterfly {
+    width: clamp(125px, 11.1vw, 190px);
+    filter:
+      saturate(1.18)
+      contrast(1.18)
+      brightness(1.22)
+      drop-shadow(0 4px 6px rgba(11, 5, 3, 0.96))
+      drop-shadow(0 0 7px rgba(255, 239, 194, 0.82))
+      drop-shadow(0 0 19px rgba(221, 174, 78, 0.42));
+  }
+  .botanical-butterfly-pastel-fill {
+    opacity: 1;
+    filter:
+      saturate(1.10)
+      contrast(1.10)
+      brightness(1.22)
+      drop-shadow(0 2px 5px rgba(39, 18, 10, 0.58));
+  }
+  .botanical-butterfly-gold-veins {
+    opacity: 1;
+    filter:
+      contrast(1.20)
+      brightness(1.18)
+      drop-shadow(0 0 2px rgba(255, 243, 204, 0.94))
+      drop-shadow(0 2px 2px rgba(70, 36, 12, 0.54));
+  }
+  .botanical-butterfly-logo-shape {
+    filter:
+      saturate(1.10)
+      contrast(1.14)
+      brightness(1.18)
+      drop-shadow(0 4px 8px rgba(25, 10, 5, 0.82))
+      drop-shadow(0 0 5px rgba(255, 230, 170, 0.72));
+  }
+
+  @media (orientation: landscape) {
+    .service-card img,
+    .hero-service-butterfly {
+      width: clamp(210px, 30.5vmin, 460px);
+      height: clamp(210px, 30.5vmin, 460px);
+    }
+  }
+
+  @media (max-width: 767px) {
+    .service-card img,
+    .hero-service-butterfly {
+      width: clamp(112px, 32vw, 148px);
+      height: clamp(112px, 32vw, 148px);
+    }
+    #botanical-rail.is-visible { opacity: 0.96; }
+    .botanical-mobile-cluster {
+      opacity: 0.86;
+      filter:
+        saturate(0.92)
+        contrast(1.08)
+        brightness(1.00)
+        sepia(0.04)
+        drop-shadow(2px 3px 8px rgba(5, 13, 6, 0.44));
+    }
+    .botanical-service-butterfly {
+      width: 60px;
+      filter:
+        saturate(1.22)
+        contrast(1.22)
+        brightness(1.30)
+        drop-shadow(0 3px 5px rgba(8, 3, 2, 1))
+        drop-shadow(0 0 6px rgba(255, 242, 204, 0.92))
+        drop-shadow(0 0 16px rgba(228, 181, 86, 0.54));
+    }
+    .svc-description p,
+    .price-name { color: rgba(255, 243, 220, 0.97); }
+  }
 </style>
 </head>
 <body>

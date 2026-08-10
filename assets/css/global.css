@@ -2,14 +2,14 @@
 
 :root {
   /* Brand colours */
-  --gold:        #d4af6a;
-  --gold-light:  #f5e6c8;
-  --gold-dark:   #b8903a;
+  --gold:        #e2bd73;
+  --gold-light:  #fff0d4;
+  --gold-dark:   #c69b45;
   --red:         #b80c28;
   --black:       #2f251c;
   --black-soft:  #302216;
   --white:       #ffffff;
-  --text-muted:  rgba(245, 230, 200, 0.55);
+  --text-muted:  rgba(255, 240, 216, 0.76);
 
   /* Typography */
   --font-serif:  'Playfair Display', Georgia, serif;
