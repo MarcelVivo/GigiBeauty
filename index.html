@@ -1024,6 +1024,47 @@
     pointer-events: none;
   }
 
+  .botanical-terminal-layer {
+    position: absolute;
+    top: calc(var(--botanical-top-join, 0px) - 32px);
+    left: 0;
+    z-index: 2;
+    width: 100%;
+    height: calc(100% - var(--botanical-top-join, 0px) + 32px);
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .botanical-terminal-tip {
+    position: absolute;
+    display: block;
+    width: var(--terminal-width, 12.5%);
+    max-width: none;
+    height: auto;
+    opacity: 0.96;
+    transform-origin: 50% 100%;
+    filter:
+      saturate(0.90)
+      contrast(1.06)
+      brightness(0.96)
+      sepia(0.04)
+      drop-shadow(2px 3px 7px rgba(5, 12, 6, 0.42));
+  }
+
+  .botanical-terminal-tip--up {
+    transform:
+      translate(-50%, -100%)
+      rotate(var(--terminal-angle, 0deg))
+      scaleX(var(--terminal-mirror, 1));
+  }
+
+  .botanical-terminal-tip--down {
+    transform:
+      translate(-50%, -100%)
+      rotate(calc(180deg + var(--terminal-angle, 0deg)))
+      scaleX(var(--terminal-mirror, 1));
+  }
+
   .botanical-top-branch,
   .botanical-complete-plant {
     opacity: 0.94;
@@ -1034,20 +1075,6 @@
       drop-shadow(6px 5px 18px rgba(6, 18, 10, 0.32));
   }
 
-  .botanical-stem-connection-art {
-    position: absolute;
-    top: calc(var(--botanical-top-join, 0px) - 32px);
-    left: 0;
-    z-index: 2;
-    display: block;
-    width: 100%;
-    height: calc(100% - var(--botanical-top-join, 0px) + 32px);
-    object-fit: fill;
-    object-position: left top;
-    pointer-events: none;
-    opacity: 0.92;
-  }
-
   .botanical-rail__butterflies {
     position: absolute;
     inset: 0;
@@ -1056,8 +1083,8 @@
   }
 
   /* A dedicated mobile composition keeps every botanical detail at its
-     natural aspect ratio. The continuous stem and the seven undistorted
-     foliage crops are independent, hand-finished raster artworks. */
+     natural aspect ratio. The seven foliage crops remain deliberately
+     separate, with no synthetic connector artwork between their stems. */
   .botanical-mobile-layer {
     display: none;
   }
@@ -1935,8 +1962,7 @@
     }
     #botanical-rail.is-visible { opacity: 0.72; }
     .botanical-top-branch,
-    .botanical-complete-plant,
-    .botanical-stem-connection-art {
+    .botanical-complete-plant {
       display: none;
     }
 
@@ -1948,15 +1974,19 @@
       overflow: visible;
       pointer-events: none;
     }
-    .botanical-mobile-stem-art {
-      position: absolute;
-      inset: 0 auto 0 0;
-      display: block;
-      width: 96px;
+    .botanical-terminal-layer {
+      top: 0;
       height: 100%;
-      object-fit: fill;
-      object-position: left top;
-      opacity: 0.86;
+    }
+    .botanical-terminal-tip {
+      width: var(--terminal-mobile-width, 27px);
+      opacity: 0.88;
+      filter:
+        saturate(0.88)
+        contrast(1.05)
+        brightness(0.94)
+        sepia(0.04)
+        drop-shadow(1px 2px 5px rgba(5, 12, 6, 0.38));
     }
     .botanical-mobile-clusters {
       position: absolute;
@@ -2137,7 +2167,6 @@
 
   @media (max-width: 390px) {
     #botanical-rail { width: 90px; }
-    .botanical-mobile-stem-art { width: 90px; }
     .botanical-mobile-cluster {
       left: -15px;
       width: 106px;
@@ -2210,22 +2239,22 @@
     width: clamp(130px, 40vw, 300px);
     height: clamp(130px, 40vw, 300px);
     filter:
-      saturate(1.16)
-      contrast(1.14)
-      brightness(1.20)
-      drop-shadow(0 10px 24px rgba(7, 3, 2, 0.82))
-      drop-shadow(0 0 8px rgba(255, 227, 164, 0.62))
-      drop-shadow(0 0 22px rgba(212, 166, 74, 0.28));
+      saturate(1.07)
+      contrast(1.07)
+      brightness(1.10)
+      drop-shadow(0 10px 24px rgba(7, 3, 2, 0.66))
+      drop-shadow(0 0 7px rgba(255, 227, 164, 0.36))
+      drop-shadow(0 0 18px rgba(212, 166, 74, 0.16));
   }
   .hero-service-wing-image {
-    filter: saturate(1.12) contrast(1.16) brightness(1.20);
+    filter: saturate(1.04) contrast(1.08) brightness(1.10);
   }
   .hero-service-butterfly-art {
     filter:
-      saturate(1.12)
-      contrast(1.10)
-      drop-shadow(0 3px 3px rgba(19, 8, 4, 0.78))
-      drop-shadow(0 0 4px rgba(255, 231, 174, 0.58));
+      saturate(1.05)
+      contrast(1.05)
+      drop-shadow(0 3px 3px rgba(19, 8, 4, 0.68))
+      drop-shadow(0 0 4px rgba(255, 231, 174, 0.32));
   }
 
   /* Raise the flowers without brightening the service photography behind
@@ -2258,36 +2287,36 @@
   .botanical-service-butterfly {
     width: clamp(125px, 11.1vw, 190px);
     filter:
-      saturate(1.18)
-      contrast(1.18)
-      brightness(1.22)
-      drop-shadow(0 4px 6px rgba(11, 5, 3, 0.96))
-      drop-shadow(0 0 7px rgba(255, 239, 194, 0.82))
-      drop-shadow(0 0 19px rgba(221, 174, 78, 0.42));
+      saturate(1.08)
+      contrast(1.10)
+      brightness(1.12)
+      drop-shadow(0 4px 6px rgba(11, 5, 3, 0.82))
+      drop-shadow(0 0 6px rgba(255, 239, 194, 0.42))
+      drop-shadow(0 0 16px rgba(221, 174, 78, 0.22));
   }
   .botanical-butterfly-pastel-fill {
     opacity: 1;
     filter:
-      saturate(1.10)
-      contrast(1.10)
-      brightness(1.22)
+      saturate(1.04)
+      contrast(1.06)
+      brightness(1.12)
       drop-shadow(0 2px 5px rgba(39, 18, 10, 0.58));
   }
   .botanical-butterfly-gold-veins {
     opacity: 1;
     filter:
-      contrast(1.20)
-      brightness(1.18)
-      drop-shadow(0 0 2px rgba(255, 243, 204, 0.94))
+      contrast(1.10)
+      brightness(1.10)
+      drop-shadow(0 0 2px rgba(255, 243, 204, 0.58))
       drop-shadow(0 2px 2px rgba(70, 36, 12, 0.54));
   }
   .botanical-butterfly-logo-shape {
     filter:
-      saturate(1.10)
-      contrast(1.14)
-      brightness(1.18)
+      saturate(1.04)
+      contrast(1.08)
+      brightness(1.10)
       drop-shadow(0 4px 8px rgba(25, 10, 5, 0.82))
-      drop-shadow(0 0 5px rgba(255, 230, 170, 0.72));
+      drop-shadow(0 0 5px rgba(255, 230, 170, 0.40));
   }
 
   @media (orientation: landscape) {
@@ -2317,12 +2346,12 @@
     .botanical-service-butterfly {
       width: 60px;
       filter:
-        saturate(1.22)
-        contrast(1.22)
-        brightness(1.30)
-        drop-shadow(0 3px 5px rgba(8, 3, 2, 1))
-        drop-shadow(0 0 6px rgba(255, 242, 204, 0.92))
-        drop-shadow(0 0 16px rgba(228, 181, 86, 0.54));
+        saturate(1.10)
+        contrast(1.12)
+        brightness(1.16)
+        drop-shadow(0 3px 5px rgba(8, 3, 2, 0.82))
+        drop-shadow(0 0 5px rgba(255, 242, 204, 0.48))
+        drop-shadow(0 0 13px rgba(228, 181, 86, 0.27));
     }
     .svc-description p,
     .price-name { color: rgba(255, 243, 220, 0.97); }
@@ -4292,15 +4321,21 @@
   // premium elliptical helix instead of a loose diagonal scatter.
   const HERO_AXIS_X       = 0;
   const HERO_AXIS_Z       = 0;
-  const HELIX_AXIS_Y      = IS_MOBILE ? -0.78 : -0.56;
-  const HELIX_RADIUS_X    = IS_MOBILE ? 2.34 : 4.18;
-  const HELIX_RADIUS_Z    = IS_MOBILE ? 1.70 : 2.78;
-  const HELIX_HEIGHT_SPAN = IS_MOBILE ? 4.05 : 3.62;
+  const HELIX_AXIS_Y      = IS_MOBILE ? -0.66 : -0.56;
+  const HELIX_RADIUS_X    = IS_MOBILE ? 3.72 : 4.18;
+  const HELIX_RADIUS_Z    = IS_MOBILE ? 1.82 : 2.78;
+  const HELIX_HEIGHT_SPAN = IS_MOBILE ? 6.18 : 3.62;
   const HELIX_SCROLL_TURNS = IS_MOBILE ? 1.05 : 1.25;
+  /* A low-discrepancy vertical order keeps every group of three neighbouring
+     (and therefore front-facing) butterflies on separate height levels. This
+     prevents the larger mobile artwork from collecting in one dense row. */
+  const MOBILE_HELIX_LANES = [-0.50, 0.00, 0.50, -0.17, 0.33, -0.33, 0.17];
 
   function getHelixPos(index, totalItems, rotationOffset) {
     const orbitT = index / totalItems;
-    const verticalT = totalItems > 1 ? index / (totalItems - 1) - 0.5 : 0;
+    const verticalT = IS_MOBILE && totalItems === MOBILE_HELIX_LANES.length
+      ? MOBILE_HELIX_LANES[index]
+      : (totalItems > 1 ? index / (totalItems - 1) - 0.5 : 0);
     const angle = orbitT * Math.PI * 2 + rotationOffset;
     const y = HELIX_AXIS_Y + verticalT * HELIX_HEIGHT_SPAN;
     return new THREE.Vector3(
@@ -4914,10 +4949,16 @@
           window.innerWidth - 10 - cardRadius
         );
       }
+      const mobileHeroTop = window.innerHeight * 0.255;
+      const mobileHeroBottom = window.innerHeight * 0.685;
       let displayY = softViewportLimit(
         screen.y,
-        verticalMargin + cardRadius,
-        window.innerHeight - verticalMargin - cardRadius
+        IS_MOBILE
+          ? Math.max(verticalMargin + cardRadius, mobileHeroTop + cardRadius * 0.34)
+          : verticalMargin + cardRadius,
+        IS_MOBILE
+          ? Math.min(window.innerHeight - verticalMargin - cardRadius, mobileHeroBottom - cardRadius * 0.42)
+          : window.innerHeight - verticalMargin - cardRadius
       );
 
       card.style.transform = `translate3d(${displayX.toFixed(2)}px, ${displayY.toFixed(2)}px, 0) translate(-50%, -50%) scale(${scaleFactor.toFixed(4)})`;
@@ -4949,7 +4990,8 @@
       if (IS_MOBILE) {
         // Compact signatures follow the butterflies; the right-hand Fillers
         // label sits above its card so it never collides with Pedicure or CTA.
-        lblTargX = Math.max(50, Math.min(window.innerWidth - 50, displayX));
+        const labelSideOffset = displayX < window.innerWidth * 0.5 ? -10 : 10;
+        lblTargX = Math.max(56, Math.min(window.innerWidth - 56, displayX + labelSideOffset));
         lblTargY = i === 3
           ? Math.max(72, displayY - halfSize * 0.86 - 20)
           : Math.min(labelBottomLimit, displayY + halfSize * 0.72);
@@ -4978,7 +5020,7 @@
 
       const labelAnchor = 'translate(-50%, 0)';
       lbl.style.transform = `translate3d(${lblCurX[i].toFixed(2)}px, ${lblCurY[i].toFixed(2)}px, 0) ${labelAnchor}`;
-      const labelDepth = smoothstepLocal(IS_MOBILE ? 0.24 : 0.18, IS_MOBILE ? 0.56 : 0.50, depthT);
+      const labelDepth = smoothstepLocal(IS_MOBILE ? 0.44 : 0.18, IS_MOBILE ? 0.68 : 0.50, depthT);
       const labelOpacity = IS_MOBILE
         ? (depthT < 0.42 ? 0 : finalOpacity * labelDepth)
         : finalOpacity * (0.20 + labelDepth * 0.80);
@@ -5032,21 +5074,8 @@
     aria-hidden="true"
     decoding="async"
   >
-  <img
-    class="botanical-stem-connection-art"
-    src="public/images/botanical/botanical-stem-connections-luxury-v1.png"
-    alt=""
-    aria-hidden="true"
-    decoding="async"
-  >
+  <div id="botanical-terminal-layer" class="botanical-terminal-layer" aria-hidden="true"></div>
   <div id="botanical-mobile-layer" class="botanical-mobile-layer" aria-hidden="true">
-    <img
-      class="botanical-mobile-stem-art"
-      src="public/images/botanical/botanical-mobile-stem-luxury-v1.png"
-      alt=""
-      aria-hidden="true"
-      decoding="async"
-    >
     <div id="botanical-mobile-clusters" class="botanical-mobile-clusters"></div>
   </div>
   <div id="botanical-marker-layer" class="botanical-rail__butterflies"></div>
@@ -6114,6 +6143,7 @@
   var botanicalRail = document.getElementById('botanical-rail');
   var botanicalTopBranch = document.getElementById('botanical-top-branch');
   var botanicalCompletePlant = document.getElementById('botanical-complete-plant');
+  var botanicalTerminalLayer = document.getElementById('botanical-terminal-layer');
   var botanicalMobileClusters = document.getElementById('botanical-mobile-clusters');
   var botanicalMarkerLayer = document.getElementById('botanical-marker-layer');
   var botanicalFirst = document.getElementById('section-gel-acryl-nails');
@@ -6132,6 +6162,21 @@
   var botanicalTopSourceWidth = 1537;
   var botanicalTopSourceHeight = 480;
   var botanicalMobileClusterMeta = [];
+  var botanicalTerminalAsset = 'public/images/botanical/botanical-terminal-leaf-tip-luxury-v1.png';
+  var botanicalTerminalPlans = [
+    { segment: 0, sourceX: 204, sourceY: 880,  direction: 'down', angle: -11, mirror:  1, width: 11.8, mobileWidth: 24 },
+    { segment: 1, sourceX: 127, sourceY: 952,  direction: 'up',   angle:   8, mirror: -1, width: 12.4, mobileWidth: 26 },
+    { segment: 1, sourceX: 241, sourceY: 1799, direction: 'down', angle:   6, mirror: -1, width: 11.6, mobileWidth: 24 },
+    { segment: 2, sourceX: 246, sourceY: 1859, direction: 'up',   angle:  -7, mirror:  1, width: 12.8, mobileWidth: 27 },
+    { segment: 2, sourceX: 187, sourceY: 2709, direction: 'down', angle: -10, mirror:  1, width: 12.1, mobileWidth: 25 },
+    { segment: 3, sourceX: 177, sourceY: 2776, direction: 'up',   angle:   7, mirror: -1, width: 13.0, mobileWidth: 27 },
+    { segment: 3, sourceX: 243, sourceY: 3619, direction: 'down', angle:   7, mirror: -1, width: 11.7, mobileWidth: 24 },
+    { segment: 4, sourceX: 244, sourceY: 3693, direction: 'up',   angle:  -8, mirror:  1, width: 12.5, mobileWidth: 26 },
+    { segment: 4, sourceX: 213, sourceY: 4542, direction: 'down', angle: -12, mirror:  1, width: 12.0, mobileWidth: 25 },
+    { segment: 5, sourceX: 121, sourceY: 4612, direction: 'up',   angle:   9, mirror: -1, width: 13.2, mobileWidth: 28 },
+    { segment: 5, sourceX: 219, sourceY: 5454, direction: 'down', angle:   8, mirror: -1, width: 11.7, mobileWidth: 24 },
+    { segment: 6, sourceX: 290, sourceY: 5525, direction: 'up',   angle: -10, mirror:  1, width: 12.7, mobileWidth: 27 }
+  ];
 
   /* Seven treatment butterflies plus one proportioned butterfly on the
      large terminal blossom above the first treatment. */
@@ -6189,15 +6234,15 @@
       botanicalRail.style.removeProperty('width');
     }
 
-    /* Mobile uses seven undistorted, compact foliage crops over a separate
-       continuous raster stem. This avoids both vertical stretching and the
-       enormous flowers produced by scaling the master to the full page. */
+    /* Mobile uses seven undistorted, compact foliage crops without a synthetic
+       connector. This avoids both vertical stretching and artificial joins. */
     if (window.innerWidth <= 767) {
       layoutMobileBotanicalComposition(railTop, railHeight);
     } else {
       botanicalMobileClusterMeta = [];
       if (botanicalMobileClusters) botanicalMobileClusters.replaceChildren();
     }
+    layoutBotanicalTerminalTips();
 
     /* The two generated artworks have different intrinsic join axes. Align
        those exact source pixels after responsive sizing, then overlap them
@@ -6249,6 +6294,40 @@
         masterHeight: renderedMasterHeight,
         segmentStart: segmentStart
       });
+    });
+  }
+
+  function layoutBotanicalTerminalTips() {
+    if (!botanicalTerminalLayer) return;
+    botanicalTerminalLayer.replaceChildren();
+    var isMobile = window.innerWidth <= 767;
+
+    botanicalTerminalPlans.forEach(function (plan) {
+      var left;
+      var top;
+      if (isMobile) {
+        var meta = botanicalMobileClusterMeta[plan.segment];
+        if (!meta) return;
+        left = meta.left + plan.sourceX / botanicalSourceWidth * meta.width;
+        top = meta.top + (plan.sourceY - meta.segmentStart) / botanicalSourceHeight * meta.masterHeight;
+      } else {
+        left = plan.sourceX / botanicalSourceWidth * 100;
+        top = plan.sourceY / botanicalSourceHeight * 100;
+      }
+
+      var tip = document.createElement('img');
+      tip.className = 'botanical-terminal-tip botanical-terminal-tip--' + plan.direction;
+      tip.src = botanicalTerminalAsset;
+      tip.alt = '';
+      tip.setAttribute('aria-hidden', 'true');
+      tip.decoding = 'async';
+      tip.style.left = isMobile ? left.toFixed(2) + 'px' : left.toFixed(4) + '%';
+      tip.style.top = isMobile ? top.toFixed(2) + 'px' : top.toFixed(4) + '%';
+      tip.style.setProperty('--terminal-angle', plan.angle + 'deg');
+      tip.style.setProperty('--terminal-mirror', String(plan.mirror));
+      tip.style.setProperty('--terminal-width', plan.width + '%');
+      tip.style.setProperty('--terminal-mobile-width', plan.mobileWidth + 'px');
+      botanicalTerminalLayer.appendChild(tip);
     });
   }
 
