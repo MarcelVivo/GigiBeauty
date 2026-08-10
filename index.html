@@ -413,6 +413,10 @@
     width: auto;
     height: 35vh;
     opacity: 0.80;
+    /* The source's first 6.5% contain only a bare stem. Mask precisely up to
+       the first leaf so the foliage starts naturally without changing it. */
+    -webkit-clip-path: inset(6.5% 0 0 0);
+    clip-path: inset(6.5% 0 0 0);
     transform: translate3d(-50%, 0, 0) rotate(-0.15deg);
     transform-origin: 50% 100%;
     animation: heroBotanicalClimberBreath 8.5s ease-in-out infinite;
