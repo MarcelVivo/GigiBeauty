@@ -251,7 +251,7 @@
     backface-visibility: hidden;
   }
 
-  /* Floating label — positioned independently, trails the butterfly with lag */
+  /* Floating label — positioned independently but locked to its butterfly */
   .card-label-floating {
     position: absolute;
     top: 0;
@@ -4217,7 +4217,7 @@
     return svg;
   }
 
-  // Lerped label positions — trail behind butterfly with spring lag
+  // Screen-space label positions — kept frame-perfect with each butterfly
   const lblCurX = new Float32Array(SERVICES.length);
   const lblCurY = new Float32Array(SERVICES.length);
   const lblVisible = new Uint8Array(SERVICES.length);
@@ -4241,6 +4241,7 @@
     const a = document.createElement('a');
     a.className = 'service-card';
     a.href = `pages/services/${svc.slug}.html`;
+    a.dataset.service = svc.slug;
 
     a.appendChild(createHeroServiceButterfly(i, svc));
 
@@ -4300,9 +4301,10 @@
     overlay.appendChild(a);
     cardEls.push(a);
 
-    // ── Floating label — independent element, trails butterfly with delay
+    // ── Floating label — independent layer, paired by the same service key
     const lbl = document.createElement('div');
     lbl.className = 'card-label-floating';
+    lbl.dataset.service = svc.slug;
     lbl.innerHTML = svc.labelHtml || svc.label;
     overlay.appendChild(lbl);
     labelEls.push(lbl);
@@ -4964,10 +4966,8 @@
       // Crossing the helix axis moves the complete card/label pair behind or
       // in front of the transparent product canvas. This makes the orbit real:
       // back butterflies disappear behind the lipstick/tools, then re-emerge.
-      if (card.parentNode !== targetOverlay) {
-        targetOverlay.appendChild(card);
-        targetOverlay.appendChild(lbl);
-      }
+      if (card.parentNode !== targetOverlay) targetOverlay.appendChild(card);
+      if (lbl.parentNode !== targetOverlay) targetOverlay.appendChild(lbl);
 
       // Cull cards behind camera
       if (screen.z > 1.0 || screen.x < -200 || screen.x > window.innerWidth + 200) {
@@ -5064,17 +5064,12 @@
       );
       lblTargY = Math.min(labelBottomLimit, lblTargY + labelOffsetY[i]);
 
-      if (!lblVisible[i]) {
-        // Reappearing labels start at their butterfly instead of flying in
-        // from an old off-screen position.
-        lblCurX[i] = lblTargX;
-        lblCurY[i] = lblTargY;
-        lblVisible[i] = 1;
-      } else {
-        const labelFollow = 1 - Math.exp(-(IS_MOBILE ? 18 : 13) * deltaSeconds);
-        lblCurX[i] = lerp(lblCurX[i], lblTargX, labelFollow);
-        lblCurY[i] = lerp(lblCurY[i], lblTargY, labelFollow);
-      }
+      // Do not interpolate labels independently: even a short spring delay can
+      // place a caption beneath the neighbouring butterfly while the helix is
+      // turning. Image, caption and link now remain one visual service unit.
+      lblCurX[i] = lblTargX;
+      lblCurY[i] = lblTargY;
+      lblVisible[i] = 1;
 
       const labelAnchor = 'translate(-50%, 0)';
       lbl.style.transform = `translate3d(${lblCurX[i].toFixed(2)}px, ${lblCurY[i].toFixed(2)}px, 0) ${labelAnchor}`;
