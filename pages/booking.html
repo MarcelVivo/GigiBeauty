@@ -1,157 +1,141 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Termin buchen — GiGi Beauty</title>
-<meta name="description" content="Buche deinen Termin bei GiGi Beauty online. Einfach, schnell und unkompliziert.">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/css/global.css">
-<link rel="stylesheet" href="../assets/css/pages/nav.css">
-<style>
-  .page-hero {
-    min-height: 45vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: calc(var(--nav-height) + var(--space-lg)) var(--space-md) var(--space-lg);
-    background: radial-gradient(ellipse at 50% 0%, #402935 0%, var(--black) 70%);
-  }
-  .page-hero h1 { color: var(--gold); }
-
-  .booking-wrapper {
-    max-width: 680px;
-    margin: 0 auto;
-  }
-
-  /* Inline booking widget placeholder */
-  .booking-widget {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(212,175,106,0.15);
-    border-radius: 4px;
-    padding: var(--space-lg);
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    letter-spacing: 0.1em;
-  }
-  .booking-widget strong { color: var(--gold); display: block; margin-bottom: var(--space-sm); font-family: var(--font-serif); font-size: 1.1rem; }
-
-  /* Manual booking form */
-  .booking-form label {
-    display: block;
-    font-size: 0.75rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 6px;
-    margin-top: var(--space-sm);
-  }
-  .booking-form select,
-  .booking-form input {
-    width: 100%;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(212,175,106,0.2);
-    border-radius: 2px;
-    padding: 12px 16px;
-    color: var(--gold-light);
-    font-family: var(--font-body);
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color 0.2s ease;
-    appearance: none;
-  }
-  .booking-form select:focus,
-  .booking-form input:focus { border-color: rgba(212,175,106,0.6); }
-  .booking-form select option { background: #322628; }
-  .booking-form .btn { margin-top: var(--space-md); width: 100%; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Termin online buchen — GiGi Beauty Bern</title>
+  <meta name="description" content="Wähle deine Behandlung und buche deinen GiGi Beauty Termin in Bern direkt online.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/global.css">
+  <link rel="stylesheet" href="../assets/css/pages/nav.css">
+  <link rel="stylesheet" href="../assets/css/pages/booking.css">
 </head>
-<body>
+<body class="booking-page">
+  <nav id="site-nav">
+    <a class="nav-brand-logo" href="/" aria-label="GiGi Beauty Startseite">
+      <img src="/public/images/logo/GiGiBeautyLogoNeu.png" alt="GiGi Beauty Clinic & Academy">
+    </a>
+    <ul class="nav-links">
+      <li><a href="/#services">Behandlungen</a></li>
+      <li><a href="/pages/ueber-uns.html">Über uns</a></li>
+      <li><a href="/pages/kontakt.html">Kontakt</a></li>
+    </ul>
+  </nav>
 
-<nav id="site-nav">
-  <a class="nav-logo" href="/">GiGi Beauty</a>
-  <ul class="nav-links">
-    <li><a href="/pages/services/">Leistungen</a></li>
-    <li><a href="/pages/galerie.html">Galerie</a></li>
-    <li><a href="/pages/ueber-uns.html">Über uns</a></li>
-    <li><a href="/pages/kontakt.html">Kontakt</a></li>
-  </ul>
-  <a class="nav-cta" href="/pages/booking.html">Termin buchen</a>
-</nav>
+  <header class="booking-hero">
+    <span class="eyebrow">GiGi Beauty · Bern</span>
+    <h1>Deine Zeit für Schönheit</h1>
+    <p>Behandlung wählen, freien 90-Minuten-Termin finden und direkt reservieren.</p>
+  </header>
 
-<section class="page-hero">
-  <h1>Termin buchen</h1>
-  <div class="divider"></div>
-  <p style="color: var(--text-muted); letter-spacing: 0.12em;">Wähle deine Wunschleistung und deinen Wunschtermin</p>
-</section>
-
-<main class="container section">
-  <div class="booking-wrapper fade-in">
-
-    <!--
-      OPTION A: Online-Buchungssystem einbinden (z.B. Treatwell, Booksy, SimplyBook)
-      Den Embed-Code des Buchungssystems hier einfügen:
-
-      <div class="booking-widget">
-        <strong>Online Terminbuchung</strong>
-        Buchungssystem wird hier eingebettet.<br>
-        (Treatwell / Booksy / SimplyBook Embed-Code hier einfügen)
+  <main class="booking-shell">
+    <div class="booking-topline">
+      <div>
+        <span class="section-kicker">1 · Behandlung wählen</span>
       </div>
-    -->
+      <div class="auth-state">
+        <div class="auth-state-copy" id="auth-copy">Noch nicht angemeldet<strong>Zum Buchen ist ein Konto erforderlich</strong></div>
+        <button class="small-button" id="my-appointments" type="button" hidden>Meine Termine</button>
+        <button class="small-button" id="auth-button" type="button">Anmelden</button>
+      </div>
+    </div>
 
-    <!-- OPTION B: Einfaches Anfrage-Formular -->
-    <form class="booking-form" action="#" method="post">
+    <section class="service-picker" aria-label="Behandlungen">
+      <div class="service-grid" id="service-grid" aria-live="polite"></div>
+    </section>
 
-      <label for="service">Leistung</label>
-      <select id="service" name="service" required>
-        <option value="" disabled selected>Bitte wählen…</option>
-        <option value="kuenstliche-wimpern">Künstliche Wimpern</option>
-        <option value="wimpern-lifting">Wimpern Lifting</option>
-        <option value="augenbrauen-tattoo">Augenbrauen Tattoo</option>
-        <option value="augenbrauen-styling">Augenbrauen Styling</option>
-        <option value="microblading">Microblading</option>
-        <option value="gelnaegel">Gelnägel</option>
-        <option value="nail-art">Nail Art</option>
-        <option value="make-up">Make-up</option>
-      </select>
+    <section class="calendar-section" aria-labelledby="calendar-label">
+      <span class="section-kicker" id="calendar-label">2 · Termin auswählen</span>
+      <div class="calendar-card">
+        <div class="calendar-toolbar">
+          <div class="calendar-nav">
+            <button class="icon-button" id="calendar-prev" type="button" aria-label="Zurück">‹</button>
+            <button class="small-button" id="calendar-today" type="button">Heute</button>
+            <button class="icon-button" id="calendar-next" type="button" aria-label="Weiter">›</button>
+          </div>
+          <div class="calendar-title" id="calendar-title"></div>
+          <div class="view-switch" role="group" aria-label="Kalenderansicht">
+            <button class="view-button" data-view="day" type="button">Tag</button>
+            <button class="view-button is-active" data-view="week" type="button">Woche</button>
+            <button class="view-button" data-view="month" type="button">Monat</button>
+          </div>
+        </div>
+        <div class="calendar-content" id="calendar-content">
+          <div class="calendar-loading">Freie Termine werden geladen …</div>
+        </div>
+        <div class="booking-note">
+          <span class="legend">Frei und buchbar</span>
+          <span class="legend busy">Bereits reserviert / gesperrt</span>
+          <span>Stornierung kostenlos bis 12 Stunden vor dem Termin.</span>
+        </div>
+      </div>
+    </section>
+  </main>
 
-      <label for="bdate">Wunschdatum</label>
-      <input type="date" id="bdate" name="date" required>
+  <footer id="site-footer">
+    <div class="footer-logo">GiGi Beauty</div>
+    <p class="footer-tagline">Luxury Beauty Studio · Bern</p>
+    <ul class="footer-links">
+      <li><a href="/pages/kontakt.html">Kontakt</a></li>
+      <li><a href="/agb.html">AGB</a></li>
+      <li><a href="/datenschutz.html">Datenschutz</a></li>
+      <li><a href="/impressum.html">Impressum</a></li>
+    </ul>
+    <p class="footer-copy">© 2026 GiGi Beauty · www.gigibeauty.ch</p>
+  </footer>
 
-      <label for="btime">Wunschzeit</label>
-      <input type="time" id="btime" name="time" required>
-
-      <label for="bname">Name</label>
-      <input type="text" id="bname" name="name" required placeholder="Dein Name">
-
-      <label for="bemail">E-Mail</label>
-      <input type="email" id="bemail" name="email" required placeholder="deine@email.ch">
-
-      <label for="bphone">Telefon</label>
-      <input type="tel" id="bphone" name="phone" placeholder="+41 79 000 00 00">
-
-      <button type="submit" class="btn">Anfrage senden</button>
-    </form>
-
+  <div class="modal-backdrop" id="auth-modal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <button class="modal-close" type="button" data-close-modal aria-label="Schliessen">×</button>
+      <h2 id="auth-title">Willkommen</h2>
+      <p>Mit deinem persönlichen Konto kannst du Termine verbindlich buchen und verwalten.</p>
+      <div class="auth-tabs">
+        <button class="auth-tab is-active" type="button" data-auth-mode="login">Anmelden</button>
+        <button class="auth-tab" type="button" data-auth-mode="signup">Konto erstellen</button>
+      </div>
+      <form class="form-stack" id="auth-form">
+        <div class="field signup-only" hidden><label for="auth-name">Vor- und Nachname</label><input id="auth-name" autocomplete="name"></div>
+        <div class="field"><label for="auth-email">E-Mail</label><input id="auth-email" type="email" autocomplete="email" required></div>
+        <div class="field"><label for="auth-password">Passwort</label><input id="auth-password" type="password" autocomplete="current-password" minlength="8" required></div>
+        <div class="field signup-only" hidden><label for="auth-phone">Telefon</label><input id="auth-phone" type="tel" autocomplete="tel"></div>
+        <label class="checkbox signup-only" hidden><input id="auth-marketing" type="checkbox"> Ich möchte Neuigkeiten und Angebote von GiGi Beauty erhalten.</label>
+        <div class="form-message" id="auth-message"></div>
+        <button class="btn" type="submit" id="auth-submit">Anmelden</button>
+      </form>
+    </section>
   </div>
-</main>
 
-<footer id="site-footer">
-  <div class="footer-logo">GiGi Beauty</div>
-  <p class="footer-tagline">Luxury Beauty Studio · Zürich</p>
-  <ul class="footer-links">
-    <li><a href="/pages/services/">Leistungen</a></li>
-    <li><a href="/pages/galerie.html">Galerie</a></li>
-    <li><a href="/pages/ueber-uns.html">Über uns</a></li>
-    <li><a href="/pages/kontakt.html">Kontakt</a></li>
-    <li><a href="/pages/booking.html">Termin buchen</a></li>
-  </ul>
-  <p class="footer-copy">© 2025 GiGi Beauty · www.gigibeauty.ch</p>
-</footer>
+  <div class="modal-backdrop" id="booking-modal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="booking-title">
+      <button class="modal-close" type="button" data-close-modal aria-label="Schliessen">×</button>
+      <h2 id="booking-title">Termin bestätigen</h2>
+      <p>Deine Auswahl wird erst nach der Bestätigung verbindlich reserviert.</p>
+      <div class="booking-summary" id="booking-summary"></div>
+      <form class="form-stack" id="booking-form">
+        <div class="field"><label for="booking-phone">Telefon (optional)</label><input id="booking-phone" type="tel" autocomplete="tel"></div>
+        <div class="field"><label for="booking-notes">Hinweis an Liliane (optional)</label><textarea id="booking-notes" rows="3"></textarea></div>
+        <label class="checkbox"><input id="booking-terms" type="checkbox" required> Ich akzeptiere die <a href="/agb.html" target="_blank">AGB</a>, insbesondere die 12-Stunden-Stornierungsregel.</label>
+        <div class="form-message" id="booking-message"></div>
+        <button class="btn" type="submit">Verbindlich buchen</button>
+      </form>
+    </section>
+  </div>
 
-<script src="../assets/js/main.js"></script>
+  <div class="modal-backdrop" id="account-modal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="account-title">
+      <button class="modal-close" type="button" data-close-modal aria-label="Schliessen">×</button>
+      <h2 id="account-title">Meine Termine</h2>
+      <p>Stornierungen sind bis 12 Stunden vor Beginn direkt möglich.</p>
+      <div class="slot-list" id="account-appointments" style="margin-top:1.5rem"></div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase-config.js"></script>
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/booking.js?v=20260808-3"></script>
 </body>
 </html>

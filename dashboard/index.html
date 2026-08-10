@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>GiGi Beauty — Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/pages/dashboard.css?v=20260808-6">
+</head>
+<body>
+  <div class="login-screen" id="login-screen">
+    <form class="login-card" id="admin-login">
+      <h1>GiGi Beauty</h1>
+      <p>Geschützter Bereich für Liliane Serrano</p>
+      <div class="field"><label for="admin-email">E-Mail</label><input id="admin-email" type="email" autocomplete="email" required></div>
+      <div class="field" style="margin-top:1rem"><label for="admin-password">Passwort</label><input id="admin-password" type="password" autocomplete="current-password" required></div>
+      <div class="form-message" id="login-message"></div>
+      <button class="primary" type="submit">Sicher anmelden</button>
+    </form>
+  </div>
+
+  <div class="dash-shell" id="dashboard" hidden>
+    <aside class="sidebar">
+      <div class="brand">GiGi Beauty<small>Business Suite</small></div>
+      <nav class="side-nav">
+        <button class="nav-item is-active" data-panel="overview"><span>◫</span><span>Übersicht</span></button>
+        <button class="nav-item" data-panel="calendar"><span>□</span><span>Kalender</span></button>
+        <button class="nav-item" data-panel="tasks"><span>✓</span><span>Smart CRM</span></button>
+        <button class="nav-item" data-panel="customers"><span>♙</span><span>Kunden</span></button>
+        <button class="nav-item" data-panel="waitlist"><span>⌛</span><span>Warteliste</span></button>
+        <button class="nav-item" data-panel="invoices"><span>₣</span><span>Finanzen</span></button>
+        <button class="nav-item" data-panel="inventory"><span>◇</span><span>Lager</span></button>
+        <button class="nav-item" data-panel="marketing"><span>✦</span><span>Marketing</span></button>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="admin-chip"><strong id="admin-name">Liliane Serrano</strong><span id="admin-email-label"></span></div>
+        <button class="logout" id="logout" type="button">Abmelden</button>
+      </div>
+    </aside>
+
+    <main class="dash-main">
+      <header class="topbar">
+        <div><h1 id="panel-title">Guten Tag, Liliane</h1><p id="panel-subtitle">Das Wichtigste auf einen Blick.</p></div>
+        <button class="primary" id="quick-add" type="button">+ Termin eintragen</button>
+      </header>
+
+      <section class="view-panel" data-view-panel="overview">
+        <section class="daily-brief"><div><span class="eyebrow">Heute im Fokus</span><h2 id="daily-brief-title">Business Briefing wird erstellt …</h2><p id="daily-brief-copy"></p></div><div class="brief-actions" id="daily-brief-actions"></div></section>
+        <div class="analytics-toolbar">
+          <div><strong>Business Cockpit</strong><span id="analytics-period-label">Auswertung der letzten 12 Monate</span></div>
+          <label for="analytics-period">Zeitraum
+            <select id="analytics-period"><option value="6">6 Monate</option><option value="12" selected>12 Monate</option><option value="24">24 Monate</option></select>
+          </label>
+        </div>
+        <div class="metric-grid" id="metrics"></div>
+        <div class="analytics-grid">
+          <article class="card analytics-card span-8"><div class="card-head"><div><h2>Umsatzentwicklung</h2><p>Abgeschlossene Behandlungen</p></div><div class="chart-total" id="revenue-chart-summary"></div></div><div class="line-chart" id="revenue-chart"></div></article>
+          <article class="card analytics-card span-4"><div class="card-head"><div><h2>Finanzen</h2><p>Liquidität und Potenzial</p></div></div><div class="finance-stack" id="finance-summary"></div></article>
+
+          <article class="card analytics-card span-4"><div class="card-head"><div><h2>Behandlungen</h2><p>Nach Nachfrage und Umsatz</p></div></div><div class="bar-chart" id="service-performance"></div></article>
+          <article class="card analytics-card span-4"><div class="card-head"><div><h2>Kundenbindung</h2><p>Verteilung nach Kundenstatus</p></div></div><div class="donut-layout"><div class="donut" id="retention-chart"></div><div class="chart-legend" id="retention-legend"></div></div></article>
+          <article class="card analytics-card span-4"><div class="card-head"><div><h2>Terminqualität</h2><p>Abschluss-, Storno- und No-Show-Quote</p></div></div><div class="donut-layout"><div class="donut" id="appointment-status-chart"></div><div class="chart-legend" id="appointment-status-legend"></div></div></article>
+
+          <article class="card analytics-card span-8"><div class="card-head"><div><h2>Wertvollste Kundinnen</h2><p>Bindung, Termine und erfasster Umsatz</p></div><button class="link-button" data-go="customers">Alle Kunden</button></div><div class="customer-ranking" id="customer-ranking"></div></article>
+          <article class="card analytics-card span-4"><div class="card-head"><div><h2>CRM-Chancen</h2><p>Wo Liliane jetzt handeln kann</p></div></div><div class="opportunity-list" id="customer-opportunities"></div></article>
+
+          <article class="card analytics-card span-4"><div class="card-head"><div><h2>Marketing-Reichweite</h2><p>Vom Kontakt zur erreichbaren Kundin</p></div></div><div class="funnel" id="marketing-funnel"></div></article>
+          <article class="card analytics-card span-4"><div class="card-head"><div><h2>Nachfrage nach Wochentag</h2><p>Alle erfassten Kundentermine</p></div></div><div class="weekday-chart" id="weekday-chart"></div></article>
+          <article class="card analytics-card span-4"><div class="card-head"><h2>Nächste Termine</h2><button class="link-button" data-go="calendar">Kalender öffnen</button></div><div class="upcoming-list compact" id="upcoming"></div></article>
+
+          <article class="card analytics-card span-12"><div class="card-head"><div><h2>Heute</h2><p id="today-capacity"></p></div></div><div class="today-strip" id="today-summary"></div></article>
+        </div>
+        <p class="data-note">Finanzwerte basieren auf abgeschlossenen Terminen und den aktuell hinterlegten Behandlungspreisen. Historische Treatwell-Buchungen ohne Preis- und Datumsangaben fliessen in die Kundenbindung, aber nicht in den Umsatztrend ein.</p>
+      </section>
+
+      <section class="view-panel" data-view-panel="tasks" hidden>
+        <div class="toolbar"><div><strong>Next Best Actions</strong><p class="muted">Automatisch priorisierte Aufgaben für Umsatz und Kundenbindung.</p></div><div class="toolbar-group"><span class="muted" id="crm-task-count"></span><button class="secondary" id="refresh-crm-tasks" type="button">Aufgaben aktualisieren</button></div></div>
+        <div class="task-kpis" id="task-kpis"></div>
+        <div class="task-board" id="crm-task-list"></div>
+        <div class="subsection-head"><div><h2>Aufgabenverlauf</h2><p>Erledigte und bewusst als nicht relevant markierte Aufgaben.</p></div></div>
+        <div class="table-wrap"><table><thead><tr><th>Abschluss</th><th>Aufgabe</th><th>Status</th><th>Admin</th><th>Begründung</th></tr></thead><tbody id="task-history"></tbody></table></div>
+        <div class="subsection-head"><div><h2>Änderungsprotokoll</h2><p>Nachvollziehbarkeit für Admin 01 und Admin 02.</p></div></div>
+        <div class="table-wrap"><table><thead><tr><th>Zeit</th><th>Bereich</th><th>Aktion</th><th>Datensatz</th></tr></thead><tbody id="audit-table"></tbody></table></div>
+      </section>
+
+      <section class="view-panel" data-view-panel="calendar" hidden>
+        <div class="toolbar">
+          <div class="toolbar-group"><button class="secondary" id="week-prev">‹</button><button class="secondary" id="week-today">Heute</button><button class="secondary" id="week-next">›</button><span class="date-title" id="week-title"></span></div>
+          <div class="toolbar-group"><button class="secondary" id="add-block">Zeitraum sperren</button><button class="primary" id="add-appointment">+ Termin</button></div>
+        </div>
+        <div class="admin-calendar" id="admin-calendar"></div>
+      </section>
+
+      <section class="view-panel" data-view-panel="customers" hidden>
+        <div class="toolbar"><div class="toolbar-group"><input class="search" id="customer-search" type="search" placeholder="Name, E-Mail oder Telefon …"><select class="filter-select" id="customer-segment"><option value="all">Alle Segmente</option><option value="vip">VIP</option><option value="loyal">Stammkundinnen</option><option value="repeat">Wiederkehrend</option><option value="new">Neu</option><option value="lead">Kontakte</option><option value="missing_email">E-Mail fehlt</option><option value="at_risk">Reaktivierung</option></select><span class="muted" id="customer-count"></span></div><div><input id="customer-import-file" type="file" accept=".csv,text/csv" hidden><button class="secondary" id="customer-import" type="button">CSV importieren</button></div></div>
+        <div class="table-wrap customer-table-wrap"><table class="customer-table"><thead><tr><th>Kundin & Kontakt</th><th>Status & Login</th><th>Buchungen</th><th>Umsatz</th><th>Letzter / nächster Termin</th><th>Kontaktfreigabe</th></tr></thead><tbody id="customer-table"></tbody></table></div>
+      </section>
+
+      <section class="view-panel" data-view-panel="waitlist" hidden>
+        <div class="toolbar"><div><strong>Intelligente Warteliste</strong><p class="muted">Passende Kundinnen bei freien Zeitfenstern sofort kontaktieren.</p></div><button class="primary" id="add-waitlist" type="button">+ Wunsch eintragen</button></div>
+        <div class="metric-grid compact-metrics" id="waitlist-metrics"></div>
+        <div class="table-wrap"><table><thead><tr><th>Priorität</th><th>Kundin</th><th>Behandlung</th><th>Wunschzeitraum</th><th>Flexibilität</th><th>Status</th><th>Aktion</th></tr></thead><tbody id="waitlist-table"></tbody></table></div>
+      </section>
+
+      <section class="view-panel" data-view-panel="invoices" hidden>
+        <div class="toolbar"><div><strong>Finanzen & Profitabilität</strong><p class="muted">Zahlungen, Ausgaben, Forderungen und Deckungsbeiträge.</p></div><div class="toolbar-group"><button class="secondary" id="add-expense" type="button">+ Ausgabe</button><button class="primary" id="add-payment" type="button">+ Zahlung</button></div></div>
+        <div class="metric-grid compact-metrics" id="finance-live-metrics"></div>
+        <div class="section-grid">
+          <article class="card"><div class="card-head"><div><h2>Letzte Zahlungen</h2><p>Effektive Zahlungseingänge</p></div></div><div class="table-wrap embedded"><table><thead><tr><th>Datum</th><th>Kundin</th><th>Art</th><th>Betrag</th></tr></thead><tbody id="payment-table"></tbody></table></div></article>
+          <article class="card"><div class="card-head"><div><h2>Ausgaben</h2><p>Kosten und Lieferanten</p></div></div><div class="table-wrap embedded"><table><thead><tr><th>Datum</th><th>Kategorie</th><th>Beschreibung</th><th>Betrag</th></tr></thead><tbody id="expense-table"></tbody></table></div></article>
+        </div>
+        <div class="section-grid">
+          <article class="card"><div class="card-head"><div><h2>Geschenkgutscheine</h2><p>Guthaben und Gültigkeit</p></div><button class="link-button" id="add-gift-card" type="button">+ Gutschein</button></div><div class="table-wrap embedded"><table><thead><tr><th>Code</th><th>Empfänger</th><th>Guthaben</th><th>Status</th></tr></thead><tbody id="gift-card-table"></tbody></table></div></article>
+          <article class="card"><div class="card-head"><div><h2>Behandlungspakete</h2><p>Mehrfachkarten und Kundenbindung</p></div><button class="link-button" id="add-package" type="button">+ Paket</button></div><div class="table-wrap embedded"><table><thead><tr><th>Kundin</th><th>Paket</th><th>Übrig</th><th>Status</th></tr></thead><tbody id="package-table"></tbody></table></div></article>
+        </div>
+        <div class="subsection-head"><div><h2>Rechnungen</h2><p>Bei „nicht erschienen“ wird automatisch ein Rechnungsentwurf erstellt.</p></div></div>
+        <div class="table-wrap"><table><thead><tr><th>Nr.</th><th>Kunde</th><th>Grund</th><th>Betrag</th><th>Fällig</th><th>Status</th></tr></thead><tbody id="invoice-table"></tbody></table></div>
+      </section>
+
+      <section class="view-panel" data-view-panel="inventory" hidden>
+        <div class="toolbar"><div><strong>Lager & Materialkosten</strong><p class="muted">Mindestbestände, Verbrauch und Warenwert überwachen.</p></div><button class="primary" id="add-inventory" type="button">+ Produkt</button></div>
+        <div class="metric-grid compact-metrics" id="inventory-metrics"></div>
+        <div class="table-wrap"><table><thead><tr><th>Produkt</th><th>SKU / Kategorie</th><th>Bestand</th><th>Mindestbestand</th><th>Warenwert</th><th>Lieferant</th><th>Status</th></tr></thead><tbody id="inventory-table"></tbody></table></div>
+        <div class="subsection-head"><div><h2>Behandlungsökonomie</h2><p>Materialkosten und empfohlenes Wiederbuchungsintervall.</p></div></div>
+        <div class="table-wrap"><table><thead><tr><th>Behandlung</th><th>Verkaufspreis</th><th>Materialkosten</th><th>Deckungsbeitrag</th><th>Wiederbuchung</th><th></th></tr></thead><tbody id="service-economics-table"></tbody></table></div>
+      </section>
+
+      <section class="view-panel" data-view-panel="marketing" hidden>
+        <div class="toolbar"><div><strong>Lifecycle Marketing</strong><p class="muted" id="marketing-audience"></p></div><button class="primary" id="new-campaign">+ Kampagne</button></div>
+        <div class="metric-grid compact-metrics" id="marketing-live-metrics"></div>
+        <div class="automation-grid" id="automation-rules"></div>
+        <div class="subsection-head"><div><h2>Kampagnen</h2><p>Versand, Reaktionen, Buchungen und zugeordneter Umsatz.</p></div></div>
+        <div class="table-wrap"><table><thead><tr><th>Kampagne</th><th>Betreff</th><th>Zeitpunkt</th><th>Status</th><th></th></tr></thead><tbody id="campaign-table"></tbody></table></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="appointment-modal" hidden><form class="modal" id="appointment-form">
+    <button class="modal-close" type="button" data-close>×</button><h2 id="appointment-modal-title">Termin eintragen</h2>
+    <input type="hidden" id="appointment-id">
+    <div class="form-grid">
+      <div class="field"><label for="appointment-kind">Eintrag</label><select id="appointment-kind"><option value="customer">Kundentermin</option><option value="private">Privater Termin</option></select></div>
+      <div class="field"><label for="appointment-service">Behandlung</label><select id="appointment-service"></select></div>
+      <div class="field"><label for="appointment-start">Datum & Zeit</label><input id="appointment-start" type="datetime-local" required></div>
+      <div class="field"><label for="appointment-status">Status</label><select id="appointment-status"><option value="booked">Gebucht</option><option value="completed">Abgeschlossen</option><option value="cancelled">Storniert</option><option value="no_show">Nicht erschienen</option></select></div>
+      <div class="field"><label for="appointment-name">Name</label><input id="appointment-name" required></div>
+      <div class="field"><label for="appointment-email">E-Mail</label><input id="appointment-email" type="email"></div>
+      <div class="field"><label for="appointment-phone">Telefon</label><input id="appointment-phone" type="tel"></div>
+      <div class="field full"><label for="appointment-notes">Notizen</label><textarea id="appointment-notes" rows="3"></textarea></div>
+    </div>
+    <div class="form-message" id="appointment-message"></div>
+    <div class="modal-actions"><button class="danger" id="delete-appointment" type="button" hidden>Termin stornieren</button><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit">Speichern</button></div></div>
+  </form></div>
+
+  <div class="modal-backdrop" id="block-modal" hidden><form class="modal" id="block-form">
+    <button class="modal-close" type="button" data-close>×</button><h2>Zeitraum sperren</h2>
+    <div class="form-grid">
+      <div class="field"><label for="block-start">Von</label><input id="block-start" type="datetime-local" required></div>
+      <div class="field"><label for="block-end">Bis</label><input id="block-end" type="datetime-local" required></div>
+      <div class="field full"><label for="block-reason">Grund</label><input id="block-reason" value="Nicht verfügbar" required></div>
+    </div><div class="form-message" id="block-message"></div>
+    <div class="modal-actions"><div></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit">Sperren</button></div></div>
+  </form></div>
+
+  <div class="modal-backdrop" id="campaign-modal" hidden><form class="modal" id="campaign-form">
+    <button class="modal-close" type="button" data-close>×</button><h2>Marketing-Kampagne</h2>
+    <div class="form-grid">
+      <div class="field full"><label for="campaign-title">Interner Titel</label><input id="campaign-title" required></div>
+      <div class="field full"><label for="campaign-subject">E-Mail-Betreff</label><input id="campaign-subject" required></div>
+      <div class="field full"><label for="campaign-content">Nachricht</label><textarea id="campaign-content" rows="7" required></textarea></div>
+      <div class="field full"><label for="campaign-date">Versandzeit (leer = Entwurf)</label><input id="campaign-date" type="datetime-local"></div>
+    </div><div class="form-message" id="campaign-message"></div>
+    <div class="modal-actions"><div></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit">Speichern</button></div></div>
+  </form></div>
+
+  <div class="modal-backdrop" id="customer-modal" hidden><form class="modal" id="customer-form">
+    <button class="modal-close" type="button" data-close>×</button><h2>Kundenprofil</h2><input type="hidden" id="customer-id">
+    <div class="customer-insights" id="customer-insights"></div>
+    <div class="merge-suggestions" id="customer-merge-suggestions" hidden></div>
+    <div class="registration-box" id="customer-registration">
+      <div><strong id="customer-registration-title">Noch kein Kundenlogin</strong><p id="customer-registration-copy"></p></div>
+      <div class="registration-actions" id="customer-registration-actions"></div>
+    </div>
+    <div class="form-grid">
+      <div class="field"><label for="customer-name">Name</label><input id="customer-name" required></div>
+      <div class="field"><label for="customer-email">E-Mail (optional)</label><input id="customer-email" type="email"></div>
+      <div class="field"><label for="customer-phone">Telefon</label><input id="customer-phone" type="tel"></div>
+      <div class="field"><label><input id="customer-marketing" type="checkbox"> Marketing-Einwilligung dokumentiert</label></div>
+      <div class="field"><label for="customer-language">Sprache</label><input id="customer-language"></div>
+      <div class="field"><label for="customer-birth-date">Geburtsdatum</label><input id="customer-birth-date" type="date"></div>
+      <div class="field"><label for="customer-source">Akquisequelle</label><select id="customer-source"><option value="">Nicht bekannt</option><option>Website</option><option>Google</option><option>Instagram</option><option>Empfehlung</option><option>Treatwell</option><option>Laufkundschaft</option><option>Andere</option></select></div>
+      <div class="field"><label for="customer-preferred-service">Lieblingsbehandlung</label><select id="customer-preferred-service"><option value="">Nicht festgelegt</option></select></div>
+      <div class="field full"><label for="customer-tags">Tags (mit Komma trennen)</label><input id="customer-tags" placeholder="VIP, empfindliche Haut, bevorzugt Samstag"></div>
+      <div class="field"><label for="customer-consent-source">Einwilligungsquelle</label><input id="customer-consent-source" placeholder="Website, Formular, Import …"></div>
+      <div class="field"><label for="customer-consent-version">Einwilligungsversion</label><input id="customer-consent-version" placeholder="z. B. 2026-08"></div>
+      <div class="field full"><label><input id="customer-do-not-contact" type="checkbox"> Keine Kontaktaufnahme – auch bei vorhandener Einwilligung</label></div>
+      <div class="field full"><label for="customer-notes">CRM-Notizen</label><textarea id="customer-notes" rows="5" placeholder="Vorlieben, Beratung, wichtige Hinweise …"></textarea></div>
+    </div>
+    <div class="customer-history" id="customer-history"></div>
+    <div class="customer-history" id="customer-communications"></div>
+    <div class="form-message" id="customer-message"></div>
+    <div class="modal-actions"><div class="right-actions"><button class="secondary" id="customer-rebook-message" type="button">Wiederbuchung senden</button><button class="secondary" id="customer-log-contact" type="button">Kontakt protokollieren</button></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit">Speichern</button></div></div>
+  </form></div>
+
+  <div class="modal-backdrop" id="waitlist-modal" hidden><form class="modal" id="waitlist-form">
+    <button class="modal-close" type="button" data-close>×</button><h2>Wunsch auf Warteliste</h2>
+    <div class="form-grid"><div class="field"><label for="waitlist-name">Name</label><input id="waitlist-name" required></div><div class="field"><label for="waitlist-service">Behandlung</label><select id="waitlist-service"></select></div><div class="field"><label for="waitlist-email">E-Mail</label><input id="waitlist-email" type="email"></div><div class="field"><label for="waitlist-phone">Telefon</label><input id="waitlist-phone" type="tel"></div><div class="field"><label for="waitlist-from">Frühestens</label><input id="waitlist-from" type="datetime-local"></div><div class="field"><label for="waitlist-until">Spätestens</label><input id="waitlist-until" type="datetime-local"></div><div class="field"><label for="waitlist-priority">Priorität</label><select id="waitlist-priority"><option value="0">Normal</option><option value="1">Hoch</option><option value="2">VIP / dringend</option></select></div><div class="field"><label><input id="waitlist-flexible" type="checkbox" checked> Zeitlich flexibel</label></div><div class="field full"><label for="waitlist-notes">Notizen</label><textarea id="waitlist-notes" rows="3"></textarea></div></div>
+    <div class="form-message" id="waitlist-message"></div><div class="modal-actions"><div></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit">Eintragen</button></div></div>
+  </form></div>
+
+  <div class="modal-backdrop" id="payment-modal" hidden><form class="modal" id="payment-form">
+    <button class="modal-close" type="button" data-close>×</button><h2>Zahlung erfassen</h2>
+    <div class="form-grid"><div class="field full"><label for="payment-appointment">Termin</label><select id="payment-appointment"><option value="">Ohne Terminzuordnung</option></select></div><div class="field"><label for="payment-amount">Betrag CHF</label><input id="payment-amount" type="number" min="0.05" step="0.05" required></div><div class="field"><label for="payment-tip">Trinkgeld CHF</label><input id="payment-tip" type="number" min="0" step="0.05" value="0"></div><div class="field"><label for="payment-method">Zahlungsart</label><select id="payment-method"><option value="twint">TWINT</option><option value="card">Karte</option><option value="cash">Bar</option><option value="bank">Bank</option><option value="invoice">Rechnung</option><option value="gift_card">Gutschein</option><option value="package">Paket</option><option value="other">Andere</option></select></div><div class="field"><label for="payment-date">Bezahlt am</label><input id="payment-date" type="datetime-local" required></div><div class="field full" id="payment-benefit-field" hidden><label for="payment-benefit">Gutschein oder Paket</label><select id="payment-benefit"></select></div><div class="field full"><label for="payment-notes">Notiz</label><input id="payment-notes"></div></div>
+    <div class="form-message" id="payment-message"></div><div class="modal-actions"><div></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit">Zahlung speichern</button></div></div>
+  </form></div>
+
+  <div class="modal-backdrop" id="expense-modal" hidden><form class="modal" id="expense-form">
+    <button class="modal-close" type="button" data-close>×</button><h2>Ausgabe erfassen</h2>
+    <div class="form-grid"><div class="field"><label for="expense-date">Datum</label><input id="expense-date" type="date" required></div><div class="field"><label for="expense-category">Kategorie</label><select id="expense-category"><option>Material</option><option>Miete</option><option>Marketing</option><option>Software</option><option>Versicherung</option><option>Weiterbildung</option><option>Andere</option></select></div><div class="field"><label for="expense-supplier">Lieferant</label><input id="expense-supplier"></div><div class="field"><label for="expense-amount">Betrag CHF</label><input id="expense-amount" type="number" min="0.05" step="0.05" required></div><div class="field full"><label for="expense-description">Beschreibung</label><input id="expense-description" required></div><div class="field full"><label><input id="expense-recurring" type="checkbox"> Wiederkehrende Ausgabe</label></div></div>
+    <div class="form-message" id="expense-message"></div><div class="modal-actions"><div></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit">Ausgabe speichern</button></div></div>
+  </form></div>
+
+  <div class="modal-backdrop" id="inventory-modal" hidden><form class="modal" id="inventory-form">
+    <button class="modal-close" type="button" data-close>×</button><h2 id="inventory-modal-title">Lagerprodukt</h2><input id="inventory-id" type="hidden">
+    <div class="form-grid"><div class="field"><label for="inventory-name">Produktname</label><input id="inventory-name" required></div><div class="field"><label for="inventory-sku">SKU</label><input id="inventory-sku"></div><div class="field"><label for="inventory-category">Kategorie</label><input id="inventory-category"></div><div class="field"><label for="inventory-unit">Einheit</label><input id="inventory-unit" value="Stk."></div><div class="field"><label for="inventory-stock">Aktueller Bestand</label><input id="inventory-stock" type="number" step="0.001" required></div><div class="field"><label for="inventory-minimum">Mindestbestand</label><input id="inventory-minimum" type="number" min="0" step="0.001" required></div><div class="field"><label for="inventory-cost">Einstandspreis CHF</label><input id="inventory-cost" type="number" min="0" step="0.05" required></div><div class="field"><label for="inventory-supplier">Lieferant</label><input id="inventory-supplier"></div><div class="field"><label for="inventory-services">Automatischer Verbrauch bei</label><select id="inventory-services" multiple size="5"></select></div><div class="field"><label for="inventory-usage">Verbrauch je Termin</label><input id="inventory-usage" type="number" min="0.001" step="0.001" value="1"></div></div>
+    <div class="form-message" id="inventory-message"></div><div class="modal-actions"><div></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit">Speichern</button></div></div>
+  </form></div>
+
+  <div class="modal-backdrop" id="contact-modal" hidden><form class="modal" id="contact-form">
+    <button class="modal-close" type="button" data-close>×</button><h2>Kontakt protokollieren</h2><input id="contact-customer-id" type="hidden">
+    <div class="form-grid"><div class="field"><label for="contact-channel">Kanal</label><select id="contact-channel"><option value="phone">Telefon</option><option value="email">E-Mail</option><option value="whatsapp">WhatsApp</option><option value="sms">SMS</option><option value="in_person">Persönlich</option></select></div><div class="field"><label for="contact-direction">Richtung</label><select id="contact-direction"><option value="outbound">Ausgehend</option><option value="inbound">Eingehend</option></select></div><div class="field full"><label for="contact-subject">Betreff</label><input id="contact-subject" required></div><div class="field full"><label for="contact-content">Notiz</label><textarea id="contact-content" rows="4" required></textarea></div></div>
+    <div class="form-message" id="contact-message"></div><div class="modal-actions"><div></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit">Speichern</button></div></div>
+  </form></div>
+
+  <div class="modal-backdrop" id="gift-card-modal" hidden><form class="modal" id="gift-card-form">
+    <button class="modal-close" type="button" data-close>×</button><h2>Geschenkgutschein erstellen</h2>
+    <div class="form-grid"><div class="field"><label for="gift-code">Code</label><input id="gift-code" required></div><div class="field"><label for="gift-value">Wert CHF</label><input id="gift-value" type="number" min="1" step="1" required></div><div class="field"><label for="gift-purchaser">Käuferin</label><select id="gift-purchaser"><option value="">Nicht zugeordnet</option></select></div><div class="field"><label for="gift-recipient">Empfänger</label><input id="gift-recipient"></div><div class="field full"><label for="gift-expires">Gültig bis</label><input id="gift-expires" type="date"></div></div>
+    <div class="form-message" id="gift-message"></div><div class="modal-actions"><div></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit">Gutschein speichern</button></div></div>
+  </form></div>
+
+  <div class="modal-backdrop" id="package-modal" hidden><form class="modal" id="package-form">
+    <button class="modal-close" type="button" data-close>×</button><h2>Behandlungspaket verkaufen</h2>
+    <div class="form-grid"><div class="field full"><label for="package-customer">Kundin</label><select id="package-customer" required></select></div><div class="field"><label for="package-name">Paketname</label><input id="package-name" required placeholder="z. B. 5× Lashes"></div><div class="field"><label for="package-service">Behandlung</label><select id="package-service"><option value="">Gemischt</option></select></div><div class="field"><label for="package-sessions">Anzahl Termine</label><input id="package-sessions" type="number" min="1" value="5" required></div><div class="field"><label for="package-price">Paketpreis CHF</label><input id="package-price" type="number" min="0" step="0.05" required></div><div class="field full"><label for="package-expires">Gültig bis</label><input id="package-expires" type="date"></div></div>
+    <div class="form-message" id="package-message"></div><div class="modal-actions"><div></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit">Paket speichern</button></div></div>
+  </form></div>
+
+  <div class="modal-backdrop" id="task-snooze-modal" hidden><form class="modal" id="task-snooze-form">
+    <button class="modal-close" type="button" data-close>×</button><h2>Später erinnern</h2><input id="task-snooze-id" type="hidden">
+    <div class="form-grid">
+      <div class="field full"><label for="task-snooze-preset">Erneut anzeigen</label><select id="task-snooze-preset"><option value="1">Morgen</option><option value="3">In 3 Tagen</option><option value="7" selected>In 7 Tagen</option><option value="custom">Datum auswählen</option></select></div>
+      <div class="field full" id="task-snooze-custom-field" hidden><label for="task-snooze-custom">Datum und Zeit</label><input id="task-snooze-custom" type="datetime-local"></div>
+      <div class="field full"><label for="task-snooze-note">Notiz (optional)</label><input id="task-snooze-note" placeholder="z. B. Kundin ist in den Ferien"></div>
+    </div>
+    <div class="form-message" id="task-snooze-message"></div><div class="modal-actions"><div></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit">Erinnerung setzen</button></div></div>
+  </form></div>
+
+  <div class="modal-backdrop" id="task-dismiss-modal" hidden><form class="modal" id="task-dismiss-form">
+    <button class="modal-close" type="button" data-close>×</button><h2>Als nicht relevant markieren</h2><input id="task-dismiss-id" type="hidden">
+    <p class="notice">Die Aufgabe wird geschlossen und bleibt mit Begründung im Aufgabenverlauf sichtbar.</p>
+    <div class="form-grid">
+      <div class="field full"><label for="task-dismiss-template">Grund</label><select id="task-dismiss-template"><option value="">Bitte wählen</option><option>Kundin nicht mehr aktiv</option><option>Doppelprofil</option><option>Bereits anderweitig erledigt</option><option>Kein Kontakt gewünscht</option><option>Fehlerhafte oder veraltete Daten</option><option value="custom">Anderer Grund</option></select></div>
+      <div class="field full"><label for="task-dismiss-reason">Begründung</label><textarea id="task-dismiss-reason" rows="3" required placeholder="Kurze nachvollziehbare Begründung"></textarea></div>
+    </div>
+    <div class="form-message" id="task-dismiss-message"></div><div class="modal-actions"><div></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit">Nicht relevant</button></div></div>
+  </form></div>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/assets/js/supabase-config.js?v=20260808-1"></script>
+  <script src="/assets/js/dashboard.js?v=20260808-9"></script>
+</body>
+</html>
