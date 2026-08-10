@@ -1805,6 +1805,273 @@
   }
 
   .svc-head-left { position: relative; }
+
+  /* ═══════════════════════════════════════════════════════════════
+     MOBILE ART DIRECTION
+     The phone composition deliberately uses its own rhythm instead of
+     shrinking the desktop scene. Desktop values above remain untouched.
+  ═══════════════════════════════════════════════════════════════ */
+  @media (max-width: 767px) {
+    html {
+      scroll-padding-top: 64px;
+      -webkit-text-size-adjust: 100%;
+      overscroll-behavior-y: none;
+    }
+
+    body { min-width: 320px; }
+
+    button,
+    a { touch-action: manipulation; }
+
+    #hero-scroll { height: 360svh; }
+    #canvas-container,
+    #services-overlay,
+    #services-overlay-back,
+    #hero-botanical-world,
+    #cta { height: 100svh; }
+
+    /* Calm, balanced mobile navigation: brand left, utilities right. */
+    #top-nav {
+      height: 64px;
+      justify-content: flex-start;
+      gap: 8px;
+      padding: 0 14px 0 16px;
+      background: rgba(29, 19, 14, 0.94);
+      border-bottom-color: rgba(212, 175, 106, 0.18);
+    }
+    .nav-logo img { height: 35px; }
+    #lang-btn {
+      min-width: 42px;
+      min-height: 38px;
+      margin-left: auto;
+      padding: 6px 8px 6px 10px;
+      font-size: 0.68rem;
+      letter-spacing: 0.16em;
+      border-color: rgba(212, 175, 106, 0.28);
+    }
+    .nav-hamburger {
+      display: flex !important;
+      width: 44px;
+      height: 44px;
+      align-items: center;
+      margin-left: 2px;
+      padding: 0;
+    }
+    .nav-hamburger span { width: 25px; }
+    .nav-links {
+      top: 64px;
+      max-height: calc(100dvh - 64px);
+      overflow-y: auto;
+      padding: 10px 14px 22px;
+      background: rgba(29, 19, 14, 0.985);
+      box-shadow: 0 22px 46px rgba(0, 0, 0, 0.42);
+    }
+    .nav-links li + li { border-top: 1px solid rgba(212, 175, 106, 0.07); }
+    .nav-links a,
+    .nav-links .nav-about-btn {
+      padding: 12px 14px;
+      font-size: 0.84rem;
+      line-height: 1.25;
+      letter-spacing: 0.13em;
+      background: transparent;
+      color: rgba(245, 230, 200, 0.84);
+    }
+    .nav-links .mobile-cta { border-top: 0; }
+    .nav-links .mobile-cta a {
+      margin-top: 10px;
+      padding: 14px;
+      text-align: center;
+      color: #211711;
+      background: linear-gradient(135deg, #c8a06a, #dfbc72 52%, #b8903a);
+      border: 0;
+    }
+
+    /* Hero: smaller cards, clearer depth hierarchy and stable browser chrome. */
+    #logo { top: 82px; padding-inline: 64px; }
+    #logo img { width: clamp(138px, 39vw, 168px); }
+    .service-card img,
+    .hero-service-butterfly {
+      width: clamp(82px, 24vw, 108px);
+      height: clamp(82px, 24vw, 108px);
+    }
+    .card-label-floating {
+      min-width: 82px;
+      max-width: 112px;
+      padding: 3px 5px 5px;
+      font-size: clamp(0.58rem, 2.25vw, 0.68rem);
+      line-height: 1.08;
+      letter-spacing: 0.11em;
+    }
+    .card-label-floating::before { margin-bottom: 3px; }
+    #cta a {
+      top: min(71svh, calc(100svh - 174px));
+      min-width: min(250px, calc(100vw - 48px));
+      padding: 13px 24px;
+      font-size: 0.83rem;
+      letter-spacing: 0.24em;
+      text-align: center;
+    }
+    #scroll-hint { top: min(calc(71svh + 58px), calc(100svh - 108px)); }
+    #scroll-hint span {
+      margin-bottom: 7px;
+      font-size: 0.64rem;
+      letter-spacing: 0.32em;
+    }
+    #scroll-hint .arrow { height: 30px; }
+    .hero-botanical-photo--rear {
+      top: 67svh;
+      width: 92vw;
+      opacity: 0.48;
+      transform: translate3d(-50%, -50%, 0) scaleY(0.43);
+    }
+    .hero-botanical-photo--climber {
+      left: calc(50% - 26px);
+      top: 68svh;
+      height: 30svh;
+      opacity: 0.56;
+    }
+    .hero-botanical-photo--front {
+      top: 61svh;
+      width: 100px;
+      opacity: 0.60;
+    }
+
+    /* Service cards: the vine remains a fine accent, never a text column. */
+    .svc-section {
+      min-height: 100svh;
+      scroll-margin-top: 64px;
+      overflow: hidden;
+      overflow: clip;
+    }
+    #botanical-rail { width: 80px; }
+    #botanical-rail.is-visible { opacity: 0.76; }
+    .botanical-top-branch {
+      left: 46%;
+      width: 58vw;
+      transform: translateX(-15%);
+    }
+    .botanical-complete-plant,
+    .botanical-stem-connectors {
+      top: calc(var(--botanical-top-join, 0px) - 20px);
+      height: calc(100% - var(--botanical-top-join, 0px) + 20px);
+    }
+    .botanical-top-branch,
+    .botanical-complete-plant {
+      opacity: 0.73;
+      filter:
+        saturate(0.68)
+        brightness(0.66)
+        sepia(0.08)
+        drop-shadow(2px 3px 8px rgba(6, 18, 10, 0.20));
+    }
+    .botanical-stem-connectors { opacity: 0.76; }
+    .botanical-service-butterfly { width: 62px; }
+
+    .svc-inner,
+    #section-gel-acryl-nails .svc-inner {
+      padding: 38px 20px 68px;
+    }
+    .svc-section:not(#section-booking) .svc-inner,
+    #section-gel-acryl-nails .svc-inner {
+      padding-left: 90px;
+    }
+    #section-gel-acryl-nails .svc-inner { padding-top: 116px; }
+
+    .svc-header {
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+      padding-bottom: 22px;
+    }
+    .svc-head-left { min-width: 0; }
+    .svc-title {
+      max-width: 100%;
+      font-size: clamp(1.42rem, 6.4vw, 1.82rem);
+      line-height: 1.14;
+      letter-spacing: 0.025em;
+      overflow-wrap: anywhere;
+    }
+    .btn-back-top {
+      width: 42px;
+      height: 42px;
+      margin-top: 0;
+    }
+    .svc-content {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 32px;
+      margin-bottom: 44px;
+    }
+    .svc-description h3,
+    .svc-prices h3 {
+      margin-bottom: 15px;
+      font-size: 0.76rem;
+      line-height: 1.45;
+      letter-spacing: 0.19em;
+    }
+    .svc-description p {
+      font-size: 1.08rem;
+      line-height: 1.64;
+      letter-spacing: 0.008em;
+      color: rgba(245, 230, 200, 0.86);
+      hyphens: auto;
+      -webkit-hyphens: auto;
+    }
+    .price-list li {
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 5px 8px;
+      padding: 12px 0;
+      font-size: 1rem;
+      line-height: 1.28;
+    }
+    .price-name { min-width: 0; }
+    .price-chf,
+    .price-amount,
+    .price-value { white-space: nowrap; }
+    .svc-footer { padding-top: 0; }
+    .btn-book {
+      width: min(100%, 320px);
+      padding: 15px 18px;
+      font-size: 0.9rem;
+      letter-spacing: 0.22em;
+      text-align: center;
+    }
+    .svc-divider { margin-bottom: 42px; }
+
+    .gel-acryl-bg img,
+    .pmu-bg img,
+    .pedicure-bg img,
+    .filler-bg img,
+    .lashes-bg img,
+    .korean-bg img,
+    .natural-bg img {
+      opacity: 0.18;
+      object-position: 58% center;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 8%, #000 92%, transparent 100%);
+      mask-image: linear-gradient(to bottom, transparent 0%, #000 8%, #000 92%, transparent 100%);
+    }
+
+    #global-dust { opacity: 0.62; }
+    #side-smoke { opacity: 0.56; }
+  }
+
+  @media (max-width: 390px) {
+    #botanical-rail { width: 72px; }
+    .svc-section:not(#section-booking) .svc-inner,
+    #section-gel-acryl-nails .svc-inner { padding-left: 82px; }
+    .svc-inner,
+    #section-gel-acryl-nails .svc-inner { padding-right: 16px; }
+    .svc-title { font-size: clamp(1.34rem, 6.2vw, 1.62rem); }
+    .svc-description p { font-size: 1.03rem; }
+    .price-list li { font-size: 0.94rem; }
+  }
+
+  @media (max-width: 767px) and (orientation: landscape) {
+    #hero-scroll { height: 300svh; }
+    #logo { top: 72px; }
+    #logo img { width: 122px; }
+    #cta a { top: calc(100svh - 78px); }
+    #scroll-hint { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -1875,7 +2142,7 @@
 
   <button id="lang-btn" aria-label="Sprache wechseln">PT</button>
 
-  <button class="nav-hamburger" aria-label="Menü" onclick="document.getElementById('top-nav').classList.toggle('menu-open')">
+  <button class="nav-hamburger" aria-label="Menü" aria-controls="nav-links" aria-expanded="false" onclick="toggleNav(this)">
     <span></span><span></span><span></span>
   </button>
 </nav>
@@ -1947,6 +2214,13 @@
   }
   function closeNav() {
     document.getElementById('top-nav').classList.remove('menu-open');
+    var toggle = document.querySelector('.nav-hamburger');
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+  }
+  function toggleNav(toggle) {
+    var nav = document.getElementById('top-nav');
+    var open = nav.classList.toggle('menu-open');
+    toggle.setAttribute('aria-expanded', String(open));
   }
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -3301,10 +3575,10 @@
   /* Editorial label offsets break up the two tight perspective pairings
      without changing the physical butterfly orbit. */
   const labelOffsetX = IS_MOBILE
-    ? [30, -35, 0, -2, 14, 0, 0]
+    ? [10, -12, 6, -8, 8, -6, 4]
     : [34, -28, 0, -6, 24, 0, 0];
   const labelOffsetY = IS_MOBILE
-    ? [-26, 0, 2, 0, -16, 0, 0]
+    ? [-8, 4, 4, 0, -18, -4, -8]
     : [-14, 18, 2, 0, -12, 0, 0];
 
   function createHeroServiceButterflyLegacy(index, label, imageSrc) {
@@ -3660,6 +3934,13 @@
     // Extract tap logic so both touch and click can call it
     let _tx = 0, _ty = 0;
     const _doCardTap = () => {
+      if (IS_MOBILE) {
+        a.classList.add('card-glow');
+        const mobileTarget = document.getElementById('section-' + svc.slug);
+        if (mobileTarget) mobileTarget.scrollIntoView({ behavior: 'smooth' });
+        setTimeout(() => a.classList.remove('card-glow'), 700);
+        return;
+      }
       if (!heroFrozen) {
         freezeHero();
         cardEls.forEach(c => { c._armed = false; c.classList.remove('card-armed'); });
@@ -3734,11 +4015,11 @@
   // premium elliptical helix instead of a loose diagonal scatter.
   const HERO_AXIS_X       = 0;
   const HERO_AXIS_Z       = 0;
-  const HELIX_AXIS_Y      = IS_MOBILE ? -0.72 : -0.56;
-  const HELIX_RADIUS_X    = IS_MOBILE ? 2.48 : 4.18;
-  const HELIX_RADIUS_Z    = IS_MOBILE ? 1.82 : 2.78;
-  const HELIX_HEIGHT_SPAN = IS_MOBILE ? 2.58 : 3.62;
-  const HELIX_SCROLL_TURNS = IS_MOBILE ? 1.15 : 1.25;
+  const HELIX_AXIS_Y      = IS_MOBILE ? -0.78 : -0.56;
+  const HELIX_RADIUS_X    = IS_MOBILE ? 2.34 : 4.18;
+  const HELIX_RADIUS_Z    = IS_MOBILE ? 1.70 : 2.78;
+  const HELIX_HEIGHT_SPAN = IS_MOBILE ? 4.05 : 3.62;
+  const HELIX_SCROLL_TURNS = IS_MOBILE ? 1.05 : 1.25;
 
   function getHelixPos(index, totalItems, rotationOffset) {
     const orbitT = index / totalItems;
@@ -4328,13 +4609,15 @@
       // but restrained so every treatment photograph remains recognisable.
       const depthT = Math.max(0, Math.min(1, (depth + HELIX_RADIUS_Z) / (HELIX_RADIUS_Z * 2)));
       let scaleFactor = IS_MOBILE
-        ? 0.62 + 0.82 * Math.pow(depthT, 1.45)
+        ? 0.48 + 0.62 * Math.pow(depthT, 1.35)
         : 0.60 + 0.70 * Math.pow(depthT, 1.48);
 
       const isPortrait = window.innerHeight > window.innerWidth;
       const _vmin = Math.min(window.innerWidth, window.innerHeight);
       const CARD_PX = isPortrait
-        ? Math.round(Math.max(96,  Math.min(window.innerWidth * 0.30, 220)))
+        ? Math.round(IS_MOBILE
+          ? Math.max(82, Math.min(window.innerWidth * 0.24, 108))
+          : Math.max(96, Math.min(window.innerWidth * 0.30, 220)))
         : Math.round(Math.max(154, Math.min(_vmin * 0.225, 340)));
       const halfSize = (CARD_PX / 2) * scaleFactor;
 
@@ -4344,6 +4627,13 @@
       const verticalMargin = Math.max(IS_MOBILE ? 18 : 28, window.innerHeight * 0.035);
       const cardRadius = halfSize * 1.08;
       let displayX = screen.x;
+      if (IS_MOBILE) {
+        displayX = softViewportLimit(
+          screen.x,
+          10 + cardRadius,
+          window.innerWidth - 10 - cardRadius
+        );
+      }
       let displayY = softViewportLimit(
         screen.y,
         verticalMargin + cardRadius,
@@ -4362,7 +4652,9 @@
 
       // The back of the orbit is quieter, never murky: all seven images stay
       // legible while the front pair retains a clear visual priority.
-      const depthOpacity = 0.58 + 0.42 * Math.pow(depthT, 0.72);
+      const depthOpacity = IS_MOBILE
+        ? 0.16 + 0.84 * Math.pow(depthT, 1.28)
+        : 0.58 + 0.42 * Math.pow(depthT, 0.72);
       const edgeFade = 1 - Math.max(0, (Math.abs(displayX - window.innerWidth * 0.5) - window.innerWidth * 0.45) / (window.innerWidth * 0.08));
       const finalOpacity = Math.max(0, Math.min(1, depthOpacity * Math.max(0, edgeFade)));
 
@@ -4375,9 +4667,12 @@
 
       let lblTargX, lblTargY;
       if (IS_MOBILE) {
-        // Compact signature directly beneath the butterfly.
+        // Compact signatures follow the butterflies; the right-hand Fillers
+        // label sits above its card so it never collides with Pedicure or CTA.
         lblTargX = Math.max(50, Math.min(window.innerWidth - 50, displayX));
-        lblTargY = Math.min(labelBottomLimit, displayY + halfSize * 0.72);
+        lblTargY = i === 3
+          ? Math.max(72, displayY - halfSize * 0.86 - 20)
+          : Math.min(labelBottomLimit, displayY + halfSize * 0.72);
       } else {
         lblTargX = Math.max(85, Math.min(window.innerWidth - 85, displayX));
         lblTargY = Math.min(labelBottomLimit, displayY + halfSize * 0.74);
@@ -4404,7 +4699,9 @@
       const labelAnchor = 'translate(-50%, 0)';
       lbl.style.transform = `translate3d(${lblCurX[i].toFixed(2)}px, ${lblCurY[i].toFixed(2)}px, 0) ${labelAnchor}`;
       const labelDepth = smoothstepLocal(IS_MOBILE ? 0.24 : 0.18, IS_MOBILE ? 0.56 : 0.50, depthT);
-      const labelOpacity = finalOpacity * ((IS_MOBILE ? 0.10 : 0.20) + labelDepth * (IS_MOBILE ? 0.90 : 0.80));
+      const labelOpacity = IS_MOBILE
+        ? (depthT < 0.42 ? 0 : finalOpacity * labelDepth)
+        : finalOpacity * (0.20 + labelDepth * 0.80);
       lbl.style.opacity   = labelOpacity.toFixed(4);
       lbl.style.zIndex    = Math.round(depth * 10 + 51);
     });
@@ -5584,7 +5881,8 @@
     var railTop = botanicalFirst.offsetTop;
     var railBottom = botanicalEnd.offsetTop;
     var railHeight = Math.max(0, railBottom - railTop);
-    var topJoin = Math.min(600, window.innerWidth * 0.70 * botanicalTopSourceHeight / botanicalTopSourceWidth);
+    var topBranchRatio = window.innerWidth <= 767 ? 0.58 : 0.70;
+    var topJoin = Math.min(600, window.innerWidth * topBranchRatio * botanicalTopSourceHeight / botanicalTopSourceWidth);
     var plantHeight = Math.max(0, railHeight - topJoin);
     botanicalRail.style.top = railTop + 'px';
     botanicalRail.style.height = railHeight + 'px';
@@ -5864,7 +6162,7 @@
     100% { transform: translateY(-18px); }
   }
   @media (max-width: 767px) {
-    #side-scroll-hint { right: 10px; gap: 5px; }
+    #side-scroll-hint { display: none; }
     .ssh-arrow        { width: 13px; height: 8px; }
     .ssh-track        { height: 36px; }
     .ssh-thumb        { height: 12px; }

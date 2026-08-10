@@ -67,6 +67,42 @@
   color: var(--gold-light);
 }
 
+@media (max-width: 720px) {
+  #site-nav {
+    height: var(--nav-height);
+    gap: .75rem;
+    padding: 0 14px;
+    background: rgba(29, 19, 14, .96);
+    border-bottom: 1px solid rgba(212, 175, 106, .14);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .nav-logo {
+    min-width: 0;
+    font-size: 1.05rem;
+    line-height: 1;
+    letter-spacing: .12em;
+  }
+
+  #site-nav .nav-links { display: none; }
+
+  .nav-cta {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 13px;
+    font-size: .69rem;
+    line-height: 1.1;
+    letter-spacing: .16em;
+    text-align: center;
+  }
+
+  #site-footer { padding-top: 2.75rem; }
+  .footer-links { gap: .65rem 1.15rem; padding-inline: 1rem; }
+}
+
 /* ── Footer */
 #site-footer {
   background: #1a1713;

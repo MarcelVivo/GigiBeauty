@@ -47,6 +47,36 @@ body {
   overflow-x: hidden;
 }
 
+@media (max-width: 720px) {
+  :root {
+    --nav-height: 64px;
+    --space-md: 1.15rem;
+    --space-lg: 2.75rem;
+    --space-xl: 4.5rem;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: var(--nav-height);
+  }
+
+  body { min-width: 320px; }
+
+  button,
+  input,
+  select,
+  textarea,
+  a { touch-action: manipulation; }
+
+  input,
+  select,
+  textarea { font-size: 16px; }
+
+  .container { padding-inline: 1.15rem; }
+  .section { padding-block: var(--space-lg); }
+  .btn { width: min(100%, 330px); padding-inline: 1.25rem; text-align: center; }
+}
+
 /* ── Typography */
 h1, h2, h3, h4 {
   font-family: var(--font-serif);
