@@ -2,6 +2,9 @@
   --surface: rgba(255, 255, 255, .045);
   --surface-strong: rgba(255, 255, 255, .075);
   --line: rgba(212, 175, 106, .2);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
   background:
     radial-gradient(circle at 10% 5%, rgba(128, 72, 92, .22), transparent 30rem),
     radial-gradient(circle at 90% 30%, rgba(212, 175, 106, .08), transparent 24rem),
@@ -63,6 +66,7 @@
 .booking-shell {
   width: 100%;
   max-width: 1640px;
+  min-width: 0;
   min-height: 0;
   flex: 1 1 auto;
   display: flex;
@@ -255,7 +259,13 @@
   .nav-brand-logo { width: 86px; height: 44px; }
   .booking-hero { padding: calc(var(--nav-height) + 1.7rem) 1.15rem 1.4rem; }
   .booking-hero .eyebrow { font-size: .64rem; letter-spacing: .22em; }
-  .booking-hero h1 { margin: .45rem 0 .35rem; font-size: clamp(2rem, 10vw, 2.75rem); line-height: 1.06; }
+  .booking-hero h1 {
+    max-width: 10ch;
+    margin: .45rem auto .45rem;
+    font-size: clamp(2.25rem, 10vw, 2.9rem);
+    line-height: 1.04;
+    text-wrap: balance;
+  }
   .booking-hero p { max-width: 32rem; margin-inline: auto; font-size: 1.02rem; line-height: 1.45; }
   .booking-shell { padding: 0 14px 2.5rem; }
   .booking-topline,
@@ -289,18 +299,26 @@
     display: flex;
     gap: .75rem;
     overflow-x: auto;
+    max-width: 100%;
     scroll-snap-type: x mandatory;
+    scroll-padding-inline: 14px;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     padding-bottom: .65rem;
   }
   .service-grid::-webkit-scrollbar { display: none; }
   .service-tile {
-    min-width: min(72vw, 190px);
-    min-height: 118px;
+    flex: 0 0 min(76vw, 284px);
+    min-width: 0;
+    min-height: 154px;
     scroll-snap-align: center;
     border-radius: 14px;
+    box-shadow: 0 16px 38px rgba(8, 4, 3, .28);
   }
-  .service-tile span { left: .85rem; right: .85rem; bottom: .75rem; font-size: 1rem; }
+  .service-tile img { opacity: .68; }
+  .service-tile span { left: 1rem; right: 1rem; bottom: .9rem; font-size: 1.13rem; }
+  .service-tile small { font-size: .76rem; }
   .calendar-section > .section-kicker { margin-bottom: .7rem; }
   .calendar-card { border-radius: 14px; }
   .calendar-toolbar { gap: .7rem; padding: .85rem .75rem; }
@@ -337,6 +355,8 @@
   .booking-shell { padding-inline: 10px; }
   .service-picker { margin-inline: -10px; }
   .service-picker > .service-grid { padding-inline: 10px; }
+  .service-grid { scroll-padding-inline: 10px; }
+  .service-tile { flex-basis: calc(100vw - 52px); min-height: 148px; }
   .view-button { padding-inline: .78rem; }
   .calendar-nav .small-button { padding-inline: .8rem; }
 }

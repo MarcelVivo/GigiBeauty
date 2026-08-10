@@ -9,17 +9,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/global.css">
   <link rel="stylesheet" href="../assets/css/pages/nav.css">
-  <link rel="stylesheet" href="../assets/css/pages/booking.css">
+  <link rel="stylesheet" href="../assets/css/pages/booking.css?v=20260810-4">
 </head>
 <body class="booking-page">
   <nav id="site-nav">
-    <a class="nav-brand-logo" href="/" aria-label="GiGi Beauty Startseite">
-      <img src="/public/images/logo/GiGiBeautyLogoNeu.png" alt="GiGi Beauty Clinic & Academy">
+    <a class="nav-brand-logo" href="../index.html" aria-label="GiGi Beauty Startseite">
+      <img src="../public/images/logo/GiGiBeautyLogoNeu.png" alt="GiGi Beauty Clinic & Academy">
     </a>
     <ul class="nav-links">
-      <li><a href="/#services">Behandlungen</a></li>
-      <li><a href="/pages/ueber-uns.html">Über uns</a></li>
-      <li><a href="/pages/kontakt.html">Kontakt</a></li>
+      <li><a href="../index.html#services">Behandlungen</a></li>
+      <li><a href="ueber-uns.html">Über uns</a></li>
+      <li><a href="kontakt.html">Kontakt</a></li>
     </ul>
   </nav>
 
@@ -77,10 +77,10 @@
     <div class="footer-logo">GiGi Beauty</div>
     <p class="footer-tagline">Luxury Beauty Studio · Bern</p>
     <ul class="footer-links">
-      <li><a href="/pages/kontakt.html">Kontakt</a></li>
-      <li><a href="/agb.html">AGB</a></li>
-      <li><a href="/datenschutz.html">Datenschutz</a></li>
-      <li><a href="/impressum.html">Impressum</a></li>
+      <li><a href="kontakt.html">Kontakt</a></li>
+      <li><a href="../agb.html">AGB</a></li>
+      <li><a href="../datenschutz.html">Datenschutz</a></li>
+      <li><a href="../impressum.html">Impressum</a></li>
     </ul>
     <p class="footer-copy">© 2026 GiGi Beauty · www.gigibeauty.ch</p>
   </footer>
@@ -115,7 +115,7 @@
       <form class="form-stack" id="booking-form">
         <div class="field"><label for="booking-phone">Telefon (optional)</label><input id="booking-phone" type="tel" autocomplete="tel"></div>
         <div class="field"><label for="booking-notes">Hinweis an Liliane (optional)</label><textarea id="booking-notes" rows="3"></textarea></div>
-        <label class="checkbox"><input id="booking-terms" type="checkbox" required> Ich akzeptiere die <a href="/agb.html" target="_blank">AGB</a>, insbesondere die 12-Stunden-Stornierungsregel.</label>
+        <label class="checkbox"><input id="booking-terms" type="checkbox" required> Ich akzeptiere die <a href="../agb.html" target="_blank">AGB</a>, insbesondere die 12-Stunden-Stornierungsregel.</label>
         <div class="form-message" id="booking-message"></div>
         <button class="btn" type="submit">Verbindlich buchen</button>
       </form>
@@ -136,6 +136,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../assets/js/supabase-config.js"></script>
   <script src="../assets/js/main.js"></script>
-  <script src="../assets/js/booking.js?v=20260808-3"></script>
+  <script src="../assets/js/booking.js?v=20260810-4"></script>
 </body>
 </html>

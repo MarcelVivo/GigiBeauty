@@ -63,6 +63,13 @@
   function minutes(time) { const [h, m] = time.split(':').map(Number); return h * 60 + m; }
   function timeLabel(total) { return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`; }
   function escapeHtml(value) { return String(value ?? '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[c]); }
+  function serviceImageUrl(path) {
+    const value = String(path || '').trim();
+    if (!value) return '';
+    if (/^(?:https?:|data:|blob:)/i.test(value)) return value;
+    const siteRelativePath = value.replace(/^(?:\.\.\/|\.\/|\/)+/, '');
+    return new URL(`../${siteRelativePath}`, document.baseURI).href;
+  }
   function initialService() {
     const requested = new URLSearchParams(location.search).get('service');
     const aliases = { gelnaegel: 'gel-acryl-nails', 'nail-art': 'gel-acryl-nails', microblading: 'permanent-make-up', 'augenbrauen-tattoo': 'permanent-make-up', 'augenbrauen-styling': 'permanent-make-up', 'kuenstliche-wimpern': 'lashes', 'wimpern-lifting': 'lashes', 'make-up': 'natural-make-up' };
@@ -132,16 +139,25 @@
     await refreshCalendar();
   }
 
-  function renderServices() {
+  function renderServices(scrollBehavior = 'auto') {
     els.serviceGrid.innerHTML = state.services.map(service => `
       <button class="service-tile${state.selectedService?.id === service.id ? ' is-selected' : ''}" type="button" data-service-id="${escapeHtml(service.id)}" aria-pressed="${state.selectedService?.id === service.id}">
-        <img src="${escapeHtml(service.image_path)}" alt="" loading="lazy">
+        <img src="${escapeHtml(serviceImageUrl(service.image_path))}" alt="" loading="lazy" decoding="async">
         <span>${escapeHtml(service.name)}<small>90 Min. · CHF ${Number(service.price_chf || 0).toFixed(0)}</small></span>
       </button>`).join('');
     els.serviceGrid.querySelectorAll('[data-service-id]').forEach(button => button.addEventListener('click', () => {
       state.selectedService = state.services.find(s => s.id === button.dataset.serviceId);
-      renderServices();
+      renderServices('smooth');
     }));
+
+    if (window.innerWidth <= 720) {
+      requestAnimationFrame(() => {
+        const selected = els.serviceGrid.querySelector('.service-tile.is-selected');
+        if (!selected) return;
+        const left = selected.offsetLeft - (els.serviceGrid.clientWidth - selected.offsetWidth) / 2;
+        els.serviceGrid.scrollTo({ left: Math.max(0, left), behavior: scrollBehavior });
+      });
+    }
   }
 
   async function refreshCalendar() {
@@ -284,7 +300,7 @@
       if (document.getElementById('auth-phone').value.replace(/\D/g, '').length < 9) { message.textContent = 'Bitte eine gültige Telefonnummer angeben. Sie hilft uns, dein bestehendes Kundenprofil sicher zuzuordnen.'; return; }
       const { data, error } = await db.auth.signUp({
         email, password,
-        options: { emailRedirectTo: `${location.origin}/pages/booking.html`, data: { full_name: fullName, phone: document.getElementById('auth-phone').value.trim(), marketing_consent: document.getElementById('auth-marketing').checked } }
+        options: { emailRedirectTo: new URL('booking.html', location.href).href, data: { full_name: fullName, phone: document.getElementById('auth-phone').value.trim(), marketing_consent: document.getElementById('auth-marketing').checked } }
       });
       if (error) { message.textContent = error.message; return; }
       if (!data.session) {
