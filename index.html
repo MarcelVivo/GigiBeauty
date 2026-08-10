@@ -292,7 +292,10 @@
 
   @media (max-width: 767px) {
     .card-label-floating {
-      top: calc(100% - 10px);
+      /* The 3:2 butterfly artwork sits inside a square card and therefore has
+         transparent space below its visible wings. Anchor the caption to the
+         actual lower wing edge instead of the SVG box edge. */
+      top: 79%;
       min-width: 96px;
       max-width: 128px;
       font-size: clamp(0.64rem, 2.6vw, 0.74rem);
