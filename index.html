@@ -6079,9 +6079,21 @@
     }
 
     // ── Butterfly floating labels ─────────────────────────────────────────────
-    qa('.card-label-floating').forEach(function(el,i){
-      var k='fly'+i;
-      if(t[k]!==undefined) el.innerHTML=t[k];
+    // The helix continuously reparents cards between its front and rear layers,
+    // so DOM order is not a stable service identifier. Resolve every caption by
+    // the same immutable service slug used by its photograph and click target.
+    var flyKeyByService = {
+      'gel-acryl-nails':      'fly0',
+      'permanent-make-up':    'fly1',
+      'lashes':               'fly2',
+      'fillers':              'fly3',
+      'kosmetische-pedicure': 'fly4',
+      'korean-cosmetics':     'fly5',
+      'natural-make-up':      'fly6'
+    };
+    qa('.card-label-floating[data-service]').forEach(function(el){
+      var k=flyKeyByService[el.dataset.service];
+      if(k && t[k]!==undefined) el.innerHTML=t[k];
     });
 
     // ── Lang button label ─────────────────────────────────────────────────────
