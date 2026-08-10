@@ -251,11 +251,12 @@
     backface-visibility: hidden;
   }
 
-  /* Floating label — positioned independently but locked to its butterfly */
+  /* Caption is a child of its butterfly card, so photo and text can never
+     separate while the helix changes depth or DOM layer. */
   .card-label-floating {
     position: absolute;
-    top: 0;
-    left: 0;
+    top: calc(100% - 14px);
+    left: 50%;
     min-width: 120px;
     max-width: 170px;
     font-family: 'Cormorant Garamond', 'Times New Roman', serif;
@@ -291,6 +292,7 @@
 
   @media (max-width: 767px) {
     .card-label-floating {
+      top: calc(100% - 10px);
       min-width: 96px;
       max-width: 128px;
       font-size: clamp(0.64rem, 2.6vw, 0.74rem);
@@ -2544,13 +2546,13 @@
 
   // ─── Services data ────────────────────────────────────────────────────────
   const SERVICES = [
-    { label: 'Gel & Acryl Nails',    labelHtml: 'Gel &<br>Acryl Nails',       slug: 'gel-acryl-nails',      img: 'public/images/services/optimized/GelAcrylNails.jpg',          imageFocus: [0.54, 0.50], imageZoom: 1.08 },
-    { label: 'Permanent Make Up',    labelHtml: 'Permanent<br>Make Up',       slug: 'permanent-make-up',    img: 'public/images/services/optimized/PermanentMakeUp.jpg',         imageFocus: [0.56, 0.42], imageZoom: 1.10 },
-    { label: 'Lashes',                                                          slug: 'lashes',               img: 'public/images/services/optimized/Lashes.jpg',                  imageFocus: [0.55, 0.43], imageZoom: 1.10 },
-    { label: 'Fillers',                                                         slug: 'fillers',              img: 'public/images/services/optimized/Filler.jpg',                  imageFocus: [0.58, 0.43], imageZoom: 1.08 },
-    { label: 'Kosmetische Pedicure', labelHtml: 'Kosmetische<br>Pedicure',    slug: 'kosmetische-pedicure', img: 'public/images/services/optimized/KosmetischePedicure.jpg',     imageFocus: [0.58, 0.44], imageZoom: 1.08 },
-    { label: 'Korean Cosmetics',     labelHtml: 'Korean<br>Cosmetics',        slug: 'korean-cosmetics',     img: 'public/images/services/optimized/KoreanCosmetics.jpg',         imageFocus: [0.54, 0.45], imageZoom: 1.06 },
-    { label: 'Natural Make Up',      labelHtml: 'Natural<br>Make Up',         slug: 'natural-make-up',      img: 'public/images/services/optimized/NaturalMakeUp.jpg',           imageFocus: [0.54, 0.44], imageZoom: 1.06 },
+    { butterflyFile: 'Gel&AcrylNails.png',      label: 'Gel & Acryl Nails',    labelHtml: 'Gel &<br>Acryl Nails',    slug: 'gel-acryl-nails',      img: 'public/images/services/optimized/GelAcrylNails.jpg',      imageFocus: [0.54, 0.50], imageZoom: 1.08 },
+    { butterflyFile: 'PermamentMakeUp.png',     label: 'Permanent Make Up',    labelHtml: 'Permanent<br>Make Up',    slug: 'permanent-make-up',    img: 'public/images/services/optimized/PermanentMakeUp.jpg',     imageFocus: [0.56, 0.42], imageZoom: 1.10 },
+    { butterflyFile: 'Lashes.png',              label: 'Lashes',                                                        slug: 'lashes',               img: 'public/images/services/optimized/Lashes.jpg',              imageFocus: [0.55, 0.43], imageZoom: 1.10 },
+    { butterflyFile: 'Filler.png',              label: 'Fillers',                                                       slug: 'fillers',              img: 'public/images/services/optimized/Filler.jpg',              imageFocus: [0.58, 0.43], imageZoom: 1.08 },
+    { butterflyFile: 'KosmetischePedicure.png', label: 'Kosmetische Pedicure', labelHtml: 'Kosmetische<br>Pedicure', slug: 'kosmetische-pedicure', img: 'public/images/services/optimized/KosmetischePedicure.jpg', imageFocus: [0.58, 0.44], imageZoom: 1.08 },
+    { butterflyFile: 'KoreanCosmetics.png',     label: 'Korean Cosmetics',     labelHtml: 'Korean<br>Cosmetics',     slug: 'korean-cosmetics',     img: 'public/images/services/optimized/KoreanCosmetics.jpg',     imageFocus: [0.54, 0.45], imageZoom: 1.06 },
+    { butterflyFile: 'NaturalMakeUp.png',       label: 'Natural Make Up',      labelHtml: 'Natural<br>Make Up',      slug: 'natural-make-up',      img: 'public/images/services/optimized/NaturalMakeUp.jpg',       imageFocus: [0.54, 0.44], imageZoom: 1.06 },
   ];
 
   // ─── Scene setup ──────────────────────────────────────────────────────────
@@ -3887,15 +3889,6 @@
   const cardEls  = [];
   const labelEls = [];
   const heroWingEls = [];
-  /* Editorial label offsets break up the two tight perspective pairings
-     without changing the physical butterfly orbit. */
-  const labelOffsetX = IS_MOBILE
-    ? [10, -12, 6, -8, 8, -6, 4]
-    : [34, -28, 0, -6, 24, 0, 0];
-  const labelOffsetY = IS_MOBILE
-    ? [-8, 4, 4, 0, -18, -4, -8]
-    : [-14, 18, 2, 0, -12, 0, 0];
-
   function createHeroServiceButterflyLegacy(index, label, imageSrc) {
     const ns = 'http://www.w3.org/2000/svg';
     /* The official GiGi Beauty side-view mark, opened symmetrically: each
@@ -4217,13 +4210,7 @@
     return svg;
   }
 
-  // Screen-space label positions — kept frame-perfect with each butterfly
-  const lblCurX = new Float32Array(SERVICES.length);
-  const lblCurY = new Float32Array(SERVICES.length);
-  const lblVisible = new Uint8Array(SERVICES.length);
   const centrifugalPush = new Float32Array(SERVICES.length);
-  lblCurX.fill(window.innerWidth  * 0.5);
-  lblCurY.fill(window.innerHeight * 0.5);
 
   const transitionOverlay = document.getElementById('page-transition');
   let isExiting = false;
@@ -4242,8 +4229,18 @@
     a.className = 'service-card';
     a.href = `pages/services/${svc.slug}.html`;
     a.dataset.service = svc.slug;
+    a.dataset.butterflyFile = svc.butterflyFile;
 
     a.appendChild(createHeroServiceButterfly(i, svc));
+
+    // The caption lives inside the same card as the photograph. Its source
+    // filename records the editorial assignment visible in /Butterfly/.
+    const lbl = document.createElement('div');
+    lbl.className = 'card-label-floating';
+    lbl.dataset.service = svc.slug;
+    lbl.dataset.butterflyFile = svc.butterflyFile;
+    lbl.innerHTML = svc.labelHtml || svc.label;
+    a.appendChild(lbl);
 
     a._armed = false;
 
@@ -4300,13 +4297,6 @@
 
     overlay.appendChild(a);
     cardEls.push(a);
-
-    // ── Floating label — independent layer, paired by the same service key
-    const lbl = document.createElement('div');
-    lbl.className = 'card-label-floating';
-    lbl.dataset.service = svc.slug;
-    lbl.innerHTML = svc.labelHtml || svc.label;
-    overlay.appendChild(lbl);
     labelEls.push(lbl);
   });
 
@@ -4967,14 +4957,12 @@
       // in front of the transparent product canvas. This makes the orbit real:
       // back butterflies disappear behind the lipstick/tools, then re-emerge.
       if (card.parentNode !== targetOverlay) targetOverlay.appendChild(card);
-      if (lbl.parentNode !== targetOverlay) targetOverlay.appendChild(lbl);
 
       // Cull cards behind camera
       if (screen.z > 1.0 || screen.x < -200 || screen.x > window.innerWidth + 200) {
         card.style.opacity = '0';
         card.style.pointerEvents = 'none';
         lbl.style.opacity = '0';
-        lblVisible[i] = 0;
         return;
       }
 
@@ -5041,44 +5029,12 @@
       card.style.pointerEvents = !isBehindAxis && finalOpacity > 0.42 ? 'auto' : 'none';
       card.style.zIndex = Math.round(depth * 10 + 50);
 
-      // ── Floating label
-      const labelBottomLimit = window.innerHeight - (IS_MOBILE ? 42 : 48);
-
-      let lblTargX, lblTargY;
-      if (IS_MOBILE) {
-        // Compact signatures follow the butterflies; the right-hand Fillers
-        // label sits above its card so it never collides with Pedicure or CTA.
-        const labelSideOffset = displayX < window.innerWidth * 0.5 ? -10 : 10;
-        lblTargX = Math.max(56, Math.min(window.innerWidth - 56, displayX + labelSideOffset));
-        lblTargY = i === 3
-          ? Math.max(72, displayY - halfSize * 0.86 - 20)
-          : Math.min(labelBottomLimit, displayY + halfSize * 0.72);
-      } else {
-        lblTargX = Math.max(85, Math.min(window.innerWidth - 85, displayX));
-        lblTargY = Math.min(labelBottomLimit, displayY + halfSize * 0.74);
-      }
-
-      lblTargX = Math.max(
-        IS_MOBILE ? 50 : 85,
-        Math.min(window.innerWidth - (IS_MOBILE ? 50 : 85), lblTargX + labelOffsetX[i])
-      );
-      lblTargY = Math.min(labelBottomLimit, lblTargY + labelOffsetY[i]);
-
-      // Do not interpolate labels independently: even a short spring delay can
-      // place a caption beneath the neighbouring butterfly while the helix is
-      // turning. Image, caption and link now remain one visual service unit.
-      lblCurX[i] = lblTargX;
-      lblCurY[i] = lblTargY;
-      lblVisible[i] = 1;
-
-      const labelAnchor = 'translate(-50%, 0)';
-      lbl.style.transform = `translate3d(${lblCurX[i].toFixed(2)}px, ${lblCurY[i].toFixed(2)}px, 0) ${labelAnchor}`;
+      // Caption depth follows its parent card; only visibility changes here.
       const labelDepth = smoothstepLocal(IS_MOBILE ? 0.44 : 0.18, IS_MOBILE ? 0.68 : 0.50, depthT);
       const labelOpacity = IS_MOBILE
-        ? (depthT < 0.42 ? 0 : finalOpacity * labelDepth)
-        : finalOpacity * (0.20 + labelDepth * 0.80);
+        ? (depthT < 0.42 ? 0 : labelDepth)
+        : 0.20 + labelDepth * 0.80;
       lbl.style.opacity   = labelOpacity.toFixed(4);
-      lbl.style.zIndex    = Math.round(depth * 10 + 51);
     });
 
     // ── Fan skylights: remain open through the helix, then gather at its end ─
@@ -6079,20 +6035,19 @@
     }
 
     // ── Butterfly floating labels ─────────────────────────────────────────────
-    // The helix continuously reparents cards between its front and rear layers,
-    // so DOM order is not a stable service identifier. Resolve every caption by
-    // the same immutable service slug used by its photograph and click target.
-    var flyKeyByService = {
-      'gel-acryl-nails':      'fly0',
-      'permanent-make-up':    'fly1',
-      'lashes':               'fly2',
-      'fillers':              'fly3',
-      'kosmetische-pedicure': 'fly4',
-      'korean-cosmetics':     'fly5',
-      'natural-make-up':      'fly6'
+    // Resolve captions from the exact filenames in /images/Butterfly/. This is
+    // the editorial source of truth requested for all seven photographed wings.
+    var flyKeyByButterflyFile = {
+      'Gel&AcrylNails.png':      'fly0',
+      'PermamentMakeUp.png':     'fly1',
+      'Lashes.png':              'fly2',
+      'Filler.png':              'fly3',
+      'KosmetischePedicure.png': 'fly4',
+      'KoreanCosmetics.png':     'fly5',
+      'NaturalMakeUp.png':       'fly6'
     };
-    qa('.card-label-floating[data-service]').forEach(function(el){
-      var k=flyKeyByService[el.dataset.service];
+    qa('.card-label-floating[data-butterfly-file]').forEach(function(el){
+      var k=flyKeyByButterflyFile[el.dataset.butterflyFile];
       if(k && t[k]!==undefined) el.innerHTML=t[k];
     });
 
