@@ -4245,13 +4245,9 @@
     // Extract tap logic so both touch and click can call it
     let _tx = 0, _ty = 0;
     const _doCardTap = () => {
-      if (IS_MOBILE) {
-        a.classList.add('card-glow');
-        const mobileTarget = document.getElementById('section-' + svc.slug);
-        scrollToServiceElement(mobileTarget);
-        setTimeout(() => a.classList.remove('card-glow'), 700);
-        return;
-      }
+      /* Identical two-step interaction on desktop and touch devices:
+         first tap freezes the helix and arms one butterfly in gold; only a
+         second tap on that same butterfly opens its treatment section. */
       if (!heroFrozen) {
         freezeHero();
         cardEls.forEach(c => { c._armed = false; c.classList.remove('card-armed'); });
