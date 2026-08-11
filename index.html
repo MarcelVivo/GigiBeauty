@@ -2299,6 +2299,27 @@
       drop-shadow(0 0 7px rgba(235, 207, 150, 0.20));
   }
 
+  /* Preserve the sweeping botanical crown while creating a soft, responsive
+     reading pocket around the first treatment title. */
+  @media (min-width: 768px) {
+    .botanical-top-branch {
+      -webkit-mask-image: radial-gradient(
+        ellipse 37% 17% at 59% 25%,
+        transparent 0%,
+        transparent 58%,
+        rgba(0, 0, 0, 0.24) 77%,
+        #000 100%
+      );
+      mask-image: radial-gradient(
+        ellipse 37% 17% at 59% 25%,
+        transparent 0%,
+        transparent 58%,
+        rgba(0, 0, 0, 0.24) 77%,
+        #000 100%
+      );
+    }
+  }
+
   .botanical-service-butterfly {
     width: clamp(125px, 11.1vw, 190px);
     filter:
@@ -2638,7 +2659,7 @@
   #championship-badge {
     position: fixed;
     top: 62px;
-    right: clamp(220px, 22vw, 400px);
+    right: clamp(24px, 6vw, 96px);
     z-index: 18;
     display: flex;
     width: 180px;
@@ -3086,29 +3107,35 @@
 </a>
 
 <script>
-  /* Attach the championship standard to the centre of the About button. Its
-     position follows the translated label and every responsive nav resize. */
+  /* Keep the championship standard in the quiet right-hand part of the hero.
+     It follows the booking control on desktop and the menu control on compact
+     navigation, while a viewport clamp prevents any horizontal overflow. */
   (function attachChampionshipStandard() {
     const standard = document.getElementById('championship-badge');
-    const anchor = document.querySelector('.nav-about-btn');
-    if (!standard || !anchor) return;
+    const desktopAnchor = document.querySelector('.nav-cta-btn');
+    const compactAnchor = document.querySelector('.nav-hamburger');
+    if (!standard || !desktopAnchor || !compactAnchor) return;
 
     const alignStandard = () => {
-      if (window.innerWidth <= 960) {
-        standard.style.removeProperty('left');
-        standard.style.removeProperty('right');
-        return;
-      }
-
+      const compact = window.matchMedia('(max-width: 960px)').matches;
+      const anchor = compact ? compactAnchor : desktopAnchor;
       const anchorBox = anchor.getBoundingClientRect();
       const standardWidth = standard.getBoundingClientRect().width;
-      standard.style.left = `${Math.round(anchorBox.left + (anchorBox.width - standardWidth) / 2)}px`;
+      const gutter = compact ? 8 : 24;
+      const idealLeft = anchorBox.left + (anchorBox.width - standardWidth) / 2;
+      const safeLeft = Math.max(gutter, Math.min(idealLeft, window.innerWidth - standardWidth - gutter));
+      standard.style.left = `${Math.round(safeLeft)}px`;
       standard.style.right = 'auto';
     };
 
     alignStandard();
     window.addEventListener('resize', alignStandard, { passive: true });
-    if ('ResizeObserver' in window) new ResizeObserver(alignStandard).observe(anchor);
+    if ('ResizeObserver' in window) {
+      const alignmentObserver = new ResizeObserver(alignStandard);
+      alignmentObserver.observe(desktopAnchor);
+      alignmentObserver.observe(compactAnchor);
+      alignmentObserver.observe(document.getElementById('top-nav'));
+    }
   }());
 </script>
 
@@ -6846,7 +6873,7 @@
   /* Seven treatment butterflies plus one proportioned butterfly on the
      large terminal blossom above the first treatment. */
   var botanicalMarkerPlans = [
-    { sectionId: 'section-gel-acryl-nails',      artwork: 'top', sourceX: 1308, sourceY: 108,  tilt: -2, scale: 1.00, pastel: 'linear-gradient(135deg, #f7e5dd 0%, #e9cbc7 48%, #f3ead8 100%)' },
+    { sectionId: 'section-gel-acryl-nails',      artwork: 'top', sourceX: 1308, sourceY: 108,  tilt: -2, scale: 0.92, nudgeXvw: 5.8, nudgeY: -8, pastel: 'linear-gradient(135deg, #f7e5dd 0%, #e9cbc7 48%, #f3ead8 100%)' },
     { sectionId: 'section-gel-acryl-nails',      sourceX: 184, sourceY: 486,  tilt: -4, scale: 1.08, pastel: 'linear-gradient(135deg, #f7e3dc 0%, #edcfc8 48%, #f5ead9 100%)' },
     { sectionId: 'section-permanent-make-up',    sourceX: 271, sourceY: 1345, tilt:  5, scale: 0.98, pastel: 'linear-gradient(135deg, #edd4d6 0%, #e5c2c5 48%, #f0dfd6 100%)' },
     { sectionId: 'section-kosmetische-pedicure', sourceX: 137, sourceY: 2291, tilt: -3, scale: 1.00, pastel: 'linear-gradient(135deg, #dfe5d3 0%, #cdd9c5 48%, #eee6d3 100%)' },
@@ -7025,6 +7052,13 @@
       if (!flower) return;
       var markerX = flower.x;
       var markerY = flower.y;
+
+      /* The wide opening butterfly belongs to the botanical crown, but it
+         must never enter the Gel & Acryl title's protected reading area. */
+      if (window.innerWidth > 767 && plan.artwork === 'top') {
+        markerX += Math.min(118, Math.max(64, window.innerWidth * plan.nudgeXvw / 100));
+        markerY += plan.nudgeY;
+      }
 
       /* Keep mobile butterflies fully visible even when their naturally
          proportioned flower sits inside the softly cropped outer canvas. */
