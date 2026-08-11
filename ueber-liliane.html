@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Über GiGi Beauty | Liliane Serrano</title>
-<meta name="description" content="Lerne Liliane Serrano und ihr Kosmetikstudio GiGi Beauty im Herzen von Bern kennen.">
+<meta name="description" content="Lerne Liliane Serrano und GiGi Beauty in Bern kennen. 2026 erreichte sie den 3. Platz bei der PMU-Weltmeisterschaft in Portugal.">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -332,6 +332,282 @@
     line-height: 1.55;
   }
 
+  /* ── International award feature ── */
+  .ul-award {
+    position: relative;
+    scroll-margin-top: 92px;
+    margin-top: 3rem;
+    padding: clamp(1.45rem, 3vw, 2.35rem);
+    overflow: hidden;
+    border: 1px solid rgba(219, 174, 86, 0.42);
+    background:
+      radial-gradient(circle at 12% 14%, rgba(238, 198, 117, 0.10), transparent 28%),
+      linear-gradient(138deg, rgba(89, 15, 24, 0.92), rgba(42, 8, 13, 0.96) 52%, rgba(31, 13, 12, 0.96));
+    box-shadow:
+      0 22px 60px rgba(10, 3, 3, 0.32),
+      inset 0 0 0 1px rgba(255, 239, 199, 0.04),
+      inset 0 0 58px rgba(10, 2, 3, 0.24);
+  }
+
+  .ul-award::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 62%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(245, 213, 145, 0.72));
+  }
+
+  .ul-award::after {
+    content: "03";
+    position: absolute;
+    right: -0.05em;
+    bottom: -0.28em;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(7rem, 14vw, 12rem);
+    font-style: italic;
+    line-height: 1;
+    color: rgba(244, 208, 136, 0.035);
+    pointer-events: none;
+  }
+
+  .ul-award-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 154px minmax(0, 1fr);
+    gap: clamp(1.45rem, 3vw, 2.5rem);
+    align-items: start;
+  }
+
+  .ul-award-emblem {
+    position: sticky;
+    top: 94px;
+    display: flex;
+    min-height: 220px;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 8px;
+  }
+
+  .ul-award-ribbons {
+    position: absolute;
+    top: 93px;
+    left: 50%;
+    width: 106px;
+    height: 106px;
+    transform: translateX(-50%);
+  }
+
+  .ul-award-ribbons::before,
+  .ul-award-ribbons::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 52px;
+    height: 96px;
+    border: 1px solid rgba(226, 183, 95, 0.62);
+    background:
+      linear-gradient(90deg, rgba(255,255,255,0.10), transparent 25%, rgba(0,0,0,0.26) 82%),
+      linear-gradient(180deg, #831b27, #4a0a12);
+    clip-path: polygon(0 0, 100% 0, 87% 100%, 50% 78%, 13% 100%);
+    box-shadow: inset 0 0 18px rgba(16, 2, 4, 0.44);
+  }
+
+  .ul-award-ribbons::before { left: 7px; transform: rotate(8deg); }
+  .ul-award-ribbons::after { right: 7px; transform: rotate(-8deg); }
+
+  .ul-award-medallion {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    width: 146px;
+    height: 146px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #dcb56b;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 34% 24%, rgba(255,255,255,0.16), transparent 26%),
+      radial-gradient(circle, #801a25 0%, #5c1019 56%, #31070d 100%);
+    box-shadow:
+      0 0 0 5px #410b12,
+      0 0 0 6px rgba(238, 202, 128, 0.80),
+      inset 0 0 0 6px rgba(35, 4, 8, 0.24),
+      inset 0 0 34px rgba(14, 1, 3, 0.46),
+      0 14px 32px rgba(9, 2, 3, 0.48);
+  }
+
+  .ul-award-medallion::before {
+    content: "";
+    position: absolute;
+    inset: 11px;
+    border: 1px solid rgba(242, 210, 145, 0.52);
+    border-radius: 50%;
+  }
+
+  .ul-award-medal-kicker,
+  .ul-award-medal-place,
+  .ul-award-medal-meta {
+    position: relative;
+    z-index: 1;
+    display: block;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .ul-award-medal-kicker {
+    width: 96px;
+    font-size: 0.54rem;
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: 0.18em;
+    color: rgba(250, 230, 190, 0.78);
+  }
+
+  .ul-award-medal-rank {
+    position: relative;
+    z-index: 1;
+    display: block;
+    margin: -1px 0 -4px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 3.15rem;
+    font-weight: 400;
+    line-height: 1;
+    color: #f3d18b;
+    text-shadow: 0 3px 12px rgba(25, 3, 6, 0.78);
+  }
+
+  .ul-award-medal-place {
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    color: #f8e8c5;
+  }
+
+  .ul-award-medal-meta {
+    margin-top: 5px;
+    font-size: 0.49rem;
+    letter-spacing: 0.16em;
+    color: rgba(243, 209, 139, 0.78);
+  }
+
+  .ul-award-copy { min-width: 0; }
+
+  .ul-award-kicker {
+    margin-bottom: 0.65rem !important;
+    font-size: 0.65rem !important;
+    font-weight: 600 !important;
+    line-height: 1.3 !important;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: #dcb56b !important;
+  }
+
+  .ul-award-title {
+    max-width: 18ch;
+    margin-bottom: 0.6rem;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(1.65rem, 2.8vw, 2.45rem);
+    font-weight: 400;
+    line-height: 1.14;
+    color: #fff0d2;
+    text-wrap: balance;
+  }
+
+  .ul-award-lead {
+    margin-bottom: 1.35rem !important;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(0.95rem, 1.3vw, 1.1rem) !important;
+    font-style: italic;
+    line-height: 1.55 !important;
+    color: #e5be72 !important;
+  }
+
+  .ul-award-facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0 0 1.65rem;
+    border-top: 1px solid rgba(232, 194, 117, 0.22);
+    border-bottom: 1px solid rgba(232, 194, 117, 0.16);
+  }
+
+  .ul-award-fact {
+    padding: 0.85rem 0.75rem 0.9rem 0;
+  }
+
+  .ul-award-fact + .ul-award-fact {
+    padding-left: 0.85rem;
+    border-left: 1px solid rgba(232, 194, 117, 0.14);
+  }
+
+  .ul-award-fact dt {
+    margin-bottom: 0.25rem;
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(226, 183, 95, 0.66);
+  }
+
+  .ul-award-fact dd {
+    font-size: 0.95rem;
+    line-height: 1.3;
+    color: rgba(255, 239, 208, 0.90);
+  }
+
+  .ul-award-story p {
+    font-size: clamp(0.98rem, 1.25vw, 1.08rem);
+    line-height: 1.78;
+    color: rgba(255, 239, 211, 0.82);
+  }
+
+  .ul-award-closing {
+    margin-top: 1.5rem;
+    padding-left: 1rem;
+    border-left: 1px solid rgba(229, 190, 111, 0.56);
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    color: #e6c07a !important;
+  }
+
+  .ul-award-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin-top: 1.7rem;
+  }
+
+  .ul-award-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.72rem 0.95rem;
+    border: 1px solid rgba(226, 183, 95, 0.34);
+    background: rgba(24, 5, 7, 0.28);
+    color: #f1d392;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+  }
+
+  .ul-award-link::after {
+    content: "\2197";
+    font-size: 1.05em;
+    line-height: 1;
+  }
+
+  .ul-award-link:hover {
+    border-color: rgba(241, 207, 138, 0.76);
+    background: rgba(114, 20, 31, 0.44);
+    transform: translateY(-2px);
+  }
+
   .ul-cta {
     display: inline-block;
     margin-top: 2.2rem;
@@ -465,6 +741,25 @@
     .ul-divider { margin-bottom: 1.3rem; }
     .ul-text-col p { font-size: 1.05rem; line-height: 1.7; }
     .ul-section { margin-top: 2.2rem; padding-top: 2rem; }
+    .ul-award {
+      scroll-margin-top: 78px;
+      margin-top: 2.2rem;
+      padding: 1.35rem 1.1rem 1.45rem;
+    }
+    .ul-award-grid { grid-template-columns: 1fr; gap: 1.2rem; }
+    .ul-award-emblem { position: relative; top: auto; min-height: 178px; padding-top: 4px; }
+    .ul-award-medallion { width: 126px; height: 126px; }
+    .ul-award-ribbons { top: 77px; width: 92px; height: 88px; }
+    .ul-award-ribbons::before,
+    .ul-award-ribbons::after { width: 45px; height: 80px; }
+    .ul-award-kicker { text-align: center; }
+    .ul-award-title { max-width: 100%; font-size: clamp(1.65rem, 8vw, 2.15rem); text-align: center; }
+    .ul-award-lead { text-align: center; }
+    .ul-award-facts { grid-template-columns: 1fr; }
+    .ul-award-fact { padding: 0.72rem 0; }
+    .ul-award-fact + .ul-award-fact { padding-left: 0; border-top: 1px solid rgba(232, 194, 117, 0.12); border-left: 0; }
+    .ul-award-links { display: grid; grid-template-columns: 1fr; }
+    .ul-award-link { justify-content: space-between; }
     .ul-cta { width: 100%; padding: 15px 18px; text-align: center; }
 
     footer.ul-footer { padding: 2.2rem 1.1rem 0; }
@@ -547,6 +842,58 @@
     <p id="ul-p2">Bevor wir beginnen, nehme ich mir Zeit für deine Wünsche und erkläre dir, welche Behandlung sinnvoll ist. Regelmässige Weiterbildungen gehören für mich genauso dazu wie sauberes Arbeiten und ein ehrlicher Blick auf das Ergebnis.</p>
 
     <p id="ul-p3">Schau dir meine Behandlungen in Ruhe an. Wenn du Fragen hast, melde dich gerne bei mir.</p>
+
+    <section class="ul-award" id="auszeichnung-2026" aria-labelledby="award-title">
+      <div class="ul-award-grid">
+        <div class="ul-award-emblem" aria-hidden="true">
+          <span class="ul-award-ribbons"></span>
+          <span class="ul-award-medallion">
+            <span class="ul-award-medal-kicker">PMU World Championship</span>
+            <strong class="ul-award-medal-rank">3.</strong>
+            <span class="ul-award-medal-place" id="award-medal-place">Platz</span>
+            <span class="ul-award-medal-meta">Portugal 2026</span>
+          </span>
+        </div>
+
+        <div class="ul-award-copy">
+          <p class="ul-award-kicker" id="award-kicker">Internationale Auszeichnung</p>
+          <h3 class="ul-award-title" id="award-title">3. Platz bei der PMU-Weltmeisterschaft 2026</h3>
+          <p class="ul-award-lead" id="award-lead">Lipstick Effect (Latex), Portugal</p>
+
+          <dl class="ul-award-facts">
+            <div class="ul-award-fact">
+              <dt id="award-fact-category-label">Kategorie</dt>
+              <dd>Lipstick Effect (Latex)</dd>
+            </div>
+            <div class="ul-award-fact">
+              <dt id="award-fact-place-label">Ort</dt>
+              <dd>Portugal</dd>
+            </div>
+            <div class="ul-award-fact">
+              <dt id="award-fact-date-label">Datum</dt>
+              <dd id="award-fact-date">6. und 7. Juni 2026</dd>
+            </div>
+          </dl>
+
+          <div class="ul-award-story">
+            <p id="award-p1">Am 6. und 7. Juni 2026 durfte ich bei der Weltmeisterschaft in Portugal antreten. In der Kategorie „Lipstick Effect (Latex)“ erreichte ich den 3. Platz. Dieser Moment gehört zu den prägendsten Erfahrungen meiner bisherigen Laufbahn.</p>
+
+            <p id="award-p2">Hinter diesem Erfolg liegen viele Stunden Arbeit und eine Zeit, die mich beruflich wie privat stark gefordert hat. Es gab Zweifel, Tränen und Momente, in denen Aufgeben der einfachere Weg gewesen wäre. Trotzdem habe ich weitergemacht, gelernt und mich der Herausforderung gestellt.</p>
+
+            <p id="award-p3">Dass mein Sohn mich zu dieser Meisterschaft begleiten konnte, machte die Reise besonders. Als mein Name aufgerufen wurde, fiel die ganze Anspannung von mir ab. Was blieb, waren Stolz, Freiheit und tiefe Dankbarkeit.</p>
+
+            <p id="award-p4">Ich danke allen Kundinnen, die mich unterstützt, mir vertraut und auch in schwierigen Zeiten an mich geglaubt haben. Eure Treue und eure Worte haben mich getragen. Deshalb fühlt sich diese Auszeichnung nicht nur wie mein Erfolg an, sondern wie ein gemeinsamer.</p>
+
+            <p class="ul-award-closing" id="award-closing">Diese Auszeichnung markiert für mich den Beginn eines neuen Kapitels.</p>
+          </div>
+
+          <div class="ul-award-links">
+            <a class="ul-award-link" id="award-post-link" href="https://www.instagram.com/p/DZVeYdXDIdI/?igsh=Zmk4dWxqdnB0eHpn" target="_blank" rel="noopener noreferrer">Instagram-Beitrag</a>
+            <a class="ul-award-link" id="award-reel-link" href="https://www.instagram.com/reel/DYFdUn4CvhJ/?igsh=Y2o2Mmlza3JuM3Y3" target="_blank" rel="noopener noreferrer">Video ansehen</a>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <div class="ul-section">
       <h3 class="ul-section-title" id="ul-section-title">Erfahrung, die seit 2008 wächst</h3>
@@ -740,6 +1087,18 @@
       p1:'Ich bin Liliane Serrano und f\xfchre GiGi Beauty seit 2008. In meinem Studio im Herzen von Bern dreht sich alles um gepflegte N\xe4gel, Permanent Make-up und Kosmetik, die zu dir passt.',
       p2:'Bevor wir beginnen, nehme ich mir Zeit f\xfcr deine W\xfcnsche und erkl\xe4re dir, welche Behandlung sinnvoll ist. Regelm\xe4ssige Weiterbildungen geh\xf6ren f\xfcr mich genauso dazu wie sauberes Arbeiten und ein ehrlicher Blick auf das Ergebnis.',
       p3:'Schau dir meine Behandlungen in Ruhe an. Wenn du Fragen hast, melde dich gerne bei mir.',
+      awardMedalPlace:'Platz',
+      awardKicker:'Internationale Auszeichnung',
+      awardTitle:'3. Platz bei der PMU-Weltmeisterschaft 2026',
+      awardLead:'Lipstick Effect (Latex), Portugal',
+      awardCategoryLabel:'Kategorie', awardPlaceLabel:'Ort', awardDateLabel:'Datum',
+      awardDate:'6. und 7. Juni 2026',
+      awardP1:'Am 6. und 7. Juni 2026 durfte ich bei der Weltmeisterschaft in Portugal antreten. In der Kategorie „Lipstick Effect (Latex)“ erreichte ich den 3. Platz. Dieser Moment gehört zu den prägendsten Erfahrungen meiner bisherigen Laufbahn.',
+      awardP2:'Hinter diesem Erfolg liegen viele Stunden Arbeit und eine Zeit, die mich beruflich wie privat stark gefordert hat. Es gab Zweifel, Tränen und Momente, in denen Aufgeben der einfachere Weg gewesen wäre. Trotzdem habe ich weitergemacht, gelernt und mich der Herausforderung gestellt.',
+      awardP3:'Dass mein Sohn mich zu dieser Meisterschaft begleiten konnte, machte die Reise besonders. Als mein Name aufgerufen wurde, fiel die ganze Anspannung von mir ab. Was blieb, waren Stolz, Freiheit und tiefe Dankbarkeit.',
+      awardP4:'Ich danke allen Kundinnen, die mich unterstützt, mir vertraut und auch in schwierigen Zeiten an mich geglaubt haben. Eure Treue und eure Worte haben mich getragen. Deshalb fühlt sich diese Auszeichnung nicht nur wie mein Erfolg an, sondern wie ein gemeinsamer.',
+      awardClosing:'Diese Auszeichnung markiert für mich den Beginn eines neuen Kapitels.',
+      awardPost:'Instagram-Beitrag', awardReel:'Video ansehen',
       sectionTitle:'Erfahrung, die seit 2008 w\xe4chst',
       quote:'„Die Begeisterung des Herzens ist die Quelle jeder grossen Unternehmung.“ Giuseppe Mazzini',
       p4:'Seit 2008 arbeite ich im Herzen von Bern mit Menschen, die Wert auf pers\xf6nliche Beratung und sorgf\xe4ltige Behandlungen legen. Diese langj\xe4hrige Erfahrung pr\xe4gt meine Arbeit jeden Tag.',
@@ -763,6 +1122,18 @@
       p1:'Sou Liliane Serrano e dirijo a GiGi Beauty desde 2008. No meu est\xfadio, no centro de Berna, cuido de unhas, maquilhagem permanente e cosm\xe9tica de forma pessoal e adaptada a cada cliente.',
       p2:'Antes de come\xe7armos, reservo tempo para ouvir os seus desejos e explicar qual tratamento faz sentido. A forma\xe7\xe3o cont\xednua, o trabalho cuidadoso e uma avalia\xe7\xe3o honesta do resultado fazem parte da minha forma de trabalhar.',
       p3:'Veja os tratamentos com calma. Se tiver alguma pergunta, pode entrar em contacto comigo.',
+      awardMedalPlace:'Lugar',
+      awardKicker:'Distinção internacional',
+      awardTitle:'3.º lugar no Campeonato Mundial de PMU 2026',
+      awardLead:'Lipstick Effect (Latex), Portugal',
+      awardCategoryLabel:'Categoria', awardPlaceLabel:'Local', awardDateLabel:'Data',
+      awardDate:'6 e 7 de junho de 2026',
+      awardP1:'Nos dias 6 e 7 de junho de 2026, tive a oportunidade de participar no Campeonato Mundial em Portugal. Na categoria «Lipstick Effect (Latex)», conquistei o 3.º lugar. Este momento tornou-se uma das experiências mais marcantes do meu percurso profissional.',
+      awardP2:'Por detrás deste resultado estão muitas horas de trabalho e uma fase que me exigiu muito, tanto a nível profissional como pessoal. Houve dúvidas, lágrimas e momentos em que desistir teria sido o caminho mais fácil. Mesmo assim, continuei, aprendi e aceitei o desafio.',
+      awardP3:'Poder levar o meu filho comigo tornou esta viagem ainda mais especial. Quando chamaram o meu nome, toda a tensão desapareceu. Ficaram o orgulho, a liberdade e uma profunda gratidão.',
+      awardP4:'Agradeço de coração a todas as clientes que me apoiaram, confiaram em mim e acreditaram no meu trabalho, mesmo nos momentos mais difíceis. A vossa lealdade e as vossas palavras deram-me força. Por isso, esta distinção não é apenas minha. É uma conquista que partilhamos.',
+      awardClosing:'Esta distinção marca o início de um novo capítulo para mim.',
+      awardPost:'Publicação no Instagram', awardReel:'Ver vídeo',
       sectionTitle:'Experi\xeancia que cresce desde 2008',
       quote:'„O entusiasmo do cora\xe7\xe3o \xe9 a fonte de todo o grande empreendimento.“ Giuseppe Mazzini',
       p4:'Desde 2008 trabalho no centro de Berna com pessoas que valorizam aconselhamento pessoal e tratamentos cuidadosos. Esta experi\xeancia acompanha o meu trabalho todos os dias.',
@@ -798,6 +1169,21 @@
     e=g('ul-p1');          if(e) e.textContent = t.p1;
     e=g('ul-p2');          if(e) e.textContent = t.p2;
     e=g('ul-p3');          if(e) e.textContent = t.p3;
+    e=g('award-medal-place');       if(e) e.textContent = t.awardMedalPlace;
+    e=g('award-kicker');            if(e) e.textContent = t.awardKicker;
+    e=g('award-title');             if(e) e.textContent = t.awardTitle;
+    e=g('award-lead');              if(e) e.textContent = t.awardLead;
+    e=g('award-fact-category-label'); if(e) e.textContent = t.awardCategoryLabel;
+    e=g('award-fact-place-label');  if(e) e.textContent = t.awardPlaceLabel;
+    e=g('award-fact-date-label');   if(e) e.textContent = t.awardDateLabel;
+    e=g('award-fact-date');         if(e) e.textContent = t.awardDate;
+    e=g('award-p1');                if(e) e.textContent = t.awardP1;
+    e=g('award-p2');                if(e) e.textContent = t.awardP2;
+    e=g('award-p3');                if(e) e.textContent = t.awardP3;
+    e=g('award-p4');                if(e) e.textContent = t.awardP4;
+    e=g('award-closing');           if(e) e.textContent = t.awardClosing;
+    e=g('award-post-link');         if(e) e.textContent = t.awardPost;
+    e=g('award-reel-link');         if(e) e.textContent = t.awardReel;
     e=g('ul-section-title'); if(e) e.textContent = t.sectionTitle;
     e=g('ul-quote');       if(e) e.textContent = t.quote;
     e=g('ul-p4');          if(e) e.textContent = t.p4;

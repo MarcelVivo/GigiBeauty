@@ -99,7 +99,8 @@
   "areaServed": {"@type": "City", "name": "Bern"},
   "founder": {
     "@type": "Person",
-    "name": "Liliane Serrano"
+    "name": "Liliane Serrano",
+    "award": "3. Platz bei der Permanent Make-up Weltmeisterschaft 2026 in Portugal, Kategorie Lipstick Effect (Latex)"
   },
   "hasOfferCatalog": {
     "@type": "OfferCatalog",
@@ -2630,6 +2631,248 @@
       letter-spacing: 0.19em;
     }
   }
+
+  /* ── PMU championship distinction ─────────────────────────────────────
+     A restrained enamel medal makes the international award visible in the
+     hero without competing with the product composition. */
+  #championship-badge {
+    position: fixed;
+    top: 82px;
+    right: clamp(170px, 18vw, 330px);
+    z-index: 18;
+    display: flex;
+    width: 156px;
+    flex-direction: column;
+    align-items: center;
+    color: #f8e8c5;
+    text-decoration: none;
+    filter: drop-shadow(0 12px 24px rgba(7, 2, 2, 0.56));
+    transition:
+      opacity 0.42s ease,
+      visibility 0.42s ease,
+      transform 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+      filter 0.32s ease;
+  }
+
+  #championship-badge.award-hidden {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px) scale(0.96);
+    pointer-events: none;
+  }
+
+  .championship-ribbons {
+    position: absolute;
+    top: 72px;
+    left: 50%;
+    z-index: 0;
+    width: 88px;
+    height: 76px;
+    transform: translateX(-50%);
+  }
+
+  .championship-ribbons::before,
+  .championship-ribbons::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 44px;
+    height: 70px;
+    background:
+      linear-gradient(90deg, rgba(255,255,255,0.12), transparent 24%, rgba(0,0,0,0.24) 82%),
+      linear-gradient(180deg, #7a1822, #4a0c13);
+    border: 1px solid rgba(220, 174, 84, 0.58);
+    clip-path: polygon(0 0, 100% 0, 88% 100%, 50% 79%, 12% 100%);
+    box-shadow: inset 0 0 14px rgba(20, 2, 5, 0.44);
+  }
+
+  .championship-ribbons::before {
+    left: 5px;
+    transform: rotate(8deg);
+  }
+
+  .championship-ribbons::after {
+    right: 5px;
+    transform: rotate(-8deg);
+  }
+
+  .championship-medal {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    width: 126px;
+    height: 126px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #d6ad5e;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 34% 24%, rgba(255,255,255,0.16), transparent 26%),
+      radial-gradient(circle, #7a1722 0%, #5b1019 56%, #30070d 100%);
+    box-shadow:
+      0 0 0 4px rgba(69, 10, 16, 0.96),
+      0 0 0 5px rgba(232, 195, 115, 0.74),
+      inset 0 0 0 5px rgba(34, 4, 8, 0.22),
+      inset 0 0 28px rgba(15, 1, 3, 0.42),
+      0 0 24px rgba(194, 143, 53, 0.18);
+    overflow: hidden;
+  }
+
+  .championship-medal::before {
+    content: "";
+    position: absolute;
+    inset: 9px;
+    border: 1px solid rgba(235, 202, 132, 0.52);
+    border-radius: 50%;
+  }
+
+  .championship-medal::after {
+    content: "";
+    position: absolute;
+    top: -32%;
+    left: -68%;
+    width: 48%;
+    height: 164%;
+    background: linear-gradient(90deg, transparent, rgba(255, 238, 196, 0.18), transparent);
+    transform: rotate(24deg);
+    transition: left 0.72s ease;
+  }
+
+  #championship-badge:hover .championship-medal::after,
+  #championship-badge:focus-visible .championship-medal::after {
+    left: 126%;
+  }
+
+  #championship-badge:hover,
+  #championship-badge:focus-visible {
+    filter:
+      drop-shadow(0 15px 28px rgba(7, 2, 2, 0.64))
+      drop-shadow(0 0 10px rgba(220, 174, 84, 0.22));
+    transform: translateY(-3px);
+    outline: none;
+  }
+
+  .championship-medal-kicker,
+  .championship-medal-place,
+  .championship-medal-meta,
+  .championship-badge-category,
+  .championship-badge-link {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .championship-medal-kicker {
+    width: 82px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.48rem;
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: 0.18em;
+    color: rgba(249, 227, 183, 0.78);
+  }
+
+  .championship-medal-rank {
+    display: block;
+    margin: -1px 0 -3px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 2.7rem;
+    font-weight: 400;
+    line-height: 1;
+    color: #f3d18b;
+    text-shadow: 0 2px 10px rgba(25, 3, 6, 0.74);
+  }
+
+  .championship-medal-place {
+    display: block;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.52rem;
+    font-weight: 600;
+    letter-spacing: 0.24em;
+    color: #f8e8c5;
+  }
+
+  .championship-medal-meta {
+    display: block;
+    margin-top: 4px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.45rem;
+    letter-spacing: 0.16em;
+    color: rgba(243, 209, 139, 0.78);
+  }
+
+  .championship-badge-category {
+    position: relative;
+    z-index: 3;
+    min-width: 132px;
+    margin-top: 7px;
+    padding: 7px 12px 6px;
+    background: linear-gradient(110deg, #3b080d, #751722 48%, #3a070c);
+    border: 1px solid rgba(220, 174, 84, 0.72);
+    box-shadow: 0 6px 16px rgba(11, 2, 3, 0.42), inset 0 0 10px rgba(255,255,255,0.04);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.54rem;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: 0.16em;
+    color: #f3d18b;
+  }
+
+  .championship-badge-link {
+    margin-top: 7px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.48rem;
+    letter-spacing: 0.18em;
+    color: rgba(245, 230, 200, 0.68);
+  }
+
+  @media (max-width: 767px) {
+    #championship-badge {
+      top: 76px;
+      right: 10px;
+      width: 104px;
+      filter: drop-shadow(0 8px 16px rgba(7, 2, 2, 0.50));
+    }
+
+    .championship-medal {
+      width: 84px;
+      height: 84px;
+      border-width: 1px;
+      box-shadow:
+        0 0 0 3px rgba(69, 10, 16, 0.96),
+        0 0 0 4px rgba(232, 195, 115, 0.70),
+        inset 0 0 20px rgba(15, 1, 3, 0.42),
+        0 0 16px rgba(194, 143, 53, 0.15);
+    }
+
+    .championship-medal::before { inset: 6px; }
+    .championship-ribbons { top: 47px; width: 66px; height: 54px; }
+    .championship-ribbons::before,
+    .championship-ribbons::after { width: 33px; height: 50px; }
+    .championship-medal-kicker { width: 60px; font-size: 0.34rem; letter-spacing: 0.13em; }
+    .championship-medal-rank { margin-top: 0; font-size: 1.85rem; }
+    .championship-medal-place { font-size: 0.38rem; letter-spacing: 0.18em; }
+    .championship-medal-meta { margin-top: 2px; font-size: 0.32rem; letter-spacing: 0.11em; }
+    .championship-badge-category {
+      min-width: 96px;
+      margin-top: 5px;
+      padding: 5px 7px 4px;
+      font-size: 0.39rem;
+      letter-spacing: 0.12em;
+    }
+    .championship-badge-link { display: none; }
+  }
+
+  @media (max-width: 360px) {
+    #championship-badge { top: 150px; right: 9px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #championship-badge,
+    .championship-medal::after { transition: none; }
+  }
 </style>
 </head>
 <body>
@@ -2738,6 +2981,18 @@
 <div id="logo">
   <img src="public/images/logo/GiGiBeautyLogoNeu.png" alt="GiGi Beauty by Liliane Serrano">
 </div>
+
+<a id="championship-badge" href="ueber-liliane.html#auszeichnung-2026" aria-label="3. Platz bei der PMU-Weltmeisterschaft 2026 in Portugal. Mehr erfahren">
+  <span class="championship-ribbons" aria-hidden="true"></span>
+  <span class="championship-medal">
+    <span class="championship-medal-kicker">PMU World Championship</span>
+    <strong class="championship-medal-rank">3.</strong>
+    <span class="championship-medal-place" id="championship-place">Platz</span>
+    <span class="championship-medal-meta">Portugal 2026</span>
+  </span>
+  <span class="championship-badge-category">Lipstick Effect</span>
+  <span class="championship-badge-link" id="championship-link">Auszeichnung ansehen</span>
+</a>
 
 <div id="services-overlay-back" aria-hidden="true"></div>
 <div id="services-overlay"></div>
@@ -3057,6 +3312,7 @@
   const heroBotanicalFloorEl = document.getElementById('hero-botanical-floor');
   const heroBotanicalWorldEl = document.getElementById('hero-botanical-world');
   const heroLogoEl = document.getElementById('logo');
+  const championshipBadgeEl = document.getElementById('championship-badge');
   const lipstickFloorAnchor = new THREE.Vector3();
 
   // Base cap — wider, shorter cylinder at the very bottom
@@ -5053,6 +5309,9 @@
     if (heroLogoEl) {
       heroLogoEl.classList.toggle('hero-logo-hidden', isPastHero);
     }
+    if (championshipBadgeEl) {
+      championshipBadgeEl.classList.toggle('award-hidden', isPastHero);
+    }
 
     // ── Gold sparkle flight — individual drift + twinkle per particle
     const posArr = sparkleGeo.attributes.position.array;
@@ -6082,6 +6341,8 @@
       navBook:'Termin buchen',
       // Hero
       heroCta:'Termin buchen',
+      awardPlace:'Platz', awardLink:'Auszeichnung ansehen',
+      awardAria:'3. Platz bei der PMU-Weltmeisterschaft 2026 in Portugal. Mehr erfahren',
       // Scroll
       scroll:'Scrollen',
       // Section commons
@@ -6141,6 +6402,8 @@
       navBook:'Agendar',
       // Hero
       heroCta:'Agendar',
+      awardPlace:'Lugar', awardLink:'Ver distinção',
+      awardAria:'3.º lugar no Campeonato Mundial de PMU 2026 em Portugal. Saber mais',
       // Scroll
       scroll:'Deslizar',
       // Section commons
@@ -6209,6 +6472,9 @@
 
     // ── Hero ─────────────────────────────────────────────────────────────────
     var ha=q('#cta a');  if(ha) ha.textContent = t.heroCta;
+    var awardPlace=q('#championship-place'); if(awardPlace) awardPlace.textContent = t.awardPlace;
+    var awardLink=q('#championship-link');   if(awardLink) awardLink.textContent = t.awardLink;
+    var awardBadge=q('#championship-badge'); if(awardBadge) awardBadge.setAttribute('aria-label', t.awardAria);
 
     // ── Scroll hint ───────────────────────────────────────────────────────────
     var sh=q('#scroll-hint span'); if(sh) sh.textContent = t.scroll;
