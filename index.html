@@ -2789,9 +2789,6 @@
     animation-duration: 5.2s;
   }
 
-  .championship-medal-kicker,
-  .championship-medal-place,
-  .championship-medal-meta,
   .championship-badge-category,
   .championship-badge-link {
     position: relative;
@@ -2802,73 +2799,46 @@
 
   .championship-medal-copy {
     position: absolute;
-    inset: 14%;
+    inset: 0;
     z-index: 1;
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    border-radius: 50%;
-    text-align: center;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
   }
 
   .championship-medal-kicker {
-    width: 100%;
     font-family: 'Cormorant Garamond', serif;
-    font-size: 0.39rem;
+    font-size: 5px;
     font-weight: 600;
-    line-height: 1.08;
-    letter-spacing: 0.11em;
-    color: rgba(249, 227, 183, 0.78);
-  }
-
-  .championship-medal-kicker span {
-    display: block;
-    white-space: nowrap;
+    letter-spacing: 0;
+    fill: rgba(249, 227, 183, 0.78);
+    text-transform: uppercase;
   }
 
   .championship-medal-rank {
-    display: block;
-    margin: 0;
     font-family: 'Playfair Display', Georgia, serif;
-    font-size: 1.98rem;
+    font-size: 31px;
     font-weight: 400;
-    line-height: 1;
-    color: #f3d18b;
-    text-shadow: 0 2px 10px rgba(25, 3, 6, 0.74);
+    fill: #f3d18b;
+    filter: drop-shadow(0 2px 4px rgba(25, 3, 6, 0.74));
   }
 
   .championship-medal-place {
-    display: block;
-    margin: 0;
     font-family: 'Cormorant Garamond', serif;
-    font-size: 0.37rem;
+    font-size: 5px;
     font-weight: 600;
-    line-height: 1.15;
-    letter-spacing: 0.22em;
-    color: #f8e8c5;
+    letter-spacing: 0;
+    fill: #f8e8c5;
+    text-transform: uppercase;
   }
 
   .championship-medal-meta {
-    display: block;
-    margin-top: 4px;
     font-family: 'Cormorant Garamond', serif;
-    width: 100%;
-    font-size: 0.33rem;
-    letter-spacing: 0.11em;
-    white-space: nowrap;
-    color: rgba(243, 209, 139, 0.78);
-  }
-
-  .championship-medal-result {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    margin-top: 3px;
-    justify-items: center;
-    row-gap: 6px;
+    font-size: 4.3px;
+    letter-spacing: 0;
+    fill: rgba(243, 209, 139, 0.78);
+    text-transform: uppercase;
   }
 
   .championship-badge-category {
@@ -2934,12 +2904,6 @@
     }
 
     .championship-medal::before { inset: 5px; }
-    .championship-medal-copy { inset: 13%; }
-    .championship-medal-kicker { width: 100%; font-size: 0.26rem; letter-spacing: 0.075em; }
-    .championship-medal-result { margin-top: 2px; row-gap: 3px; }
-    .championship-medal-rank { font-size: 1.24rem; }
-    .championship-medal-place { font-size: 0.24rem; letter-spacing: 0.13em; }
-    .championship-medal-meta { margin-top: 3px; font-size: 0.21rem; letter-spacing: 0.065em; }
     .championship-badge-category {
       min-width: 96px;
       margin-top: 5px;
@@ -2955,10 +2919,6 @@
     .championship-standard-content { height: 110px; padding-top: 6px; }
     .championship-ribbons { width: 80px; height: 108px; }
     .championship-medal { width: 64px; height: 64px; flex-basis: 64px; }
-    .championship-medal-kicker { width: 100%; font-size: 0.23rem; }
-    .championship-medal-rank { font-size: 1.06rem; }
-    .championship-medal-place { font-size: 0.21rem; }
-    .championship-medal-meta { font-size: 0.19rem; }
     .championship-badge-category { min-width: 76px; padding-inline: 4px; font-size: 0.32rem; }
   }
 
@@ -3111,14 +3071,13 @@
       </svg>
     </span>
     <span class="championship-medal">
-      <span class="championship-medal-copy">
-        <span class="championship-medal-kicker"><span>PMU World</span><span>Championship</span></span>
-        <span class="championship-medal-result">
-          <strong class="championship-medal-rank">3.</strong>
-          <span class="championship-medal-place" id="championship-place">Platz</span>
-        </span>
-        <span class="championship-medal-meta">Portugal 2026</span>
-      </span>
+      <svg class="championship-medal-copy" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+        <text class="championship-medal-kicker" x="50" y="23" text-anchor="middle" textLength="34" lengthAdjust="spacingAndGlyphs">PMU WORLD</text>
+        <text class="championship-medal-kicker" x="50" y="30" text-anchor="middle" textLength="48" lengthAdjust="spacingAndGlyphs">CHAMPIONSHIP</text>
+        <text class="championship-medal-rank" x="50" y="61" text-anchor="middle">3.</text>
+        <text class="championship-medal-place" id="championship-place" x="50" y="72" text-anchor="middle" textLength="22" lengthAdjust="spacingAndGlyphs">PLATZ</text>
+        <text class="championship-medal-meta" x="50" y="84" text-anchor="middle" textLength="43" lengthAdjust="spacingAndGlyphs">PORTUGAL 2026</text>
+      </svg>
     </span>
     <span class="championship-badge-category">Lipstick Effect</span>
     <span class="championship-badge-link" id="championship-link">Auszeichnung ansehen</span>

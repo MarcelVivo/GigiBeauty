@@ -452,80 +452,45 @@
     border-radius: 50%;
   }
 
-  .ul-award-medal-kicker,
-  .ul-award-medal-place,
-  .ul-award-medal-meta {
-    position: relative;
-    z-index: 1;
-    display: block;
-    text-align: center;
-    text-transform: uppercase;
-  }
-
   .ul-award-medal-copy {
     position: absolute;
-    inset: 14%;
+    inset: 0;
     z-index: 1;
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    border-radius: 50%;
-    text-align: center;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
   }
 
   .ul-award-medal-kicker {
-    width: 100%;
-    font-size: 0.47rem;
+    font-size: 5px;
     font-weight: 600;
-    line-height: 1.1;
-    letter-spacing: 0.12em;
-    color: rgba(250, 230, 190, 0.78);
-  }
-
-  .ul-award-medal-kicker span {
-    display: block;
-    white-space: nowrap;
-  }
-
-  .ul-award-medal-result {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    margin-top: 4px;
-    justify-items: center;
-    row-gap: 7px;
+    letter-spacing: 0;
+    fill: rgba(250, 230, 190, 0.78);
+    text-transform: uppercase;
   }
 
   .ul-award-medal-rank {
-    display: block;
-    margin: 0;
     font-family: 'Playfair Display', Georgia, serif;
-    font-size: 2.52rem;
+    font-size: 31px;
     font-weight: 400;
-    line-height: 1;
-    color: #f3d18b;
-    text-shadow: 0 3px 12px rgba(25, 3, 6, 0.78);
+    fill: #f3d18b;
+    filter: drop-shadow(0 2px 4px rgba(25, 3, 6, 0.78));
   }
 
   .ul-award-medal-place {
-    margin: 0;
-    font-size: 0.49rem;
+    font-size: 5px;
     font-weight: 600;
-    line-height: 1;
-    letter-spacing: 0.25em;
-    color: #f8e8c5;
+    letter-spacing: 0;
+    fill: #f8e8c5;
+    text-transform: uppercase;
   }
 
   .ul-award-medal-meta {
-    width: 100%;
-    margin-top: 6px;
-    font-size: 0.41rem;
-    letter-spacing: 0.12em;
-    color: rgba(243, 209, 139, 0.78);
-    white-space: nowrap;
+    font-size: 4.3px;
+    letter-spacing: 0;
+    fill: rgba(243, 209, 139, 0.78);
+    text-transform: uppercase;
   }
 
   .ul-award-copy { min-width: 0; }
@@ -783,12 +748,6 @@
     .ul-award-grid { grid-template-columns: 1fr; gap: 1.2rem; }
     .ul-award-emblem { position: relative; top: auto; min-height: 178px; padding-top: 4px; }
     .ul-award-medallion { width: 116px; height: 116px; }
-    .ul-award-medal-copy { inset: 13%; }
-    .ul-award-medal-kicker { width: 100%; font-size: 0.40rem; }
-    .ul-award-medal-result { margin-top: 3px; row-gap: 5px; }
-    .ul-award-medal-rank { font-size: 2.08rem; }
-    .ul-award-medal-place { font-size: 0.43rem; }
-    .ul-award-medal-meta { margin-top: 5px; font-size: 0.36rem; }
     .ul-award-ribbons { top: 77px; width: 92px; height: 88px; }
     .ul-award-ribbons::before,
     .ul-award-ribbons::after { width: 45px; height: 80px; }
@@ -888,14 +847,13 @@
         <div class="ul-award-emblem" aria-hidden="true">
           <span class="ul-award-ribbons"></span>
           <span class="ul-award-medallion">
-            <span class="ul-award-medal-copy">
-              <span class="ul-award-medal-kicker"><span>PMU World</span><span>Championship</span></span>
-              <span class="ul-award-medal-result">
-                <strong class="ul-award-medal-rank">3.</strong>
-                <span class="ul-award-medal-place" id="award-medal-place">Platz</span>
-              </span>
-              <span class="ul-award-medal-meta">Portugal 2026</span>
-            </span>
+            <svg class="ul-award-medal-copy" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+              <text class="ul-award-medal-kicker" x="50" y="23" text-anchor="middle" textLength="34" lengthAdjust="spacingAndGlyphs">PMU WORLD</text>
+              <text class="ul-award-medal-kicker" x="50" y="30" text-anchor="middle" textLength="48" lengthAdjust="spacingAndGlyphs">CHAMPIONSHIP</text>
+              <text class="ul-award-medal-rank" x="50" y="61" text-anchor="middle">3.</text>
+              <text class="ul-award-medal-place" id="award-medal-place" x="50" y="72" text-anchor="middle" textLength="22" lengthAdjust="spacingAndGlyphs">PLATZ</text>
+              <text class="ul-award-medal-meta" x="50" y="84" text-anchor="middle" textLength="43" lengthAdjust="spacingAndGlyphs">PORTUGAL 2026</text>
+            </svg>
           </span>
         </div>
 
