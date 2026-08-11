@@ -4556,12 +4556,12 @@
       slowSpeed: 0.22 + Math.random() * 0.18,
       detailSpeed: 0.68 + Math.random() * 0.42,
       pauseSpeed: 0.10 + Math.random() * 0.08,
-      foldDepth: 0.018 + Math.random() * 0.022,
+      foldDepth: 0.030 + Math.random() * 0.025,
       tiltDepth: (0.28 + Math.random() * 0.42) * (index % 2 ? 1 : -1),
-      nextFlutter: 1.4 + Math.random() * 4.8,
+      nextFlutter: 0.8 + Math.random() * 3.2,
       flutterStart: -10,
       flutterDuration: 0.7,
-      flutterStrength: 0.018,
+      flutterStrength: 0.05,
       flutterRipples: 2
     };
   }
@@ -4845,9 +4845,30 @@
     maskImage.setAttribute('preserveAspectRatio', 'none');
     mask.appendChild(maskImage);
     defs.appendChild(mask);
+
+    /* The photographic butterfly is split exactly on its body axis. Each
+       half can now fold independently while a narrow, fixed centre overlay
+       keeps the gold body and the wing roots perfectly joined. */
+    function addWingClip(id, x, width) {
+      const clip = document.createElementNS(ns, 'clipPath');
+      clip.setAttribute('id', id);
+      clip.setAttribute('clipPathUnits', 'userSpaceOnUse');
+      const rect = document.createElementNS(ns, 'rect');
+      rect.setAttribute('x', String(x));
+      rect.setAttribute('y', '0');
+      rect.setAttribute('width', String(width));
+      rect.setAttribute('height', '1024');
+      clip.appendChild(rect);
+      defs.appendChild(clip);
+    }
+    const leftClipId = 'hero-service-left-wing-' + index;
+    const rightClipId = 'hero-service-right-wing-' + index;
+    const centreClipId = 'hero-service-centre-' + index;
+    addWingClip(leftClipId, 0, 768);
+    addWingClip(rightClipId, 768, 768);
+    addWingClip(centreClipId, 716, 104);
     svg.appendChild(defs);
 
-    const visual = document.createElementNS(ns, 'g');
     const photo = document.createElementNS(ns, 'image');
     const focusX = service.imageFocus?.[0] ?? 0.5;
     const focusY = service.imageFocus?.[1] ?? 0.5;
@@ -4869,7 +4890,6 @@
     photo.setAttribute('preserveAspectRatio', 'none');
     photo.setAttribute('mask', 'url(#' + maskId + ')');
     photo.setAttribute('aria-hidden', 'true');
-    visual.appendChild(photo);
 
     const frame = document.createElementNS(ns, 'image');
     frame.setAttribute('class', 'hero-service-butterfly-art');
@@ -4880,10 +4900,28 @@
     frame.setAttribute('height', '1024');
     frame.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     frame.setAttribute('aria-hidden', 'true');
-    visual.appendChild(frame);
 
-    svg.appendChild(visual);
-    heroWingEls.push({ whole: visual, motion: createHeroWingMotionProfile(index) });
+    function createWingLayer(clipId, className) {
+      const layer = document.createElementNS(ns, 'g');
+      layer.setAttribute('class', className);
+      layer.setAttribute('clip-path', 'url(#' + clipId + ')');
+      layer.appendChild(photo.cloneNode(true));
+      layer.appendChild(frame.cloneNode(true));
+      return layer;
+    }
+
+    const leftWing = createWingLayer(leftClipId, 'hero-service-wing-half hero-service-wing-half--left');
+    const rightWing = createWingLayer(rightClipId, 'hero-service-wing-half hero-service-wing-half--right');
+    const fixedCentre = createWingLayer(centreClipId, 'hero-service-wing-centre');
+    svg.appendChild(leftWing);
+    svg.appendChild(rightWing);
+    svg.appendChild(fixedCentre);
+    heroWingEls.push({
+      left: leftWing,
+      right: rightWing,
+      centre: fixedCentre,
+      motion: createHeroWingMotionProfile(index)
+    });
     return svg;
   }
 
@@ -5704,9 +5742,11 @@
       card.style.transform = `translate3d(${displayX.toFixed(2)}px, ${displayY.toFixed(2)}px, 0) translate(-50%, -50%) scale(${scaleFactor.toFixed(4)})`;
 
       const heroWings = heroWingEls[i];
-      if (heroWings && heroWings.whole) {
+      if (heroWings) {
         if (PREFERS_REDUCED_MOTION || !heroWings.motion) {
-          heroWings.whole.removeAttribute('transform');
+          if (heroWings.whole) heroWings.whole.removeAttribute('transform');
+          if (heroWings.left) heroWings.left.removeAttribute('transform');
+          if (heroWings.right) heroWings.right.removeAttribute('transform');
         } else {
           const motion = heroWings.motion;
 
@@ -5725,10 +5765,10 @@
              sine envelope starts and ends at zero, avoiding visible jumps. */
           if (elapsed >= motion.nextFlutter) {
             motion.flutterStart = elapsed;
-            motion.flutterDuration = 0.52 + Math.random() * 0.72;
-            motion.flutterStrength = 0.012 + Math.random() * 0.022;
+            motion.flutterDuration = 0.52 + Math.random() * 0.60;
+            motion.flutterStrength = 0.045 + Math.random() * 0.050;
             motion.flutterRipples = 2 + Math.floor(Math.random() * 3);
-            motion.nextFlutter = elapsed + motion.flutterDuration + 1.8 + Math.random() * 5.2;
+            motion.nextFlutter = elapsed + motion.flutterDuration + 1.2 + Math.random() * 3.8;
           }
           const flutterProgress = (elapsed - motion.flutterStart) / motion.flutterDuration;
           let flutterFold = 0;
@@ -5742,21 +5782,39 @@
           }
 
           const idleFold = wingIdleBlend * (
-            0.005 + motionGate * (0.008 + organicWave * motion.foldDepth) + flutterFold
+            0.007 + motionGate * (0.012 + organicWave * motion.foldDepth) + flutterFold
           );
           const scrollFold = (1 - wingIdleBlend) * 0.025
             * (0.5 + 0.5 * Math.sin(elapsed * 0.72 + i * 0.86 + eased * Math.PI * 2));
-          const foldX = 1 - idleFold - scrollFold;
+          const foldX = Math.max(0.82, 1 - idleFold - scrollFold);
           const wingLift = wingIdleBlend * motionGate
             * (slowWave * 2.2 + detailWave * 0.8);
           const wingTilt = wingIdleBlend * motionGate * motion.tiltDepth
             * (slowWave * 0.72 + detailWave * 0.28);
           const wingHeight = 1 + wingIdleBlend * motionGate * detailWave * 0.0025;
 
-          heroWings.whole.setAttribute(
-            'transform',
-            `translate(768 512) translate(0 ${wingLift.toFixed(2)}) rotate(${wingTilt.toFixed(3)}) scale(${foldX.toFixed(4)} ${wingHeight.toFixed(4)}) translate(-768 -512)`
-          );
+          if (heroWings.left && heroWings.right) {
+            const asymmetry = detailWave * wingIdleBlend * 0.007;
+            const leftFold = Math.max(0.81, Math.min(1, foldX - asymmetry));
+            const rightFold = Math.max(0.81, Math.min(1, foldX + asymmetry));
+            const foldAngle = (idleFold + scrollFold) * 18;
+            const leftAngle = wingTilt - foldAngle;
+            const rightAngle = wingTilt + foldAngle;
+
+            heroWings.left.setAttribute(
+              'transform',
+              `translate(768 512) rotate(${leftAngle.toFixed(3)}) scale(${leftFold.toFixed(4)} ${wingHeight.toFixed(4)}) translate(-768 -512)`
+            );
+            heroWings.right.setAttribute(
+              'transform',
+              `translate(768 512) rotate(${rightAngle.toFixed(3)}) scale(${rightFold.toFixed(4)} ${wingHeight.toFixed(4)}) translate(-768 -512)`
+            );
+          } else if (heroWings.whole) {
+            heroWings.whole.setAttribute(
+              'transform',
+              `translate(768 512) translate(0 ${wingLift.toFixed(2)}) rotate(${wingTilt.toFixed(3)}) scale(${foldX.toFixed(4)} ${wingHeight.toFixed(4)}) translate(-768 -512)`
+            );
+          }
         }
       }
 
