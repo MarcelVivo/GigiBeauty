@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex,nofollow">
-  <title>GiGi Beauty — Admin Dashboard</title>
+  <title>GiGi Beauty | Admin Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/pages/dashboard.css?v=20260808-6">
@@ -47,7 +47,7 @@
       </header>
 
       <section class="view-panel" data-view-panel="overview">
-        <section class="daily-brief"><div><span class="eyebrow">Heute im Fokus</span><h2 id="daily-brief-title">Business Briefing wird erstellt …</h2><p id="daily-brief-copy"></p></div><div class="brief-actions" id="daily-brief-actions"></div></section>
+        <section class="daily-brief"><div><span class="eyebrow">Heute im Fokus</span><h2 id="daily-brief-title">Übersicht wird erstellt.</h2><p id="daily-brief-copy"></p></div><div class="brief-actions" id="daily-brief-actions"></div></section>
         <div class="analytics-toolbar">
           <div><strong>Business Cockpit</strong><span id="analytics-period-label">Auswertung der letzten 12 Monate</span></div>
           <label for="analytics-period">Zeitraum
@@ -94,7 +94,7 @@
       </section>
 
       <section class="view-panel" data-view-panel="customers" hidden>
-        <div class="toolbar"><div class="toolbar-group"><input class="search" id="customer-search" type="search" placeholder="Name, E-Mail oder Telefon …"><select class="filter-select" id="customer-segment"><option value="all">Alle Segmente</option><option value="vip">VIP</option><option value="loyal">Stammkundinnen</option><option value="repeat">Wiederkehrend</option><option value="new">Neu</option><option value="lead">Kontakte</option><option value="missing_email">E-Mail fehlt</option><option value="at_risk">Reaktivierung</option></select><span class="muted" id="customer-count"></span></div><div><input id="customer-import-file" type="file" accept=".csv,text/csv" hidden><button class="secondary" id="customer-import" type="button">CSV importieren</button></div></div>
+        <div class="toolbar"><div class="toolbar-group"><input class="search" id="customer-search" type="search" placeholder="Name, E-Mail oder Telefon"><select class="filter-select" id="customer-segment"><option value="all">Alle Segmente</option><option value="vip">VIP</option><option value="loyal">Stammkundinnen</option><option value="repeat">Wiederkehrend</option><option value="new">Neu</option><option value="lead">Kontakte</option><option value="missing_email">E-Mail fehlt</option><option value="at_risk">Reaktivierung</option></select><span class="muted" id="customer-count"></span></div><div><input id="customer-import-file" type="file" accept=".csv,text/csv" hidden><button class="secondary" id="customer-import" type="button">CSV importieren</button></div></div>
         <div class="table-wrap customer-table-wrap"><table class="customer-table"><thead><tr><th>Kundin & Kontakt</th><th>Status & Login</th><th>Buchungen</th><th>Umsatz</th><th>Letzter / nächster Termin</th><th>Kontaktfreigabe</th></tr></thead><tbody id="customer-table"></tbody></table></div>
       </section>
 
@@ -193,10 +193,10 @@
       <div class="field"><label for="customer-source">Akquisequelle</label><select id="customer-source"><option value="">Nicht bekannt</option><option>Website</option><option>Google</option><option>Instagram</option><option>Empfehlung</option><option>Treatwell</option><option>Laufkundschaft</option><option>Andere</option></select></div>
       <div class="field"><label for="customer-preferred-service">Lieblingsbehandlung</label><select id="customer-preferred-service"><option value="">Nicht festgelegt</option></select></div>
       <div class="field full"><label for="customer-tags">Tags (mit Komma trennen)</label><input id="customer-tags" placeholder="VIP, empfindliche Haut, bevorzugt Samstag"></div>
-      <div class="field"><label for="customer-consent-source">Einwilligungsquelle</label><input id="customer-consent-source" placeholder="Website, Formular, Import …"></div>
+      <div class="field"><label for="customer-consent-source">Einwilligungsquelle</label><input id="customer-consent-source" placeholder="Website, Formular oder Import"></div>
       <div class="field"><label for="customer-consent-version">Einwilligungsversion</label><input id="customer-consent-version" placeholder="z. B. 2026-08"></div>
-      <div class="field full"><label><input id="customer-do-not-contact" type="checkbox"> Keine Kontaktaufnahme – auch bei vorhandener Einwilligung</label></div>
-      <div class="field full"><label for="customer-notes">CRM-Notizen</label><textarea id="customer-notes" rows="5" placeholder="Vorlieben, Beratung, wichtige Hinweise …"></textarea></div>
+      <div class="field full"><label><input id="customer-do-not-contact" type="checkbox"> Keine Kontaktaufnahme, auch bei vorhandener Einwilligung</label></div>
+      <div class="field full"><label for="customer-notes">CRM-Notizen</label><textarea id="customer-notes" rows="5" placeholder="Vorlieben, Beratung und wichtige Hinweise"></textarea></div>
     </div>
     <div class="customer-history" id="customer-history"></div>
     <div class="customer-history" id="customer-communications"></div>

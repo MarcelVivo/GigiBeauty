@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Termin online buchen — GiGi Beauty Bern</title>
+  <title>Termin online buchen | GiGi Beauty Bern</title>
   <meta name="description" content="Wähle deine Behandlung und buche deinen GiGi Beauty Termin in Bern direkt online.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
@@ -25,8 +25,8 @@
 
   <header class="booking-hero">
     <span class="eyebrow">GiGi Beauty · Bern</span>
-    <h1>Deine Zeit für Schönheit</h1>
-    <p>Behandlung wählen, freien 90-Minuten-Termin finden und direkt reservieren.</p>
+    <h1>Dein Termin bei GiGi Beauty</h1>
+    <p>Wähle eine Behandlung und finde einen Termin, der für dich passt. Alle Termine dauern 90 Minuten.</p>
   </header>
 
   <main class="booking-shell">
@@ -35,7 +35,7 @@
         <span class="section-kicker">1 · Behandlung wählen</span>
       </div>
       <div class="auth-state">
-        <div class="auth-state-copy" id="auth-copy">Noch nicht angemeldet<strong>Zum Buchen ist ein Konto erforderlich</strong></div>
+        <div class="auth-state-copy" id="auth-copy">Noch nicht angemeldet<strong>Zum Buchen brauchst du ein Konto</strong></div>
         <button class="small-button" id="my-appointments" type="button" hidden>Meine Termine</button>
         <button class="small-button" id="auth-button" type="button">Anmelden</button>
       </div>
@@ -62,12 +62,12 @@
           </div>
         </div>
         <div class="calendar-content" id="calendar-content">
-          <div class="calendar-loading">Freie Termine werden geladen …</div>
+          <div class="calendar-loading">Freie Termine werden geladen.</div>
         </div>
         <div class="booking-note">
           <span class="legend">Frei und buchbar</span>
-          <span class="legend busy">Bereits reserviert / gesperrt</span>
-          <span>Stornierung kostenlos bis 12 Stunden vor dem Termin.</span>
+          <span class="legend busy">Belegt oder gesperrt</span>
+          <span>Du kannst deinen Termin bis 12 Stunden vor Beginn kostenlos stornieren.</span>
         </div>
       </div>
     </section>
@@ -75,7 +75,7 @@
 
   <footer id="site-footer">
     <div class="footer-logo">GiGi Beauty</div>
-    <p class="footer-tagline">Luxury Beauty Studio · Bern</p>
+    <p class="footer-tagline">Kosmetikstudio in Bern</p>
     <ul class="footer-links">
       <li><a href="kontakt.html">Kontakt</a></li>
       <li><a href="../agb.html">AGB</a></li>
@@ -89,7 +89,7 @@
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
       <button class="modal-close" type="button" data-close-modal aria-label="Schliessen">×</button>
       <h2 id="auth-title">Willkommen</h2>
-      <p>Mit deinem persönlichen Konto kannst du Termine verbindlich buchen und verwalten.</p>
+      <p>Mit deinem Konto kannst du Termine buchen und deine Reservierungen verwalten.</p>
       <div class="auth-tabs">
         <button class="auth-tab is-active" type="button" data-auth-mode="login">Anmelden</button>
         <button class="auth-tab" type="button" data-auth-mode="signup">Konto erstellen</button>
@@ -110,7 +110,7 @@
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="booking-title">
       <button class="modal-close" type="button" data-close-modal aria-label="Schliessen">×</button>
       <h2 id="booking-title">Termin bestätigen</h2>
-      <p>Deine Auswahl wird erst nach der Bestätigung verbindlich reserviert.</p>
+      <p>Der Termin wird erst reserviert, wenn du die Buchung bestätigst.</p>
       <div class="booking-summary" id="booking-summary"></div>
       <form class="form-stack" id="booking-form">
         <div class="field"><label for="booking-phone">Telefon (optional)</label><input id="booking-phone" type="tel" autocomplete="tel"></div>
@@ -126,7 +126,7 @@
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="account-title">
       <button class="modal-close" type="button" data-close-modal aria-label="Schliessen">×</button>
       <h2 id="account-title">Meine Termine</h2>
-      <p>Stornierungen sind bis 12 Stunden vor Beginn direkt möglich.</p>
+      <p>Bis 12 Stunden vor Beginn kannst du einen Termin direkt stornieren.</p>
       <div class="slot-list" id="account-appointments" style="margin-top:1.5rem"></div>
     </section>
   </div>

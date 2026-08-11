@@ -161,12 +161,12 @@
   }
 
   async function refreshCalendar() {
-    els.calendar.innerHTML = '<div class="calendar-loading">Freie Termine werden geladen …</div>';
+    els.calendar.innerHTML = '<div class="calendar-loading">Freie Termine werden geladen.</div>';
     const [start, end] = getRange();
     state.unavailable = [];
     if (db) {
       const { data, error } = await db.rpc('get_unavailable_slots', { range_start: start.toISOString(), range_end: end.toISOString() });
-      if (error) showToast(`Kalender konnte nicht geladen werden: ${error.message}`);
+      if (error) showToast(`Der Kalender konnte nicht geladen werden: ${error.message}`);
       else state.unavailable = data || [];
     }
     renderCalendar();
@@ -193,7 +193,7 @@
     const slots = createSlots(day);
     els.calendarTitle.textContent = formatDate(day, { day: '2-digit', month: 'long', year: 'numeric' });
     els.calendar.innerHTML = `<div class="day-view">
-      <div class="day-view-head"><h2>${formatDate(day, { weekday: 'long' })}</h2><p>${slots.length ? 'Wähle dein gewünschtes Zeitfenster' : 'An diesem Tag bleibt das Studio geschlossen.'}</p></div>
+      <div class="day-view-head"><h2>${formatDate(day, { weekday: 'long' })}</h2><p>${slots.length ? 'Wähle eine passende Uhrzeit.' : 'An diesem Tag bleibt das Studio geschlossen.'}</p></div>
       <div class="slot-list day-slots">${slots.map(slotButton).join('')}</div>
     </div>`;
   }
@@ -201,7 +201,7 @@
   function renderWeek() {
     const start = startOfWeek(state.cursor);
     const end = addDays(start, 6);
-    els.calendarTitle.textContent = `${formatDate(start, { day: '2-digit', month: 'short' })} – ${formatDate(end, { day: '2-digit', month: 'short', year: 'numeric' })}`;
+    els.calendarTitle.textContent = `${formatDate(start, { day: '2-digit', month: 'short' })} bis ${formatDate(end, { day: '2-digit', month: 'short', year: 'numeric' })}`;
     els.calendar.innerHTML = `<div class="week-grid">${Array.from({ length: 7 }, (_, i) => {
       const day = addDays(start, i);
       const slots = createSlots(day);
@@ -248,7 +248,7 @@
 
   function openBookingModal() {
     const summary = document.getElementById('booking-summary');
-    summary.innerHTML = `<strong>${escapeHtml(state.selectedService.name)}</strong>${formatDate(state.selectedSlot, { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}<br>${formatDate(state.selectedSlot, { hour: '2-digit', minute: '2-digit' })}–${formatDate(new Date(state.selectedSlot.getTime() + SLOT_MINUTES * 60000), { hour: '2-digit', minute: '2-digit' })} Uhr<br>Behandlungspreis: CHF ${Number(state.selectedService.price_chf || 0).toFixed(2)}`;
+    summary.innerHTML = `<strong>${escapeHtml(state.selectedService.name)}</strong>${formatDate(state.selectedSlot, { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}<br>${formatDate(state.selectedSlot, { hour: '2-digit', minute: '2-digit' })} bis ${formatDate(new Date(state.selectedSlot.getTime() + SLOT_MINUTES * 60000), { hour: '2-digit', minute: '2-digit' })} Uhr<br>Preis: CHF ${Number(state.selectedService.price_chf || 0).toFixed(2)}`;
     document.getElementById('booking-phone').value = state.profile?.phone || '';
     document.getElementById('booking-message').textContent = '';
     openModal(els.bookingModal);
@@ -270,7 +270,7 @@
       els.authButton.textContent = 'Abmelden';
       document.getElementById('my-appointments').hidden = false;
     } else {
-      els.authCopy.innerHTML = 'Noch nicht angemeldet<strong>Zum Buchen ist ein Konto erforderlich</strong>';
+      els.authCopy.innerHTML = 'Noch nicht angemeldet<strong>Zum Buchen brauchst du ein Konto</strong>';
       els.authButton.textContent = 'Anmelden';
       document.getElementById('my-appointments').hidden = true;
     }
@@ -293,11 +293,11 @@
     const message = document.getElementById('auth-message');
     const email = document.getElementById('auth-email').value.trim();
     const password = document.getElementById('auth-password').value;
-    message.textContent = 'Bitte kurz warten …';
+    message.textContent = 'Einen Moment bitte.';
     if (state.authMode === 'signup') {
       const fullName = document.getElementById('auth-name').value.trim();
       if (fullName.length < 2) { message.textContent = 'Bitte Vor- und Nachname angeben.'; return; }
-      if (document.getElementById('auth-phone').value.replace(/\D/g, '').length < 9) { message.textContent = 'Bitte eine gültige Telefonnummer angeben. Sie hilft uns, dein bestehendes Kundenprofil sicher zuzuordnen.'; return; }
+      if (document.getElementById('auth-phone').value.replace(/\D/g, '').length < 9) { message.textContent = 'Bitte gib eine gültige Telefonnummer an. So können wir dein Kundenprofil sicher zuordnen.'; return; }
       const { data, error } = await db.auth.signUp({
         email, password,
         options: { emailRedirectTo: new URL('booking.html', location.href).href, data: { full_name: fullName, phone: document.getElementById('auth-phone').value.trim(), marketing_consent: document.getElementById('auth-marketing').checked } }
@@ -305,7 +305,7 @@
       if (error) { message.textContent = error.message; return; }
       if (!data.session) {
         message.className = 'form-message success';
-        message.textContent = 'Fast geschafft: Bitte bestätige dein Konto über den Link in deiner E-Mail.';
+        message.textContent = 'Bitte bestätige dein Konto über den Link in deiner E-Mail.';
       } else {
         closeModal(els.authModal);
         showToast('Dein Konto wurde erstellt.');
@@ -323,7 +323,7 @@
   async function submitBooking(event) {
     event.preventDefault();
     const message = document.getElementById('booking-message');
-    message.textContent = 'Termin wird reserviert …';
+    message.textContent = 'Wir reservieren deinen Termin.';
     const { data: appointmentId, error } = await db.rpc('book_appointment', {
       requested_service_id: state.selectedService.id,
       requested_start: state.selectedSlot.toISOString(),
@@ -339,12 +339,12 @@
     document.getElementById('booking-form').reset();
     state.selectedSlot = null;
     await refreshCalendar();
-    showToast('Termin bestätigt. Du erhältst gleich eine E-Mail.');
+    showToast('Dein Termin ist bestätigt. Die Bestätigung kommt per E-Mail.');
   }
 
   async function openAccount() {
     const list = document.getElementById('account-appointments');
-    list.innerHTML = '<div class="calendar-loading" style="min-height:160px">Termine werden geladen …</div>';
+    list.innerHTML = '<div class="calendar-loading" style="min-height:160px">Termine werden geladen.</div>';
     openModal(els.accountModal);
     const { data, error } = await db.from('appointments').select('id, starts_at, status, services(name)').eq('customer_id', state.user.id).gte('starts_at', new Date().toISOString()).order('starts_at');
     if (error) { list.innerHTML = `<div class="account-empty">${escapeHtml(error.message)}</div>`; return; }
@@ -360,7 +360,7 @@
     if (!confirm('Diesen Termin verbindlich stornieren?')) return;
     const { error } = await db.rpc('cancel_own_appointment', { appointment_id: id });
     if (error) return showToast(error.message);
-    showToast('Termin storniert. Du erhältst eine Bestätigung per E-Mail.');
+    showToast('Dein Termin wurde storniert. Die Bestätigung kommt per E-Mail.');
     await refreshCalendar();
     await openAccount();
   }
@@ -390,7 +390,7 @@
       setAuthMode('signup');
       openModal(els.authModal);
       document.getElementById('auth-message').className = 'form-message success';
-      document.getElementById('auth-message').textContent = 'Willkommen! Erstelle dein persönliches Konto. Verwende bitte dieselbe Telefonnummer, die bei GiGi Beauty hinterlegt ist.';
+      document.getElementById('auth-message').textContent = 'Erstelle dein Konto mit derselben Telefonnummer, die du bei GiGi Beauty angegeben hast.';
     }
   }).catch(error => { console.error(error); showToast('Die Terminbuchung konnte nicht geladen werden.'); });
 })();

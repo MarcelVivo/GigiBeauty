@@ -8,7 +8,7 @@
   const panelMeta = {
     overview: ['Guten Tag, Liliane', 'Das Wichtigste auf einen Blick.'],
     calendar: ['Terminkalender', 'Termine eintragen, verschieben und Zeiten sperren.'],
-    tasks: ['Smart CRM', 'Die wichtigsten nächsten Schritte – automatisch priorisiert.'],
+    tasks: ['Smart CRM', 'Die wichtigsten nächsten Schritte, automatisch priorisiert.'],
     customers: ['Kunden', 'Kontaktdaten, Historie und Marketing-Einwilligungen.'],
     waitlist: ['Warteliste', 'Freie Zeitfenster schneller mit passenden Kundinnen besetzen.'],
     invoices: ['Finanzen', 'Einnahmen, Ausgaben, Rechnungen und Profitabilität.'],
@@ -51,7 +51,7 @@
   }
 
   async function enterDashboard(user) {
-    $('login-message').textContent = 'Login erfolgreich. Admin-Berechtigung wird geprüft …';
+    $('login-message').textContent = 'Login erfolgreich. Die Admin-Berechtigung wird geprüft.';
     let adminResult;
     try {
       adminResult = await Promise.race([
@@ -74,7 +74,7 @@
     };
     state.user = user;
     state.profile = profile;
-    $('login-message').textContent = 'Admin bestätigt. Dashboard wird geladen …';
+    $('login-message').textContent = 'Admin bestätigt. Das Dashboard wird geladen.';
     $('admin-name').textContent = profile.full_name;
     $('admin-email-label').textContent = profile.email;
     $('login-screen').hidden = true;
@@ -340,7 +340,7 @@
 
   function renderCalendar() {
     const end = addDays(state.week, 6);
-    $('week-title').textContent = `${fmt(state.week, { day: '2-digit', month: 'short' })} – ${fmt(end, { day: '2-digit', month: 'short', year: 'numeric' })}`;
+    $('week-title').textContent = `${fmt(state.week, { day: '2-digit', month: 'short' })} bis ${fmt(end, { day: '2-digit', month: 'short', year: 'numeric' })}`;
     $('admin-calendar').innerHTML = Array.from({ length: 7 }, (_, index) => {
       const date = addDays(state.week, index);
       const key = dayKey(date);
@@ -508,7 +508,7 @@
     const vip = open.filter(item => Number(item.priority) >= 2).length;
     $('waitlist-metrics').innerHTML = [metricCard('Offene Wünsche', open.length, 'bereit für Angebote'), metricCard('Angebot gesendet', offered.length, 'Antwort ausstehend'), metricCard('Hohe Priorität', vip, 'VIP oder dringend'), metricCard('Mit E-Mail', open.filter(item => item.email).length, 'automatisch erreichbar')].join('');
     $('waitlist-table').innerHTML = state.waitlist.length ? state.waitlist.map(item => {
-      const range = item.preferred_from || item.preferred_until ? `${item.preferred_from ? fmt(item.preferred_from, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'offen'} – ${item.preferred_until ? fmt(item.preferred_until, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'offen'}` : 'Jederzeit';
+      const range = item.preferred_from || item.preferred_until ? `${item.preferred_from ? fmt(item.preferred_from, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'offen'} bis ${item.preferred_until ? fmt(item.preferred_until, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'offen'}` : 'Jederzeit';
       return `<tr><td><span class="priority-mark priority-${item.priority >= 2 ? 'urgent' : item.priority === 1 ? 'high' : 'normal'}">${item.priority >= 2 ? 'VIP' : item.priority === 1 ? 'Hoch' : 'Normal'}</span></td><td><strong>${esc(item.customer_name)}</strong><br><span class="muted">${esc(item.email || item.phone || 'Kontakt fehlt')}</span></td><td>${esc(item.services?.name || 'Alle')}</td><td>${esc(range)}</td><td>${item.flexible ? 'Flexibel' : 'Fix'}</td><td>${esc(({ open: 'Offen', offered: 'Angeboten', booked: 'Gebucht', expired: 'Abgelaufen', cancelled: 'Storniert' })[item.status] || item.status)}</td><td>${['open', 'offered'].includes(item.status) ? `<button class="link-button" type="button" data-offer-waitlist="${item.id}">Termin anbieten</button><button class="link-button" type="button" data-cancel-waitlist="${item.id}">Entfernen</button>` : '–'}</td></tr>`;
     }).join('') : '<tr><td colspan="7" class="empty">Noch keine Wünsche auf der Warteliste.</td></tr>';
     document.querySelectorAll('[data-offer-waitlist]').forEach(button => button.onclick = () => offerWaitlist(button.dataset.offerWaitlist));
@@ -776,7 +776,7 @@
     $('appointment-service').disabled = privateEntry;
     $('appointment-email').disabled = privateEntry;
     $('appointment-phone').disabled = privateEntry;
-    if (privateEntry && !$('appointment-name').value) $('appointment-name').value = 'Privat – Liliane';
+    if (privateEntry && !$('appointment-name').value) $('appointment-name').value = 'Privat, Liliane';
   }
 
   async function saveAppointment(event) {
@@ -899,7 +899,7 @@
     $('customer-rebook-message').disabled = !customer.email || !customer.marketing_consent || customer.do_not_contact;
     const matches = customer.phone ? state.customers.filter(item => item.id !== customer.id && phoneKey(item.phone) && phoneKey(item.phone) === phoneKey(customer.phone)) : [];
     $('customer-merge-suggestions').hidden = !matches.length;
-    $('customer-merge-suggestions').innerHTML = matches.length ? `<strong>Mögliche Doppelprofile gefunden</strong><p>Gleiche Telefonnummer – bitte nur zusammenführen, wenn es wirklich dieselbe Person ist.</p>${matches.map(item => `<div><span>${esc(item.full_name)} · ${esc(item.email || 'ohne E-Mail')}</span><button class="secondary small" type="button" data-merge-customer="${item.id}">Zusammenführen</button></div>`).join('')}` : '';
+    $('customer-merge-suggestions').innerHTML = matches.length ? `<strong>Mögliche Doppelprofile gefunden</strong><p>Die Telefonnummer ist identisch. Bitte nur zusammenführen, wenn es wirklich dieselbe Person ist.</p>${matches.map(item => `<div><span>${esc(item.full_name)} · ${esc(item.email || 'ohne E-Mail')}</span><button class="secondary small" type="button" data-merge-customer="${item.id}">Zusammenführen</button></div>`).join('')}` : '';
     document.querySelectorAll('[data-merge-customer]').forEach(button => button.onclick = () => mergeCustomerProfiles(customer.id, button.dataset.mergeCustomer));
     $('customer-message').textContent = '';
     openModal('customer-modal');
@@ -928,7 +928,7 @@
     }
     const { error } = await db.rpc('queue_registration_invite', { requested_customer_id: customerId, requested_channel: channel });
     if (error) return toast(error.message);
-    toast(channel === 'email' ? 'Registrierungseinladung wurde für den E-Mail-Versand eingeplant.' : `${channel === 'whatsapp' ? 'WhatsApp' : 'SMS'} ist vorbereitet – bitte die Nachricht noch absenden.`);
+    toast(channel === 'email' ? 'Die Registrierungseinladung ist für den E-Mail-Versand eingeplant.' : `${channel === 'whatsapp' ? 'WhatsApp' : 'SMS'} ist vorbereitet. Bitte sende die Nachricht noch ab.`);
     await loadAll();
     if (!$('customer-modal').hidden) openCustomer(customerId);
   }
@@ -1070,7 +1070,7 @@
     event.preventDefault();
     if (!db) return;
     const submit = event.currentTarget.querySelector('button[type="submit"]');
-    $('login-message').textContent = 'Anmeldung läuft …';
+    $('login-message').textContent = 'Anmeldung läuft.';
     submit.disabled = true;
     try {
       const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Login timeout')), 12000));
@@ -1079,7 +1079,7 @@
         timeout
       ]);
       if (error) { $('login-message').textContent = loginErrorMessage(error); return; }
-      $('login-message').textContent = 'Passwort akzeptiert. Anmeldung wird abgeschlossen …';
+      $('login-message').textContent = 'Passwort akzeptiert. Die Anmeldung wird abgeschlossen.';
       await enterDashboard(data.user);
     } catch (error) {
       $('login-message').textContent = loginErrorMessage(error);
