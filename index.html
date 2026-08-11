@@ -4548,6 +4548,24 @@
   const cardEls  = [];
   const labelEls = [];
   const heroWingEls = [];
+
+  function createHeroWingMotionProfile(index) {
+    return {
+      phaseA: Math.random() * Math.PI * 2,
+      phaseB: Math.random() * Math.PI * 2,
+      slowSpeed: 0.22 + Math.random() * 0.18,
+      detailSpeed: 0.68 + Math.random() * 0.42,
+      pauseSpeed: 0.10 + Math.random() * 0.08,
+      foldDepth: 0.018 + Math.random() * 0.022,
+      tiltDepth: (0.28 + Math.random() * 0.42) * (index % 2 ? 1 : -1),
+      nextFlutter: 1.4 + Math.random() * 4.8,
+      flutterStart: -10,
+      flutterDuration: 0.7,
+      flutterStrength: 0.018,
+      flutterRipples: 2
+    };
+  }
+
   function createHeroServiceButterflyLegacy(index, label, imageSrc) {
     const ns = 'http://www.w3.org/2000/svg';
     /* The official GiGi Beauty side-view mark, opened symmetrically: each
@@ -4791,7 +4809,7 @@
 
     svg.appendChild(butterflyVisual);
 
-    heroWingEls.push({ whole: butterflyVisual });
+    heroWingEls.push({ whole: butterflyVisual, motion: createHeroWingMotionProfile(index) });
     return svg;
   }
 
@@ -4865,7 +4883,7 @@
     visual.appendChild(frame);
 
     svg.appendChild(visual);
-    heroWingEls.push({ whole: visual });
+    heroWingEls.push({ whole: visual, motion: createHeroWingMotionProfile(index) });
     return svg;
   }
 
@@ -5015,6 +5033,7 @@
   let smoothedRotY = 0;
   let smoothedHelixRot = 0;
   let smoothedCameraY = 0;
+  let wingIdleBlend = PREFERS_REDUCED_MOTION ? 0 : 1;
   let isPastHero = false;
   {
     const initialHero = document.getElementById('hero-scroll');
@@ -5378,6 +5397,19 @@
     scrollProgress = updateCarouselProgress(scrollProgress, targetScrollProgress, deltaSeconds);
     const eased = scrollProgress;
 
+    /* Idle wing life fades away while the carousel is being driven by scroll,
+       then returns softly once the helix has settled. This preserves the
+       established scroll choreography and prevents competing motion. */
+    const carouselActivity = Math.min(
+      1,
+      Math.abs(scrollVelocity) * 7.5 + Math.abs(targetScrollProgress - scrollProgress) * 16
+    );
+    const wingIdleTarget = PREFERS_REDUCED_MOTION
+      ? 0
+      : 1 - smoothstepLocal(0.035, 0.30, carouselActivity);
+    const wingIdleFollow = 1 - Math.exp(-2.4 * deltaSeconds);
+    wingIdleBlend = lerp(wingIdleBlend, wingIdleTarget, wingIdleFollow);
+
     // Keep the complete product bouquet locked to one shared central axis.
     // Only local material rotation and the rising lipstick tip are animated.
     lipstickGroup.position.x = HERO_AXIS_X;
@@ -5671,12 +5703,61 @@
 
       card.style.transform = `translate3d(${displayX.toFixed(2)}px, ${displayY.toFixed(2)}px, 0) translate(-50%, -50%) scale(${scaleFactor.toFixed(4)})`;
 
-      const flap = PREFERS_REDUCED_MOTION
-        ? 1
-        : 0.975 + 0.025 * (0.5 + 0.5 * Math.sin(elapsed * 0.72 + i * 0.86 + eased * Math.PI * 2));
       const heroWings = heroWingEls[i];
       if (heroWings && heroWings.whole) {
-        heroWings.whole.setAttribute('transform', `scale(${flap.toFixed(4)} 1)`);
+        if (PREFERS_REDUCED_MOTION || !heroWings.motion) {
+          heroWings.whole.removeAttribute('transform');
+        } else {
+          const motion = heroWings.motion;
+
+          /* A slow, layered waveform creates breathing-like wing movement.
+             Two unrelated frequencies also form naturally long quiet phases,
+             so the seven butterflies never flap in synchrony. */
+          const slowWave = Math.sin(elapsed * motion.slowSpeed + motion.phaseA);
+          const detailWave = Math.sin(elapsed * motion.detailSpeed + motion.phaseB);
+          const pauseSignal = 0.5
+            + Math.sin(elapsed * motion.pauseSpeed + motion.phaseB * 0.73) * 0.34
+            + Math.sin(elapsed * motion.pauseSpeed * 0.57 + motion.phaseA * 1.31) * 0.16;
+          const motionGate = smoothstepLocal(0.34, 0.69, pauseSignal);
+          const organicWave = Math.max(0, Math.min(1, 0.5 + slowWave * 0.34 + detailWave * 0.16));
+
+          /* Short folds happen at individually randomized intervals. Their
+             sine envelope starts and ends at zero, avoiding visible jumps. */
+          if (elapsed >= motion.nextFlutter) {
+            motion.flutterStart = elapsed;
+            motion.flutterDuration = 0.52 + Math.random() * 0.72;
+            motion.flutterStrength = 0.012 + Math.random() * 0.022;
+            motion.flutterRipples = 2 + Math.floor(Math.random() * 3);
+            motion.nextFlutter = elapsed + motion.flutterDuration + 1.8 + Math.random() * 5.2;
+          }
+          const flutterProgress = (elapsed - motion.flutterStart) / motion.flutterDuration;
+          let flutterFold = 0;
+          if (flutterProgress >= 0 && flutterProgress <= 1) {
+            const envelope = Math.sin(Math.PI * flutterProgress);
+            const ripple = 0.58 + 0.42 * Math.pow(
+              Math.sin(Math.PI * flutterProgress * motion.flutterRipples),
+              2
+            );
+            flutterFold = envelope * envelope * ripple * motion.flutterStrength;
+          }
+
+          const idleFold = wingIdleBlend * (
+            0.005 + motionGate * (0.008 + organicWave * motion.foldDepth) + flutterFold
+          );
+          const scrollFold = (1 - wingIdleBlend) * 0.025
+            * (0.5 + 0.5 * Math.sin(elapsed * 0.72 + i * 0.86 + eased * Math.PI * 2));
+          const foldX = 1 - idleFold - scrollFold;
+          const wingLift = wingIdleBlend * motionGate
+            * (slowWave * 2.2 + detailWave * 0.8);
+          const wingTilt = wingIdleBlend * motionGate * motion.tiltDepth
+            * (slowWave * 0.72 + detailWave * 0.28);
+          const wingHeight = 1 + wingIdleBlend * motionGate * detailWave * 0.0025;
+
+          heroWings.whole.setAttribute(
+            'transform',
+            `translate(768 512) translate(0 ${wingLift.toFixed(2)}) rotate(${wingTilt.toFixed(3)}) scale(${foldX.toFixed(4)} ${wingHeight.toFixed(4)}) translate(-768 -512)`
+          );
+        }
       }
 
       // The back of the orbit is quieter, never murky: all seven images stay
