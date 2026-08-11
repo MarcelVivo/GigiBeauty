@@ -2633,15 +2633,16 @@
   }
 
   /* ── PMU championship distinction ─────────────────────────────────────
-     A restrained enamel medal makes the international award visible in the
-     hero without competing with the product composition. */
+     A ceremonial burgundy standard hangs directly from the navigation. The
+     enamel medal remains crisp while the fabric moves almost imperceptibly. */
   #championship-badge {
     position: fixed;
-    top: 82px;
-    right: clamp(170px, 18vw, 330px);
+    top: 60px;
+    right: clamp(220px, 22vw, 400px);
     z-index: 18;
     display: flex;
-    width: 156px;
+    width: 172px;
+    height: 246px;
     flex-direction: column;
     align-items: center;
     color: #f8e8c5;
@@ -2654,6 +2655,40 @@
       filter 0.32s ease;
   }
 
+  /* Gold mounting rail fixed to the lower edge of the navbar. */
+  #championship-badge::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    z-index: 5;
+    width: 174px;
+    height: 7px;
+    border: 1px solid rgba(255, 229, 170, 0.74);
+    border-radius: 999px;
+    background: linear-gradient(180deg, #f2d692 0%, #b98231 48%, #6f4316 100%);
+    box-shadow:
+      0 2px 5px rgba(13, 4, 2, 0.58),
+      0 0 11px rgba(224, 180, 91, 0.20),
+      inset 0 1px 1px rgba(255,255,255,0.48);
+    transform: translateX(-50%);
+  }
+
+  /* Two small suspension loops create a believable physical attachment. */
+  #championship-badge::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: calc(50% - 58px);
+    z-index: 4;
+    width: 6px;
+    height: 17px;
+    border: 1px solid #d8ae5d;
+    border-top: 0;
+    border-radius: 0 0 5px 5px;
+    box-shadow: 110px 0 0 -1px #4a260d, 110px 0 0 0 #d8ae5d;
+  }
+
   #championship-badge.award-hidden {
     opacity: 0;
     visibility: hidden;
@@ -2661,39 +2696,54 @@
     pointer-events: none;
   }
 
+  .championship-standard-content {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 242px;
+    padding-top: 25px;
+    flex-direction: column;
+    align-items: center;
+    transform-origin: 50% 0;
+    animation: championshipFlagSway 6.8s ease-in-out infinite;
+    will-change: transform;
+  }
+
   .championship-ribbons {
     position: absolute;
-    top: 72px;
+    top: 10px;
     left: 50%;
     z-index: 0;
-    width: 88px;
-    height: 76px;
+    width: 150px;
+    height: 222px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f1d18a, #9b621f 45%, #e2ba69 76%, #6f4016);
+    clip-path: polygon(0 0, 100% 0, 97% 84%, 50% 100%, 3% 84%);
+    filter: drop-shadow(0 13px 20px rgba(8, 2, 2, 0.42));
     transform: translateX(-50%);
   }
 
-  .championship-ribbons::before,
+  .championship-ribbons::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    background:
+      linear-gradient(90deg, rgba(255,255,255,0.12) 0%, transparent 18%, rgba(18,2,5,0.24) 43%, rgba(255,255,255,0.07) 64%, rgba(12,1,3,0.30) 100%),
+      linear-gradient(108deg, #771722 0%, #5d0e18 44%, #7b1722 67%, #3e080e 100%);
+    clip-path: polygon(0 0, 100% 0, 97% 84%, 50% 100%, 3% 84%);
+    box-shadow: inset 0 0 30px rgba(18, 2, 5, 0.34);
+  }
+
   .championship-ribbons::after {
     content: "";
     position: absolute;
-    top: 0;
-    width: 44px;
-    height: 70px;
-    background:
-      linear-gradient(90deg, rgba(255,255,255,0.12), transparent 24%, rgba(0,0,0,0.24) 82%),
-      linear-gradient(180deg, #7a1822, #4a0c13);
-    border: 1px solid rgba(220, 174, 84, 0.58);
-    clip-path: polygon(0 0, 100% 0, 88% 100%, 50% 79%, 12% 100%);
-    box-shadow: inset 0 0 14px rgba(20, 2, 5, 0.44);
-  }
-
-  .championship-ribbons::before {
-    left: 5px;
+    top: -16%;
+    left: -48%;
+    width: 38%;
+    height: 126%;
+    background: linear-gradient(90deg, transparent, rgba(255, 232, 191, 0.10), transparent);
     transform: rotate(8deg);
-  }
-
-  .championship-ribbons::after {
-    right: 5px;
-    transform: rotate(-8deg);
+    animation: championshipClothLight 8.4s ease-in-out infinite;
   }
 
   .championship-medal {
@@ -2702,6 +2752,7 @@
     display: flex;
     width: 126px;
     height: 126px;
+    flex: 0 0 126px;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -2749,8 +2800,12 @@
     filter:
       drop-shadow(0 15px 28px rgba(7, 2, 2, 0.64))
       drop-shadow(0 0 10px rgba(220, 174, 84, 0.22));
-    transform: translateY(-3px);
     outline: none;
+  }
+
+  #championship-badge:hover .championship-standard-content,
+  #championship-badge:focus-visible .championship-standard-content {
+    animation-duration: 5.2s;
   }
 
   .championship-medal-kicker,
@@ -2809,7 +2864,7 @@
     min-width: 132px;
     margin-top: 7px;
     padding: 7px 12px 6px;
-    background: linear-gradient(110deg, #3b080d, #751722 48%, #3a070c);
+    background: linear-gradient(110deg, rgba(48, 6, 11, 0.92), rgba(117, 23, 34, 0.94) 48%, rgba(49, 6, 11, 0.92));
     border: 1px solid rgba(220, 174, 84, 0.72);
     box-shadow: 0 6px 16px rgba(11, 2, 3, 0.42), inset 0 0 10px rgba(255,255,255,0.04);
     font-family: 'Cormorant Garamond', serif;
@@ -2828,17 +2883,44 @@
     color: rgba(245, 230, 200, 0.68);
   }
 
+  @keyframes championshipFlagSway {
+    0%, 100% { transform: perspective(900px) rotateY(-1.4deg) rotateZ(-0.35deg) skewX(-0.12deg); }
+    28%      { transform: perspective(900px) rotateY(1.8deg) rotateZ(0.52deg) skewX(0.26deg); }
+    58%      { transform: perspective(900px) rotateY(-0.7deg) rotateZ(0.10deg) skewX(-0.18deg); }
+    80%      { transform: perspective(900px) rotateY(1.1deg) rotateZ(-0.22deg) skewX(0.10deg); }
+  }
+
+  @keyframes championshipClothLight {
+    0%, 22% { left: -48%; opacity: 0; }
+    42%     { opacity: 0.72; }
+    62%     { left: 116%; opacity: 0; }
+    100%    { left: 116%; opacity: 0; }
+  }
+
   @media (max-width: 767px) {
     #championship-badge {
-      top: 76px;
+      top: 63px;
       right: 10px;
       width: 104px;
+      height: 166px;
       filter: drop-shadow(0 8px 16px rgba(7, 2, 2, 0.50));
     }
+
+    #championship-badge::before { width: 108px; height: 5px; }
+    #championship-badge::after {
+      top: 1px;
+      left: calc(50% - 39px);
+      width: 4px;
+      height: 12px;
+      box-shadow: 74px 0 0 -1px #4a260d, 74px 0 0 0 #d8ae5d;
+    }
+    .championship-standard-content { height: 162px; padding-top: 16px; }
+    .championship-ribbons { top: 6px; width: 100px; height: 150px; }
 
     .championship-medal {
       width: 84px;
       height: 84px;
+      flex-basis: 84px;
       border-width: 1px;
       box-shadow:
         0 0 0 3px rgba(69, 10, 16, 0.96),
@@ -2848,9 +2930,6 @@
     }
 
     .championship-medal::before { inset: 6px; }
-    .championship-ribbons { top: 47px; width: 66px; height: 54px; }
-    .championship-ribbons::before,
-    .championship-ribbons::after { width: 33px; height: 50px; }
     .championship-medal-kicker { width: 60px; font-size: 0.34rem; letter-spacing: 0.13em; }
     .championship-medal-rank { margin-top: 0; font-size: 1.85rem; }
     .championship-medal-place { font-size: 0.38rem; letter-spacing: 0.18em; }
@@ -2866,12 +2945,27 @@
   }
 
   @media (max-width: 360px) {
-    #championship-badge { top: 150px; right: 9px; }
+    #championship-badge { top: 63px; right: 6px; width: 84px; height: 144px; }
+    #championship-badge::before { width: 88px; }
+    #championship-badge::after {
+      left: calc(50% - 31px);
+      box-shadow: 58px 0 0 -1px #4a260d, 58px 0 0 0 #d8ae5d;
+    }
+    .championship-standard-content { height: 140px; padding-top: 14px; }
+    .championship-ribbons { width: 82px; height: 132px; }
+    .championship-medal { width: 68px; height: 68px; flex-basis: 68px; }
+    .championship-medal-kicker { width: 50px; font-size: 0.29rem; }
+    .championship-medal-rank { font-size: 1.48rem; }
+    .championship-medal-place { font-size: 0.31rem; }
+    .championship-medal-meta { font-size: 0.27rem; }
+    .championship-badge-category { min-width: 76px; padding-inline: 4px; font-size: 0.32rem; }
   }
 
   @media (prefers-reduced-motion: reduce) {
     #championship-badge,
     .championship-medal::after { transition: none; }
+    .championship-standard-content,
+    .championship-ribbons::after { animation: none; }
   }
 </style>
 </head>
@@ -2983,16 +3077,45 @@
 </div>
 
 <a id="championship-badge" href="ueber-liliane.html#auszeichnung-2026" aria-label="3. Platz bei der PMU-Weltmeisterschaft 2026 in Portugal. Mehr erfahren">
-  <span class="championship-ribbons" aria-hidden="true"></span>
-  <span class="championship-medal">
-    <span class="championship-medal-kicker">PMU World Championship</span>
-    <strong class="championship-medal-rank">3.</strong>
-    <span class="championship-medal-place" id="championship-place">Platz</span>
-    <span class="championship-medal-meta">Portugal 2026</span>
+  <span class="championship-standard-content">
+    <span class="championship-ribbons" aria-hidden="true"></span>
+    <span class="championship-medal">
+      <span class="championship-medal-kicker">PMU World Championship</span>
+      <strong class="championship-medal-rank">3.</strong>
+      <span class="championship-medal-place" id="championship-place">Platz</span>
+      <span class="championship-medal-meta">Portugal 2026</span>
+    </span>
+    <span class="championship-badge-category">Lipstick Effect</span>
+    <span class="championship-badge-link" id="championship-link">Auszeichnung ansehen</span>
   </span>
-  <span class="championship-badge-category">Lipstick Effect</span>
-  <span class="championship-badge-link" id="championship-link">Auszeichnung ansehen</span>
 </a>
+
+<script>
+  /* Attach the championship standard to the centre of the About button. Its
+     position follows the translated label and every responsive nav resize. */
+  (function attachChampionshipStandard() {
+    const standard = document.getElementById('championship-badge');
+    const anchor = document.querySelector('.nav-about-btn');
+    if (!standard || !anchor) return;
+
+    const alignStandard = () => {
+      if (window.innerWidth <= 960) {
+        standard.style.removeProperty('left');
+        standard.style.removeProperty('right');
+        return;
+      }
+
+      const anchorBox = anchor.getBoundingClientRect();
+      const standardWidth = standard.getBoundingClientRect().width;
+      standard.style.left = `${Math.round(anchorBox.left + (anchorBox.width - standardWidth) / 2)}px`;
+      standard.style.right = 'auto';
+    };
+
+    alignStandard();
+    window.addEventListener('resize', alignStandard, { passive: true });
+    if ('ResizeObserver' in window) new ResizeObserver(alignStandard).observe(anchor);
+  }());
+</script>
 
 <div id="services-overlay-back" aria-hidden="true"></div>
 <div id="services-overlay"></div>
