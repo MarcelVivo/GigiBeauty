@@ -2641,8 +2641,8 @@
     right: clamp(220px, 22vw, 400px);
     z-index: 18;
     display: flex;
-    width: 176px;
-    height: 240px;
+    width: 180px;
+    height: 230px;
     flex-direction: column;
     align-items: center;
     color: #f8e8c5;
@@ -2675,8 +2675,8 @@
     position: relative;
     display: flex;
     width: 100%;
-    height: 240px;
-    padding-top: 13px;
+    height: 230px;
+    padding-top: 12px;
     flex-direction: column;
     align-items: center;
     transform-origin: 50% 0;
@@ -2689,8 +2689,8 @@
     top: 0;
     left: 50%;
     z-index: 0;
-    width: 166px;
-    height: 236px;
+    width: 176px;
+    height: 230px;
     filter: drop-shadow(0 13px 20px rgba(8, 2, 2, 0.42));
     transform: translateX(-50%);
   }
@@ -2710,9 +2710,9 @@
     position: relative;
     z-index: 2;
     display: flex;
-    width: 126px;
-    height: 126px;
-    flex: 0 0 126px;
+    width: 138px;
+    height: 138px;
+    flex: 0 0 138px;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -2780,9 +2780,9 @@
   }
 
   .championship-medal-kicker {
-    width: 88px;
+    width: 94px;
     font-family: 'Cormorant Garamond', serif;
-    font-size: 0.51rem;
+    font-size: 0.53rem;
     font-weight: 600;
     line-height: 1.08;
     letter-spacing: 0.14em;
@@ -2791,18 +2791,18 @@
 
   .championship-medal-rank {
     display: block;
-    margin: 4px 0 0;
+    margin: 0;
     font-family: 'Playfair Display', Georgia, serif;
-    font-size: 2.48rem;
+    font-size: 2.68rem;
     font-weight: 400;
-    line-height: 0.88;
+    line-height: 1;
     color: #f3d18b;
     text-shadow: 0 2px 10px rgba(25, 3, 6, 0.74);
   }
 
   .championship-medal-place {
     display: block;
-    margin-top: 3px;
+    margin: 0;
     font-family: 'Cormorant Garamond', serif;
     font-size: 0.48rem;
     font-weight: 600;
@@ -2813,11 +2813,20 @@
 
   .championship-medal-meta {
     display: block;
-    margin-top: 6px;
+    margin-top: 7px;
     font-family: 'Cormorant Garamond', serif;
     font-size: 0.45rem;
     letter-spacing: 0.16em;
     color: rgba(243, 209, 139, 0.78);
+  }
+
+  .championship-medal-result {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    margin-top: 3px;
+    justify-items: center;
+    row-gap: 2px;
   }
 
   .championship-badge-category {
@@ -2845,6 +2854,13 @@
     color: rgba(245, 230, 200, 0.68);
   }
 
+  /* The detailed category lives on the linked award chapter. Keeping the hero
+     crest typographically pure mirrors the formal championship medallion. */
+  .championship-badge-category,
+  .championship-badge-link {
+    display: none;
+  }
+
   @keyframes championshipFlagSway {
     0%, 100% { transform: perspective(900px) rotateY(-1.4deg) rotateZ(-0.35deg) skewX(-0.12deg); }
     28%      { transform: perspective(900px) rotateY(1.8deg) rotateZ(0.52deg) skewX(0.26deg); }
@@ -2856,18 +2872,18 @@
     #championship-badge {
       top: 64px;
       right: 10px;
-      width: 108px;
-      height: 162px;
+      width: 112px;
+      height: 150px;
       filter: drop-shadow(0 8px 16px rgba(7, 2, 2, 0.50));
     }
 
-    .championship-standard-content { height: 162px; padding-top: 10px; }
-    .championship-ribbons { width: 104px; height: 160px; }
+    .championship-standard-content { height: 150px; padding-top: 8px; }
+    .championship-ribbons { width: 110px; height: 148px; }
 
     .championship-medal {
-      width: 84px;
-      height: 84px;
-      flex-basis: 84px;
+      width: 88px;
+      height: 88px;
+      flex-basis: 88px;
       border-width: 1px;
       box-shadow:
         0 0 0 3px rgba(69, 10, 16, 0.96),
@@ -2877,10 +2893,11 @@
     }
 
     .championship-medal::before { inset: 6px; }
-    .championship-medal-kicker { width: 62px; font-size: 0.35rem; letter-spacing: 0.11em; }
-    .championship-medal-rank { margin-top: 2px; font-size: 1.72rem; }
-    .championship-medal-place { margin-top: 2px; font-size: 0.34rem; letter-spacing: 0.17em; }
-    .championship-medal-meta { margin-top: 4px; font-size: 0.31rem; letter-spacing: 0.10em; }
+    .championship-medal-kicker { width: 64px; font-size: 0.35rem; letter-spacing: 0.10em; }
+    .championship-medal-result { margin-top: 1px; row-gap: 1px; }
+    .championship-medal-rank { font-size: 1.72rem; }
+    .championship-medal-place { font-size: 0.33rem; letter-spacing: 0.16em; }
+    .championship-medal-meta { margin-top: 4px; font-size: 0.3rem; letter-spacing: 0.09em; }
     .championship-badge-category {
       min-width: 96px;
       margin-top: 5px;
@@ -2892,10 +2909,10 @@
   }
 
   @media (max-width: 360px) {
-    #championship-badge { top: 64px; right: 6px; width: 88px; height: 140px; }
-    .championship-standard-content { height: 140px; padding-top: 9px; }
-    .championship-ribbons { width: 86px; height: 138px; }
-    .championship-medal { width: 68px; height: 68px; flex-basis: 68px; }
+    #championship-badge { top: 64px; right: 6px; width: 92px; height: 126px; }
+    .championship-standard-content { height: 126px; padding-top: 7px; }
+    .championship-ribbons { width: 90px; height: 124px; }
+    .championship-medal { width: 72px; height: 72px; flex-basis: 72px; }
     .championship-medal-kicker { width: 50px; font-size: 0.29rem; }
     .championship-medal-rank { font-size: 1.48rem; }
     .championship-medal-place { font-size: 0.31rem; }
@@ -3020,7 +3037,7 @@
 <a id="championship-badge" href="ueber-liliane.html#auszeichnung-2026" aria-label="3. Platz bei der PMU-Weltmeisterschaft 2026 in Portugal. Mehr erfahren">
   <span class="championship-standard-content">
     <span class="championship-ribbons" aria-hidden="true">
-      <svg class="championship-standard-shape" viewBox="0 0 166 236" preserveAspectRatio="none" focusable="false">
+      <svg class="championship-standard-shape" viewBox="0 0 176 230" preserveAspectRatio="none" focusable="false">
         <defs>
           <linearGradient id="championship-standard-gold" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stop-color="#f3d99b"/>
@@ -3041,16 +3058,26 @@
             <stop offset="1" stop-color="#fff0cb" stop-opacity="0"/>
           </linearGradient>
         </defs>
-        <path fill="url(#championship-standard-gold)" d="M0 0H166L159 156C158 181 152 198 141 211C137 216 133 216 129 220C125 224 121 221 117 225C113 229 109 226 105 230C101 233 97 230 93 233C89 236 86 233 83 236C80 233 77 236 73 233C69 230 65 233 61 230C57 226 53 229 49 225C45 221 41 224 37 220C33 216 29 216 25 211C14 198 8 181 7 156Z"/>
-        <path fill="url(#championship-standard-fabric)" d="M3 3H163L156 156C155 179 149 196 139 208C135 212 131 213 127 217C123 220 119 218 115 222C111 225 107 223 103 227C99 229 95 227 91 230C87 232 85 230 83 233C81 230 79 232 75 230C71 227 67 229 63 227C59 223 55 225 51 222C47 218 43 220 39 217C35 213 31 212 27 208C17 196 11 179 10 156Z"/>
-        <path class="championship-standard-fold" fill="none" stroke="url(#championship-standard-sheen)" stroke-width="17" d="M35 4C42 66 30 131 55 210"/>
-        <path class="championship-standard-fold" fill="none" stroke="url(#championship-standard-sheen)" stroke-width="11" d="M128 4C118 72 132 137 112 218"/>
+        <!-- Three ceremonial ribbon tails sit behind the medallion. -->
+        <path fill="url(#championship-standard-gold)" d="M28 126L77 140L68 224L51 205L25 226L31 144Z"/>
+        <path fill="url(#championship-standard-fabric)" d="M31 130L73 142L65 218L51 201L29 219L34 146Z"/>
+        <path fill="url(#championship-standard-gold)" d="M63 139H113L107 230L88 209L69 230Z"/>
+        <path fill="url(#championship-standard-fabric)" d="M67 143H109L103 222L88 204L73 222Z"/>
+        <path fill="url(#championship-standard-gold)" d="M99 140L148 126L145 144L151 226L125 205L108 224Z"/>
+        <path fill="url(#championship-standard-fabric)" d="M103 142L145 130L142 146L147 219L125 201L111 218Z"/>
+        <!-- The upper edge is straight so the crest meets the navbar cleanly. -->
+        <path fill="url(#championship-standard-gold)" d="M0 0H176V68C176 123 137 166 88 166C39 166 0 123 0 68Z"/>
+        <path fill="url(#championship-standard-fabric)" d="M3 3H173V68C173 120 135 162 88 162C41 162 3 120 3 68Z"/>
+        <path class="championship-standard-fold" fill="none" stroke="url(#championship-standard-sheen)" stroke-width="15" d="M35 4C43 58 33 113 58 151"/>
+        <path class="championship-standard-fold" fill="none" stroke="url(#championship-standard-sheen)" stroke-width="10" d="M139 4C129 60 142 111 118 151"/>
       </svg>
     </span>
     <span class="championship-medal">
       <span class="championship-medal-kicker">PMU World Championship</span>
-      <strong class="championship-medal-rank">3.</strong>
-      <span class="championship-medal-place" id="championship-place">Platz</span>
+      <span class="championship-medal-result">
+        <strong class="championship-medal-rank">3.</strong>
+        <span class="championship-medal-place" id="championship-place">Platz</span>
+      </span>
       <span class="championship-medal-meta">Portugal 2026</span>
     </span>
     <span class="championship-badge-category">Lipstick Effect</span>

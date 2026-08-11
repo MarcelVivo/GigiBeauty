@@ -397,6 +397,10 @@
     left: 50%;
     width: 106px;
     height: 106px;
+    background:
+      linear-gradient(90deg, rgba(255,255,255,0.08), transparent 30%, rgba(0,0,0,0.24) 82%),
+      linear-gradient(180deg, #741520, #3d080e);
+    clip-path: polygon(31% 0, 69% 0, 65% 100%, 50% 78%, 35% 100%);
     transform: translateX(-50%);
   }
 
@@ -459,21 +463,28 @@
   }
 
   .ul-award-medal-kicker {
-    width: 96px;
+    width: 102px;
     font-size: 0.54rem;
     font-weight: 600;
-    line-height: 1.12;
-    letter-spacing: 0.18em;
+    line-height: 1.1;
+    letter-spacing: 0.15em;
     color: rgba(250, 230, 190, 0.78);
   }
 
-  .ul-award-medal-rank {
+  .ul-award-medal-result {
     position: relative;
     z-index: 1;
+    display: grid;
+    margin-top: 5px;
+    justify-items: center;
+    row-gap: 3px;
+  }
+
+  .ul-award-medal-rank {
     display: block;
-    margin: -1px 0 -4px;
+    margin: 0;
     font-family: 'Playfair Display', Georgia, serif;
-    font-size: 3.15rem;
+    font-size: 3rem;
     font-weight: 400;
     line-height: 1;
     color: #f3d18b;
@@ -481,14 +492,16 @@
   }
 
   .ul-award-medal-place {
+    margin: 0;
     font-size: 0.58rem;
     font-weight: 600;
+    line-height: 1;
     letter-spacing: 0.25em;
     color: #f8e8c5;
   }
 
   .ul-award-medal-meta {
-    margin-top: 5px;
+    margin-top: 7px;
     font-size: 0.49rem;
     letter-spacing: 0.16em;
     color: rgba(243, 209, 139, 0.78);
@@ -749,6 +762,11 @@
     .ul-award-grid { grid-template-columns: 1fr; gap: 1.2rem; }
     .ul-award-emblem { position: relative; top: auto; min-height: 178px; padding-top: 4px; }
     .ul-award-medallion { width: 126px; height: 126px; }
+    .ul-award-medal-kicker { width: 88px; font-size: 0.48rem; }
+    .ul-award-medal-result { margin-top: 4px; row-gap: 2px; }
+    .ul-award-medal-rank { font-size: 2.55rem; }
+    .ul-award-medal-place { font-size: 0.51rem; }
+    .ul-award-medal-meta { margin-top: 6px; font-size: 0.43rem; }
     .ul-award-ribbons { top: 77px; width: 92px; height: 88px; }
     .ul-award-ribbons::before,
     .ul-award-ribbons::after { width: 45px; height: 80px; }
@@ -849,8 +867,10 @@
           <span class="ul-award-ribbons"></span>
           <span class="ul-award-medallion">
             <span class="ul-award-medal-kicker">PMU World Championship</span>
-            <strong class="ul-award-medal-rank">3.</strong>
-            <span class="ul-award-medal-place" id="award-medal-place">Platz</span>
+            <span class="ul-award-medal-result">
+              <strong class="ul-award-medal-rank">3.</strong>
+              <span class="ul-award-medal-place" id="award-medal-place">Platz</span>
+            </span>
             <span class="ul-award-medal-meta">Portugal 2026</span>
           </span>
         </div>
