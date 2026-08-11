@@ -2370,6 +2370,266 @@
     .svc-description p,
     .price-name { color: rgba(255, 243, 220, 0.97); }
   }
+
+  /* ── Editorial treatment layout ────────────────────────────────────────
+     The treatment chapters use their content instead of a forced full
+     viewport. Type, prices and booking action now form one compact reading
+     sequence while the botanical rail keeps its continuous composition. */
+  .svc-description h3,
+  .svc-prices h3 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .svc-description h3::before,
+  .svc-prices h3::before {
+    content: "";
+    width: 24px;
+    height: 1px;
+    flex: 0 0 24px;
+    background: linear-gradient(90deg, #e8c579, rgba(232, 197, 121, 0.18));
+    box-shadow: 0 0 10px rgba(232, 197, 121, 0.20);
+  }
+
+  .svc-prices {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+  }
+
+  .svc-head-left {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .svc-prices .svc-footer {
+    margin-top: 12px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(232, 197, 121, 0.18);
+    text-align: left;
+  }
+
+  .svc-prices .btn-book {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 14px 22px 14px 26px;
+    text-align: left;
+  }
+
+  .svc-prices .btn-book::after {
+    content: "\2192";
+    flex: 0 0 auto;
+    font-family: Georgia, serif;
+    font-size: 1.35em;
+    font-weight: 400;
+    line-height: 0;
+    letter-spacing: 0;
+    transition: transform 0.3s ease;
+  }
+
+  .svc-prices .btn-book:hover::after {
+    transform: translateX(4px);
+  }
+
+  @media (min-width: 768px) {
+    .svc-section:not(#section-booking) {
+      display: grid;
+      min-height: clamp(540px, 68svh, 720px);
+      align-items: center;
+    }
+
+    .svc-section:not(#section-booking) .svc-inner {
+      width: 100%;
+      max-width: 1520px;
+      padding-top: clamp(46px, 6svh, 68px);
+      padding-right: clamp(42px, 5vw, 76px);
+      padding-bottom: clamp(50px, 6.5svh, 74px);
+    }
+
+    .svc-header {
+      align-items: center;
+      margin-bottom: clamp(30px, 4svh, 42px);
+      padding-bottom: clamp(19px, 2.4svh, 26px);
+    }
+
+    .svc-title {
+      font-size: clamp(2.25rem, 3.25vw, 3.65rem);
+      line-height: 1.04;
+      letter-spacing: 0.018em;
+    }
+
+    .btn-back-top {
+      width: 49px;
+      height: 49px;
+      margin-top: 0;
+    }
+
+    .svc-content {
+      grid-template-columns: minmax(0, 0.92fr) minmax(330px, 1.08fr);
+      gap: clamp(44px, 5vw, 82px);
+      align-items: start;
+      margin-bottom: 0;
+    }
+
+    .svc-description {
+      padding-top: 2px;
+    }
+
+    .svc-prices {
+      padding-left: clamp(26px, 3vw, 48px);
+      border-left: 1px solid rgba(232, 197, 121, 0.16);
+    }
+
+    .svc-description h3,
+    .svc-prices h3 {
+      margin-bottom: 18px;
+      font-size: clamp(0.80rem, 0.72vw, 0.90rem);
+      line-height: 1.35;
+      letter-spacing: 0.235em;
+    }
+
+    .svc-description p {
+      max-width: 43ch;
+      font-size: clamp(1.18rem, 1.28vw, 1.38rem);
+      line-height: 1.58;
+      letter-spacing: 0.008em;
+      text-wrap: pretty;
+    }
+
+    .price-list li {
+      gap: 8px 12px;
+      padding: 11px 0;
+      font-size: clamp(1.06rem, 1.02vw, 1.18rem);
+      line-height: 1.28;
+    }
+
+    .price-name {
+      min-width: 0;
+      padding-right: 8px;
+    }
+
+    .svc-prices .btn-book {
+      font-size: 0.91rem;
+      letter-spacing: 0.245em;
+    }
+  }
+
+  @media (min-width: 1101px) {
+    .svc-section:not(#section-booking) .svc-inner {
+      padding-left: clamp(330px, 20vw, 400px);
+    }
+  }
+
+  @media (min-width: 768px) and (max-width: 1100px) {
+    .svc-section:not(#section-booking) .svc-inner {
+      padding-left: clamp(150px, 16.5vw, 180px);
+    }
+
+    .svc-content {
+      grid-template-columns: minmax(0, 0.88fr) minmax(320px, 1.12fr);
+      gap: clamp(34px, 4vw, 48px);
+    }
+
+    .svc-prices {
+      padding-left: 24px;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .svc-section:not(#section-booking) {
+      min-height: 0;
+    }
+
+    .svc-inner,
+    #section-gel-acryl-nails .svc-inner {
+      padding-top: 34px;
+      padding-bottom: 46px;
+    }
+
+    #section-gel-acryl-nails .svc-inner {
+      padding-top: 42px;
+    }
+
+    .svc-header {
+      margin-bottom: 18px;
+      padding: 12px 12px 13px;
+    }
+
+    .svc-title {
+      width: 100%;
+      font-size: clamp(1.54rem, 6.8vw, 1.92rem);
+      line-height: 1.10;
+      letter-spacing: 0.018em;
+      white-space: normal;
+      overflow-wrap: break-word;
+      text-wrap: balance;
+    }
+
+    .svc-content {
+      width: 100%;
+      min-width: 0;
+      gap: 22px;
+      margin-bottom: 0;
+      padding: 18px 15px 16px;
+    }
+
+    .svc-description,
+    .svc-prices {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .svc-description h3,
+    .svc-prices h3 {
+      margin-bottom: 13px;
+      font-size: 0.74rem;
+      line-height: 1.35;
+      letter-spacing: 0.17em;
+    }
+
+    .svc-description h3::before,
+    .svc-prices h3::before {
+      width: 18px;
+      flex-basis: 18px;
+    }
+
+    .svc-description p {
+      max-width: 100%;
+      font-size: clamp(1.04rem, 4.75vw, 1.16rem);
+      line-height: 1.56;
+      letter-spacing: 0.004em;
+      overflow-wrap: break-word;
+      text-wrap: pretty;
+    }
+
+    .svc-prices {
+      padding-top: 20px;
+      border-top: 1px solid rgba(232, 197, 121, 0.14);
+    }
+
+    .price-list li {
+      padding: 10px 0;
+      font-size: clamp(0.96rem, 4.25vw, 1.05rem);
+      line-height: 1.30;
+    }
+
+    .svc-prices .svc-footer {
+      margin-top: 9px;
+      padding-top: 16px;
+    }
+
+    .svc-prices .btn-book {
+      width: 100%;
+      max-width: none;
+      padding: 14px 18px 14px 20px;
+      font-size: 0.84rem;
+      letter-spacing: 0.19em;
+    }
+  }
 </style>
 </head>
 <body>
@@ -5131,11 +5391,10 @@
           <li><span class="price-name">Auffüllen Natural (Gel oder Acryl)</span><span class="price-chf">CHF</span><span class="price-amount">90</span></li>
           <li><span class="price-name">Auffüllen mit French oder Full Cover</span><span class="price-chf">CHF</span><span class="price-amount">100</span></li>
         </ul>
+        <div class="svc-footer">
+          <a class="btn-book" href="pages/booking.html">Termin buchen</a>
+        </div>
       </div>
-    </div>
-
-    <div class="svc-footer">
-      <a class="btn-book" href="pages/booking.html">Termin buchen</a>
     </div>
   </div>
 </section>
@@ -5169,11 +5428,10 @@
           <li><span class="price-name">Eyeliner unten</span><span class="price-chf">CHF</span><span class="price-amount">500</span></li>
           <li><span class="price-name">Auffrischen (ab)</span><span class="price-chf">CHF</span><span class="price-amount">400</span></li>
         </ul>
+        <div class="svc-footer">
+          <a class="btn-book" href="pages/booking.html">Termin buchen</a>
+        </div>
       </div>
-    </div>
-
-    <div class="svc-footer">
-      <a class="btn-book" href="pages/booking.html">Termin buchen</a>
     </div>
   </div>
 </section>
@@ -5204,11 +5462,10 @@
           <li><span class="price-name">Spa Pedicure</span><span class="price-chf">CHF</span><span class="price-amount">100</span></li>
           <li><span class="price-name">Pedicure inkl. Gelnägel</span><span class="price-chf">CHF</span><span class="price-amount">150</span></li>
         </ul>
+        <div class="svc-footer">
+          <a class="btn-book" href="pages/booking.html">Termin buchen</a>
+        </div>
       </div>
-    </div>
-
-    <div class="svc-footer">
-      <a class="btn-book" href="pages/booking.html">Termin buchen</a>
     </div>
   </div>
 </section>
@@ -5241,11 +5498,10 @@
           <li><span class="price-name">Kinnkontur</span><span class="price-chf">CHF</span><span class="price-amount">400</span></li>
           <li><span class="price-name">Beratungsgespräch (wird bei Behandlung angerechnet)</span><span class="price-chf">CHF</span><span class="price-amount">50</span></li>
         </ul>
+        <div class="svc-footer">
+          <a class="btn-book" href="pages/booking.html">Termin buchen</a>
+        </div>
       </div>
-    </div>
-
-    <div class="svc-footer">
-      <a class="btn-book" href="pages/booking.html">Termin buchen</a>
     </div>
   </div>
 </section>
@@ -5280,11 +5536,10 @@
           <li><span class="price-name">Auffüllen 4 bis 5D (bis 3 Wochen)</span><span class="price-chf">CHF</span><span class="price-amount">120</span></li>
           <li><span class="price-name">Auffüllen Mega Volume (bis 3 Wochen)</span><span class="price-chf">CHF</span><span class="price-amount">130</span></li>
         </ul>
+        <div class="svc-footer">
+          <a class="btn-book" href="pages/booking.html">Termin buchen</a>
+        </div>
       </div>
-    </div>
-
-    <div class="svc-footer">
-      <a class="btn-book" href="pages/booking.html">Termin buchen</a>
     </div>
   </div>
 </section>
@@ -5317,11 +5572,10 @@
           <li><span class="price-name">Deep Cleansing</span><span class="price-chf">CHF</span><span class="price-amount">140</span></li>
           <li><span class="price-name">Hyaluron Boost</span><span class="price-chf">CHF</span><span class="price-amount">240</span></li>
         </ul>
+        <div class="svc-footer">
+          <a class="btn-book" href="pages/booking.html">Termin buchen</a>
+        </div>
       </div>
-    </div>
-
-    <div class="svc-footer">
-      <a class="btn-book" href="pages/booking.html">Termin buchen</a>
     </div>
   </div>
 </section>
@@ -5355,11 +5609,10 @@
           <li><span class="price-name">Probe Make-up</span><span class="price-chf">CHF</span><span class="price-amount">100</span></li>
           <li><span class="price-name">Make-up Kurs</span><span class="price-chf">CHF</span><span class="price-amount">350</span></li>
         </ul>
+        <div class="svc-footer">
+          <a class="btn-book" href="pages/booking.html">Termin buchen</a>
+        </div>
       </div>
-    </div>
-
-    <div class="svc-footer">
-      <a class="btn-book" href="pages/booking.html">Termin buchen</a>
     </div>
   </div>
 </section>
