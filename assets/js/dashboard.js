@@ -3,7 +3,7 @@
   const config = window.GIGI_SUPABASE || {};
   const configured = /^https:\/\/.+\.supabase\.co$/.test(config.url || '') && !String(config.anonKey || '').startsWith('YOUR-');
   const db = configured && window.supabase ? window.supabase.createClient(config.url, config.anonKey) : null;
-  const state = { user: null, profile: null, settings: null, services: [], profiles: [], customers: [], appointments: [], blocks: [], invoices: [], campaigns: [], payments: [], expenses: [], inventory: [], serviceInventory: [], waitlist: [], tasks: [], communications: [], automations: [], marketingEvents: [], packages: [], giftCards: [], auditLog: [], week: startOfWeek(new Date()), customerFilter: '', customerSegment: 'all', analyticsMonths: 12 };
+  const state = { user: null, profile: null, settings: null, services: [], profiles: [], customers: [], appointments: [], blocks: [], invoices: [], campaigns: [], payments: [], expenses: [], inventory: [], serviceInventory: [], waitlist: [], tasks: [], communications: [], automations: [], marketingEvents: [], packages: [], giftCards: [], auditLog: [], servicePriceItems: [], week: startOfWeek(new Date()), customerFilter: '', customerSegment: 'all', analyticsMonths: 12 };
   const $ = id => document.getElementById(id);
   const panelMeta = {
     overview: ['Guten Tag, Liliane', 'Das Wichtigste auf einen Blick.'],
@@ -13,7 +13,8 @@
     waitlist: ['Warteliste', 'Freie Zeitfenster schneller mit passenden Kundinnen besetzen.'],
     invoices: ['Finanzen', 'Einnahmen, Ausgaben, Rechnungen und Profitabilität.'],
     inventory: ['Lager', 'Bestände, Materialkosten und Nachbestellungen.'],
-    marketing: ['Marketing', 'Kampagnen für Kundinnen mit Einwilligung erstellen.']
+    marketing: ['Marketing', 'Kampagnen für Kundinnen mit Einwilligung erstellen.'],
+    content: ['Website-Inhalte', 'Behandlungstexte und Preislisten direkt auf der Website pflegen.']
   };
 
   function startOfDay(value) { const d = new Date(value); d.setHours(0, 0, 0, 0); return d; }
@@ -107,7 +108,8 @@
           db.from('marketing_events').select('*').order('occurred_at', { ascending: false }),
           db.from('customer_packages').select('*, customers(full_name), services(name)').order('purchased_at', { ascending: false }),
           db.from('gift_cards').select('*').order('created_at', { ascending: false }),
-          db.from('audit_log').select('*').order('changed_at', { ascending: false }).limit(50)
+          db.from('audit_log').select('*').order('changed_at', { ascending: false }).limit(50),
+          db.from('service_price_items').select('*').order('sort_order')
         ]),
         new Promise((_, reject) => setTimeout(() => reject(new Error('Dashboard data timeout')), 20000))
       ]);
@@ -119,12 +121,12 @@
     if (failed) return toast(`Daten konnten nicht geladen werden: ${failed.error.message}`);
     state.services = results[0].data || [];
     state.settings = results[1].data || null;
-    [state.profiles, state.customers, state.appointments, state.blocks, state.invoices, state.campaigns, state.payments, state.expenses, state.inventory, state.serviceInventory, state.waitlist, state.tasks, state.communications, state.automations, state.marketingEvents, state.packages, state.giftCards, state.auditLog] = results.slice(2).map(result => result.data || []);
+    [state.profiles, state.customers, state.appointments, state.blocks, state.invoices, state.campaigns, state.payments, state.expenses, state.inventory, state.serviceInventory, state.waitlist, state.tasks, state.communications, state.automations, state.marketingEvents, state.packages, state.giftCards, state.auditLog, state.servicePriceItems] = results.slice(2).map(result => result.data || []);
     fillServiceSelect();
     renderAll();
   }
 
-  function renderAll() { renderOverview(); renderCalendar(); renderTasks(); renderCustomers(); renderWaitlist(); renderInvoices(); renderInventory(); renderCampaigns(); }
+  function renderAll() { renderOverview(); renderCalendar(); renderTasks(); renderCustomers(); renderWaitlist(); renderInvoices(); renderInventory(); renderCampaigns(); renderContent(); }
 
   function appointmentRevenue(appointment) {
     return appointment.status === 'completed' && !appointment.is_private ? Number(appointment.amount_chf ?? appointment.services?.price_chf ?? 0) : 0;
@@ -407,7 +409,7 @@
       const admin = state.profiles.find(profile => profile.id === task.completed_by);
       return `<tr><td>${task.completed_at ? esc(fmt(task.completed_at, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })) : '–'}</td><td><strong>${esc(task.title)}</strong></td><td>${task.status === 'done' ? '<span class="status status-completed">Erledigt</span>' : '<span class="status status-cancelled">Nicht relevant</span>'}</td><td>${esc(admin?.full_name || 'System')}</td><td>${esc(task.dismissed_reason || '–')}</td></tr>`;
     }).join('') : '<tr><td colspan="5" class="empty">Noch keine abgeschlossenen Aufgaben.</td></tr>';
-    $('audit-table').innerHTML = state.auditLog.length ? state.auditLog.slice(0, 25).map(entry => `<tr><td>${esc(fmt(entry.changed_at, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }))}</td><td>${esc(({ customers: 'Kundenprofil', appointments: 'Termin', payments: 'Zahlung', expenses: 'Ausgabe', inventory_items: 'Lagerprodukt', waitlist_entries: 'Warteliste' })[entry.table_name] || entry.table_name)}</td><td>${esc(({ insert: 'Erstellt', update: 'Geändert', delete: 'Gelöscht' })[entry.action] || entry.action)}</td><td><span class="muted">${esc(entry.record_id || '–')}</span></td></tr>`).join('') : '<tr><td colspan="4" class="empty">Noch keine Änderungen protokolliert.</td></tr>';
+    $('audit-table').innerHTML = state.auditLog.length ? state.auditLog.slice(0, 25).map(entry => `<tr><td>${esc(fmt(entry.changed_at, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }))}</td><td>${esc(({ customers: 'Kundenprofil', appointments: 'Termin', payments: 'Zahlung', expenses: 'Ausgabe', inventory_items: 'Lagerprodukt', waitlist_entries: 'Warteliste', services: 'Website-Inhalt', service_price_items: 'Preisposition' })[entry.table_name] || entry.table_name)}</td><td>${esc(({ insert: 'Erstellt', update: 'Geändert', delete: 'Gelöscht' })[entry.action] || entry.action)}</td><td><span class="muted">${esc(entry.record_id || '–')}</span></td></tr>`).join('') : '<tr><td colspan="4" class="empty">Noch keine Änderungen protokolliert.</td></tr>';
     document.querySelectorAll('[data-open-customer]').forEach(button => button.onclick = () => openCustomer(button.dataset.openCustomer));
     document.querySelectorAll('[data-complete-task]').forEach(button => button.onclick = () => completeTask(button.dataset.completeTask, 'done'));
     document.querySelectorAll('[data-snooze-task]').forEach(button => button.onclick = () => openTaskSnooze(button.dataset.snoozeTask));
@@ -751,6 +753,114 @@
     $('campaign-table').innerHTML = state.campaigns.length ? state.campaigns.map(c => { const events = state.marketingEvents.filter(event => event.campaign_id === c.id); const revenue = events.filter(event => event.event_type === 'revenue').reduce((sum, event) => sum + Number(event.revenue_chf || 0), 0); return `<tr><td><strong>${esc(c.title)}</strong><br><span class="muted">${events.filter(event => event.event_type === 'clicked').length} Klicks · ${events.filter(event => event.event_type === 'booked').length} Buchungen · ${esc(money(revenue))}</span></td><td>${esc(c.subject)}</td><td>${c.scheduled_at ? fmt(c.scheduled_at, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '–'}</td><td>${statusPill(c.status)}</td><td>${!c.queued_at && (c.status === 'draft' || c.status === 'scheduled') ? `<button class="link-button" data-send-campaign="${c.id}">Versand einplanen</button>` : ''}</td></tr>`; }).join('') : '<tr><td colspan="5" class="empty">Noch keine Kampagnen.</td></tr>';
     document.querySelectorAll('[data-send-campaign]').forEach(button => button.onclick = () => queueCampaign(button.dataset.sendCampaign));
     document.querySelectorAll('[data-toggle-automation]').forEach(input => input.onchange = () => toggleAutomation(input.dataset.toggleAutomation, input.checked));
+  }
+
+  function renderContent() {
+    const container = $('content-services');
+    if (!container) return;
+    const services = [...state.services].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    container.innerHTML = services.map(service => {
+      const items = state.servicePriceItems.filter(item => item.service_id === service.id).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+      const activeItems = items.filter(item => item.active);
+      const inactiveItems = items.filter(item => !item.active);
+      return `<article class="card content-service-card">
+        <div class="card-head"><div><h2>${esc(service.name)}</h2><p class="muted">${esc(service.slug)}</p></div></div>
+        <div class="field"><label for="content-desc-${service.id}">Über diese Behandlung</label>
+          <textarea id="content-desc-${service.id}" class="content-desc" rows="3" data-service-id="${service.id}">${esc(service.page_description || '')}</textarea>
+        </div>
+        <div class="content-desc-actions" style="display:flex;gap:8px;margin:8px 0 14px">
+          <button class="secondary" type="button" data-save-desc="${service.id}">Text speichern</button>
+          <button class="link-button" type="button" data-undo-desc="${service.id}">Letzte Änderung rückgängig machen</button>
+        </div>
+        <div class="table-wrap embedded">
+          <table>
+            <thead><tr><th>Position</th><th>Preis (CHF)</th><th>Oder Text (z. B. „demnächst“)</th><th></th></tr></thead>
+            <tbody>
+              ${activeItems.map(item => `<tr data-price-item="${item.id}">
+                <td><input class="table-input table-input-wide" type="text" value="${esc(item.name)}" data-field="name"></td>
+                <td><input class="table-input" type="number" min="0" step="0.05" value="${item.price_chf ?? ''}" data-field="price_chf"></td>
+                <td><input class="table-input table-input-wide" type="text" value="${esc(item.price_label || '')}" data-field="price_label"></td>
+                <td><button class="link-button" type="button" data-save-price-item="${item.id}">Speichern</button> <button class="link-button" type="button" data-delete-price-item="${item.id}">Entfernen</button></td>
+              </tr>`).join('') || '<tr><td colspan="4" class="empty">Noch keine Positionen.</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+        <button class="secondary" type="button" data-add-price-item="${service.id}" style="margin-top:8px">+ Position</button>
+        ${inactiveItems.length ? `<div class="subsection-head"><div><h3>Entfernte Positionen</h3><p class="muted">Wiederherstellen, falls versehentlich entfernt.</p></div></div>
+        <div class="content-restore-list">${inactiveItems.map(item => `<span class="restore-chip">${esc(item.name)} <button class="link-button" type="button" data-restore-price-item="${item.id}">Wiederherstellen</button></span>`).join('')}</div>` : ''}
+      </article>`;
+    }).join('') || '<div class="empty">Keine Behandlungen gefunden.</div>';
+
+    container.querySelectorAll('[data-save-desc]').forEach(button => button.onclick = () => saveServiceDescription(button.dataset.saveDesc));
+    container.querySelectorAll('[data-undo-desc]').forEach(button => button.onclick = () => undoServiceDescription(button.dataset.undoDesc));
+    container.querySelectorAll('[data-save-price-item]').forEach(button => button.onclick = () => savePriceItem(button.dataset.savePriceItem));
+    container.querySelectorAll('[data-delete-price-item]').forEach(button => button.onclick = () => deletePriceItem(button.dataset.deletePriceItem));
+    container.querySelectorAll('[data-restore-price-item]').forEach(button => button.onclick = () => restorePriceItem(button.dataset.restorePriceItem));
+    container.querySelectorAll('[data-add-price-item]').forEach(button => button.onclick = () => addPriceItem(button.dataset.addPriceItem));
+  }
+
+  async function saveServiceDescription(serviceId) {
+    const textarea = document.querySelector(`textarea.content-desc[data-service-id="${serviceId}"]`);
+    const value = textarea.value.trim();
+    const { error } = await db.from('services').update({ page_description: value || null }).eq('id', serviceId);
+    if (error) return toast(`Fehler: ${error.message}`);
+    toast('Behandlungstext gespeichert.'); await loadAll();
+  }
+
+  async function undoServiceDescription(serviceId) {
+    const { data, error } = await db.from('audit_log').select('*').eq('table_name', 'services').eq('record_id', serviceId).order('changed_at', { ascending: false }).limit(10);
+    if (error) return toast(`Fehler: ${error.message}`);
+    const previous = (data || []).find(entry => entry.old_data && 'page_description' in entry.old_data);
+    if (!previous) return toast('Keine frühere Version dieses Texts gefunden.');
+    const { error: updateError } = await db.from('services').update({ page_description: previous.old_data.page_description }).eq('id', serviceId);
+    if (updateError) return toast(`Fehler: ${updateError.message}`);
+    toast('Vorherige Version wiederhergestellt.'); await loadAll();
+  }
+
+  async function savePriceItem(itemId) {
+    const row = document.querySelector(`tr[data-price-item="${itemId}"]`);
+    const name = row.querySelector('[data-field="name"]').value.trim();
+    const priceRaw = row.querySelector('[data-field="price_chf"]').value.trim();
+    const label = row.querySelector('[data-field="price_label"]').value.trim();
+    if (!name) return toast('Bitte einen Namen eingeben.');
+    const price_chf = priceRaw === '' ? null : Number(priceRaw);
+    if (price_chf !== null && Number.isNaN(price_chf)) return toast('Ungültiger Preis.');
+    if (price_chf === null && !label) return toast('Bitte einen Preis oder einen Text angeben.');
+    const { error } = await db.from('service_price_items').update({ name, price_chf, price_label: price_chf === null ? label : null }).eq('id', itemId);
+    if (error) return toast(`Fehler: ${error.message}`);
+    toast('Position gespeichert.'); await loadAll();
+  }
+
+  async function deletePriceItem(itemId) {
+    if (!confirm('Diese Position von der Website entfernen? Sie lässt sich danach jederzeit wiederherstellen.')) return;
+    const { error } = await db.from('service_price_items').update({ active: false }).eq('id', itemId);
+    if (error) return toast(`Fehler: ${error.message}`);
+    toast('Entfernt.'); await loadAll();
+  }
+
+  async function restorePriceItem(itemId) {
+    const { error } = await db.from('service_price_items').update({ active: true }).eq('id', itemId);
+    if (error) return toast(`Fehler: ${error.message}`);
+    toast('Wiederhergestellt.'); await loadAll();
+  }
+
+  async function addPriceItem(serviceId) {
+    const name = prompt('Name der neuen Position:');
+    if (!name || !name.trim()) return;
+    const priceRaw = prompt('Preis in CHF (leer lassen, um stattdessen einen Text wie „demnächst“ zu setzen):');
+    let price_chf = null; let price_label = null;
+    if (priceRaw && priceRaw.trim()) {
+      price_chf = Number(priceRaw.trim());
+      if (Number.isNaN(price_chf)) return toast('Ungültiger Preis.');
+    } else {
+      price_label = prompt('Text statt Preis (z. B. „demnächst“):');
+      if (!price_label || !price_label.trim()) return toast('Bitte einen Preis oder einen Text angeben.');
+    }
+    const items = state.servicePriceItems.filter(item => item.service_id === serviceId);
+    const nextOrder = items.length ? Math.max(...items.map(item => item.sort_order || 0)) + 1 : 1;
+    const { error } = await db.from('service_price_items').insert({ service_id: serviceId, name: name.trim(), price_chf, price_label, sort_order: nextOrder });
+    if (error) return toast(`Fehler: ${error.message}`);
+    toast('Position hinzugefügt.'); await loadAll();
   }
 
   function fillServiceSelect() {
