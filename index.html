@@ -7390,29 +7390,20 @@
   var botanicalLastScrollInputTime = -Infinity;
   var botanicalWingPhase = 0;
 
-  /* One butterfly per treatment chapter, resting right beside that
-     section's title. Pastel hue, size, tilt and facing direction are
-     randomized once per page load so each butterfly reads as distinct. */
-  var botanicalPastelPalette = [
-    'linear-gradient(135deg, #fadde8 0%, #f0b8cf 48%, #fbe7ee 100%)',
-    'linear-gradient(135deg, #cfe8f7 0%, #a9d0ec 48%, #e3f2fb 100%)',
-    'linear-gradient(135deg, #fdf0b0 0%, #f8dd7a 48%, #fdf6d6 100%)',
-    'linear-gradient(135deg, #d6f0d6 0%, #a8dcaf 48%, #e9f7e6 100%)',
-    'linear-gradient(135deg, #e3d6f5 0%, #c6a8e8 48%, #f1e6fa 100%)',
-    'linear-gradient(135deg, #ffd9bd 0%, #ffb37f 48%, #ffe9d4 100%)',
-    'linear-gradient(135deg, #bdeee6 0%, #85d9cd 48%, #dbf7f2 100%)'
+  /* One butterfly per treatment chapter, resting to the left of that
+     section's title. Colors are assigned in a fixed warm/cool alternating
+     order so neighbouring sections never look similar; size, tilt and
+     facing direction are randomized once per page load. */
+  var botanicalPastelSequence = [
+    'linear-gradient(135deg, #cfe8f7 0%, #a9d0ec 48%, #e3f2fb 100%)', /* blue   */
+    'linear-gradient(135deg, #ffd9bd 0%, #ffb37f 48%, #ffe9d4 100%)', /* orange */
+    'linear-gradient(135deg, #d6f0d6 0%, #a8dcaf 48%, #e9f7e6 100%)', /* green  */
+    'linear-gradient(135deg, #fadde8 0%, #f0b8cf 48%, #fbe7ee 100%)', /* pink   */
+    'linear-gradient(135deg, #bdeee6 0%, #85d9cd 48%, #dbf7f2 100%)', /* teal   */
+    'linear-gradient(135deg, #fdf0b0 0%, #f8dd7a 48%, #fdf6d6 100%)', /* yellow */
+    'linear-gradient(135deg, #e3d6f5 0%, #c6a8e8 48%, #f1e6fa 100%)'  /* lilac  */
   ];
 
-  function shuffledCopy(list) {
-    var copy = list.slice();
-    for (var i = copy.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var tmp = copy[i]; copy[i] = copy[j]; copy[j] = tmp;
-    }
-    return copy;
-  }
-
-  var botanicalShuffledPastels = shuffledCopy(botanicalPastelPalette);
   var botanicalMarkerPlans = [
     { sectionId: 'section-gel-acryl-nails' },
     { sectionId: 'section-permanent-make-up' },
@@ -7422,8 +7413,8 @@
     { sectionId: 'section-korean-cosmetics' },
     { sectionId: 'section-natural-make-up' }
   ].map(function (plan, i) {
-    plan.pastel = botanicalShuffledPastels[i % botanicalShuffledPastels.length];
-    plan.scale = 0.48 + Math.random() * 0.5;      // ~0.48 – 0.98, varied but modest
+    plan.pastel = botanicalPastelSequence[i % botanicalPastelSequence.length];
+    plan.scale = 0.36 + Math.random() * 0.34;     // ~0.36 – 0.70, small and varied
     plan.tilt = Math.random() * 24 - 12;          // ~-12deg – 12deg
     plan.flip = Math.random() < 0.5 ? -1 : 1;     // head facing left or right
     plan.yJitter = Math.random() * 10 - 5;        // ~-5px – 5px
@@ -7486,8 +7477,8 @@
          butterfly always clears the title text — never on top of it. */
       var markerRect = marker.getBoundingClientRect();
       var halfWidth = markerRect.width / 2;
-      var minGap = isMobile ? 8 : 14;
-      var extraGap = Math.random() * (isMobile ? 10 : 20);
+      var minGap = isMobile ? 18 : 34;
+      var extraGap = Math.random() * (isMobile ? 14 : 26);
       var markerX = titleRect.left - railRect.left - halfWidth - minGap - extraGap;
       markerX = Math.max(12, markerX);
       var markerY = titleRect.top - railRect.top + titleRect.height / 2 + plan.yJitter;
