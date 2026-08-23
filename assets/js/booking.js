@@ -212,10 +212,11 @@
   function renderDay() {
     const day = startOfDay(state.cursor);
     const slots = createSlots(day);
+    const isWednesday = day.getDay() === 3;
     els.calendarTitle.textContent = formatDate(day, { day: '2-digit', month: 'long', year: 'numeric' });
     els.calendar.innerHTML = `<div class="day-view">
       <div class="day-view-head"><h2>${formatDate(day, { weekday: 'long' })}</h2><p>${slots.length ? 'Wähle eine passende Uhrzeit.' : 'An diesem Tag bleibt das Studio geschlossen.'}</p></div>
-      <div class="slot-list day-slots">${slots.map(slotButton).join('')}</div>
+      <div class="slot-list day-slots">${slots.map(slotButton).join('')}${isWednesday && slots.length ? '<div class="closed-day">Mittwoch Nachmittag geschlossen</div>' : ''}</div>
     </div>`;
   }
 
@@ -226,8 +227,9 @@
     els.calendar.innerHTML = `<div class="week-grid">${Array.from({ length: 7 }, (_, i) => {
       const day = addDays(start, i);
       const slots = createSlots(day);
+      const afternoonNote = day.getDay() === 3 && slots.length ? '<div class="closed-day">Mittwoch Nachmittag geschlossen</div>' : '';
       return `<div class="week-day"><div class="week-day-head"><strong>${formatDate(day, { weekday: 'short' })}</strong><span>${formatDate(day, { day: '2-digit', month: '2-digit' })}</span></div>
-        <div class="slot-list">${slots.length ? slots.map(slotButton).join('') : '<div class="closed-day">geschlossen</div>'}</div></div>`;
+        <div class="slot-list">${slots.length ? slots.map(slotButton).join('') : '<div class="closed-day">geschlossen</div>'}${afternoonNote}</div></div>`;
     }).join('')}</div>`;
   }
 
