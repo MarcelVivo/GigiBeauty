@@ -133,6 +133,15 @@
     return appointment.status === 'completed' && !appointment.is_private ? Number(appointment.amount_chf ?? appointment.services?.price_chf ?? 0) : 0;
   }
 
+  // Umsatz aus bereits gebuchten, aber noch nicht durchgeführten Terminen --
+  // zeigt Liliane, was an gebuchten Behandlungen bereits feststeht, bevor
+  // sie überhaupt stattgefunden haben.
+  function bookedPotential(start, end) {
+    return state.appointments
+      .filter(a => a.status === 'booked' && !a.is_private && new Date(a.starts_at) >= start && new Date(a.starts_at) < end)
+      .reduce((sum, a) => sum + Number(a.amount_chf ?? a.services?.price_chf ?? 0), 0);
+  }
+
   function trend(current, previous, positiveIsGood = true) {
     if (!current && !previous) return { text: '–', className: 'neutral' };
     if (!previous) return { text: '+100%', className: positiveIsGood ? 'up' : 'down' };
@@ -266,16 +275,25 @@
 
     const yearStart = new Date(now.getFullYear(), 0, 1);
     const yearRevenue = state.appointments.filter(a => new Date(a.starts_at) >= yearStart).reduce((sum, appointment) => sum + appointmentRevenue(appointment), 0);
-    const futurePotential = currentMonthAppointments.filter(a => a.status === 'booked').reduce((sum, a) => sum + Number(a.services?.price_chf || 0), 0);
     const averageTicket = periodCompleted ? periodRevenue / periodCompleted : 0;
     const paidInvoices = state.invoices.filter(invoice => invoice.status === 'paid').reduce((sum, invoice) => sum + Number(invoice.amount_chf || 0), 0);
     $('finance-summary').innerHTML = [
       ['Umsatz laufendes Jahr', money(yearRevenue), ''],
       ['Ø Behandlung', money(averageTicket), ''],
-      ['Gebuchtes Potenzial Monat', money(futurePotential), ''],
       ['Bezahlte No-Show-Rechnungen', money(paidInvoices), ''],
       ['Noch ausstehend', money(openInvoiceTotal), openInvoiceTotal ? 'is-warning' : '']
     ].map(([label, value, className]) => `<div class="finance-row ${className}"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('');
+
+    const pipelineToday = bookedPotential(startOfDay(now), addDays(startOfDay(now), 1));
+    const pipelineWeek = bookedPotential(startOfWeek(now), addDays(startOfWeek(now), 7));
+    const pipelineMonth = bookedPotential(currentMonth, nextMonth);
+    const pipelineYear = bookedPotential(yearStart, new Date(now.getFullYear() + 1, 0, 1));
+    $('booking-pipeline').innerHTML = [
+      ['Heute', pipelineToday],
+      ['Diese Woche', pipelineWeek],
+      ['Diesen Monat', pipelineMonth],
+      ['Dieses Jahr', pipelineYear]
+    ].map(([label, value]) => metricCard(label, money(value), 'gebucht, noch nicht durchgeführt')).join('');
 
     const periodAppointments = state.appointments.filter(a => new Date(a.starts_at) >= periodStart && new Date(a.starts_at) <= now && !a.is_private);
     const serviceRows = state.services.map(service => {

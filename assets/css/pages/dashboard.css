@@ -133,6 +133,8 @@ button { cursor: pointer; }
 .today-item span { margin-top: .2rem; color: var(--dash-muted); font-size: .68rem; }
 .data-note { margin: .8rem .2rem 0; color: var(--dash-muted); font-size: .65rem; line-height: 1.5; }
 .compact-metrics { grid-template-columns: repeat(5, 1fr); margin-bottom: 1rem; }
+.pipeline-metrics { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 1200px) { .pipeline-metrics { grid-template-columns: repeat(2, 1fr); } }
 .task-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8rem; margin-bottom: .8rem; }
 .task-board { display: grid; gap: .65rem; }
 .task-card { display: grid; grid-template-columns: 110px minmax(0, 1fr) auto; align-items: center; gap: 1rem; padding: 1rem; border: 1px solid var(--dash-line); border-left: 4px solid #9b918a; border-radius: 12px; background: var(--dash-card); }
