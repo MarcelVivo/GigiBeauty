@@ -1,2 +1,7 @@
 .DS_Store
 Thumbs.db
+
+# Echte Kunden-/Termindaten -- niemals committen (PII).
+*.csv
+termine_gigibeauty.json
+supabase/data-imports/
