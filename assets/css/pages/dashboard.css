@@ -232,9 +232,9 @@ tbody tr:last-child td { border-bottom: 0; }
 .customer-contact { color: var(--dash-muted); font-size: .67rem; }
 .customer-states { display: flex; align-items: center; flex-wrap: wrap; gap: .3rem; }
 .customer-meta { margin-top: .24rem; color: var(--dash-muted); font-size: .62rem; }
-.appointment-pair { margin-bottom: .25rem; }
+.appointment-pair { display: flex; align-items: baseline; gap: .45rem; margin-bottom: .25rem; }
 .appointment-pair:last-child { margin-bottom: 0; }
-.appointment-pair small { display: inline-block; min-width: 45px; color: var(--dash-muted); font-size: .6rem; text-transform: uppercase; }
+.appointment-pair small { flex: 0 0 64px; color: var(--dash-muted); font-size: .6rem; letter-spacing: .02em; text-transform: uppercase; }
 .appointment-pair strong { font-size: .7rem; font-weight: 650; }
 .contact-state { display: inline-flex; padding: .24rem .4rem; border-radius: 999px; color: #775d20; background: #fbf2d8; font-size: .59rem; font-weight: 700; }
 .contact-state.is-active { color: #286146; background: #e7f3eb; }
