@@ -7482,6 +7482,9 @@
       var markerX = titleRect.left - railRect.left - halfWidth - minGap - extraGap;
       markerX = Math.max(12, markerX);
       var markerY = titleRect.top - railRect.top + titleRect.height / 2 + plan.yJitter;
+      if (plan.sectionId === 'section-gel-acryl-nails') {
+        markerY -= markerRect.height;
+      }
 
       marker.style.left = markerX.toFixed(2) + 'px';
       marker.style.top = markerY.toFixed(2) + 'px';
