@@ -470,7 +470,15 @@
   function customerStats(profile) {
     const email = profile.email?.toLowerCase();
     const now = new Date();
-    const items = state.appointments.filter(a => !a.is_private && (a.customer_id === profile.profile_id || (email && a.customer_email?.toLowerCase() === email)));
+    // profile_id/customer_id are both null for offline/unregistered customers,
+    // so every comparison must require a real (non-null) value on the left
+    // side too -- otherwise `null === null` would match every appointment
+    // without an account to every customer without an account.
+    const items = state.appointments.filter(a => !a.is_private && (
+      (profile.id && a.customer_ref_id === profile.id) ||
+      (profile.profile_id && a.customer_id === profile.profile_id) ||
+      (email && a.customer_email?.toLowerCase() === email)
+    ));
     const validItems = items.filter(a => a.status !== 'cancelled');
     const past = validItems.filter(a => new Date(a.starts_at) < now).sort((a, b) => new Date(b.starts_at) - new Date(a.starts_at));
     const upcoming = validItems.filter(a => a.status === 'booked' && new Date(a.starts_at) >= now).sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
