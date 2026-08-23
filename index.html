@@ -899,29 +899,6 @@
     transform: translate3d(0, 0, 0);
   }
 
-  .botanical-complete-plant {
-    position: absolute;
-    top: 0;
-    left: -225px;
-    display: block;
-    width: 100%;
-    max-width: none;
-    height: 100%;
-    object-fit: fill;
-    object-position: left top;
-    pointer-events: none;
-  }
-
-  .botanical-complete-plant {
-    z-index: 2;
-  }
-
-  .botanical-complete-plant {
-    /* Kept in the DOM (invisible) so the butterfly markers below still have
-       a layout box to position themselves against. */
-    opacity: 0;
-  }
-
   .botanical-rail__butterflies {
     position: absolute;
     inset: 0;
@@ -1002,8 +979,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    #botanical-rail,
-    .botanical-complete-plant { transition: none; }
+    #botanical-rail { transition: none; }
     .botanical-butterfly-pastel-fill,
     .botanical-butterfly-gold-veins,
     .botanical-service-butterfly img { will-change: auto; }
@@ -6062,16 +6038,8 @@
 </script>
 
 
-<!-- Botanical side axis — visible only while the service price lists scroll. -->
+<!-- Butterfly axis — visible only while the service price lists scroll. -->
 <aside id="botanical-rail" aria-hidden="true">
-  <img
-    id="botanical-complete-plant"
-    class="botanical-complete-plant"
-    src="public/images/botanical/botanical-signature-vine-hero-hd-v9.png"
-    alt=""
-    aria-hidden="true"
-    decoding="async"
-  >
   <div id="botanical-marker-layer" class="botanical-rail__butterflies"></div>
 </aside>
 
@@ -7407,9 +7375,8 @@
 <!-- ── Service-section text entrance animation (scroll-down only) ──────── -->
 <script>
 (function () {
-  /* One continuous botanical layer for all seven treatment sections. */
+  /* One continuous butterfly layer for all seven treatment sections. */
   var botanicalRail = document.getElementById('botanical-rail');
-  var botanicalCompletePlant = document.getElementById('botanical-complete-plant');
   var botanicalMarkerLayer = document.getElementById('botanical-marker-layer');
   var botanicalFirst = document.getElementById('section-gel-acryl-nails');
   var botanicalEnd = document.getElementById('section-booking');
@@ -7422,31 +7389,44 @@
   var botanicalLastScrollY = window.scrollY;
   var botanicalLastScrollInputTime = -Infinity;
   var botanicalWingPhase = 0;
-  var botanicalSourceWidth = 841;
-  var botanicalSourceHeight = 5211;
 
-  /* One butterfly for each treatment chapter, positioned against the
-     (invisible) vine layout's coordinate points. */
-  var botanicalMarkerPlans = [
-    { sectionId: 'section-gel-acryl-nails',      sourceX: 375, sourceY:  150, tilt: -4, scale: 1.08, pastel: 'linear-gradient(135deg, #f7e3dc 0%, #edcfc8 48%, #f5ead9 100%)' },
-    { sectionId: 'section-permanent-make-up',    sourceX: 390, sourceY: 1280, tilt: -6, scale: 0.92, pastel: 'linear-gradient(135deg, #dfe5d3 0%, #cdd9c5 48%, #eee6d3 100%)' },
-    { sectionId: 'section-kosmetische-pedicure', sourceX: 410, sourceY: 1880, tilt:  6, scale: 0.94, pastel: 'linear-gradient(135deg, #edd4d6 0%, #e5c2c5 48%, #f0dfd6 100%)' },
-    { sectionId: 'section-fillers',              sourceX: 405, sourceY: 2500, tilt: -4, scale: 0.93, pastel: 'linear-gradient(135deg, #f4dacd 0%, #edc4b6 48%, #f4e3d6 100%)' },
-    { sectionId: 'section-lashes',               sourceX: 390, sourceY: 3340, tilt:  5, scale: 0.91, pastel: 'linear-gradient(135deg, #eadfdc 0%, #d8cadb 48%, #eee4d4 100%)' },
-    { sectionId: 'section-korean-cosmetics',     sourceX: 470, sourceY: 4190, tilt: -5, scale: 0.90, pastel: 'linear-gradient(135deg, #f1dedb 0%, #dfccd8 48%, #f4e8df 100%)' },
-    { sectionId: 'section-natural-make-up',      sourceX: 400, sourceY: 4785, tilt:  4, scale: 0.92, pastel: 'linear-gradient(135deg, #e2e4d2 0%, #c9d5bd 48%, #eee2ce 100%)' }
+  /* One butterfly per treatment chapter, resting just below that section's
+     title. Pastel color, size and tilt are randomized once per page load. */
+  var botanicalPastelPalette = [
+    'linear-gradient(135deg, #f7e3dc 0%, #edcfc8 48%, #f5ead9 100%)',
+    'linear-gradient(135deg, #dfe5d3 0%, #cdd9c5 48%, #eee6d3 100%)',
+    'linear-gradient(135deg, #edd4d6 0%, #e5c2c5 48%, #f0dfd6 100%)',
+    'linear-gradient(135deg, #f4dacd 0%, #edc4b6 48%, #f4e3d6 100%)',
+    'linear-gradient(135deg, #eadfdc 0%, #d8cadb 48%, #eee4d4 100%)',
+    'linear-gradient(135deg, #f1dedb 0%, #dfccd8 48%, #f4e8df 100%)',
+    'linear-gradient(135deg, #e2e4d2 0%, #c9d5bd 48%, #eee2ce 100%)'
   ];
 
-  function getCompletePlantPoint(sourceX, sourceY) {
-    if (!botanicalCompletePlant) return null;
-    var boxWidth = botanicalCompletePlant.clientWidth;
-    var boxHeight = botanicalCompletePlant.clientHeight;
-    if (!boxWidth || !boxHeight) return null;
-    return {
-      x: botanicalCompletePlant.offsetLeft + sourceX / botanicalSourceWidth * boxWidth,
-      y: botanicalCompletePlant.offsetTop + sourceY / botanicalSourceHeight * boxHeight
-    };
+  function shuffledCopy(list) {
+    var copy = list.slice();
+    for (var i = copy.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = copy[i]; copy[i] = copy[j]; copy[j] = tmp;
+    }
+    return copy;
   }
+
+  var botanicalShuffledPastels = shuffledCopy(botanicalPastelPalette);
+  var botanicalMarkerPlans = [
+    { sectionId: 'section-gel-acryl-nails' },
+    { sectionId: 'section-permanent-make-up' },
+    { sectionId: 'section-kosmetische-pedicure' },
+    { sectionId: 'section-fillers' },
+    { sectionId: 'section-lashes' },
+    { sectionId: 'section-korean-cosmetics' },
+    { sectionId: 'section-natural-make-up' }
+  ].map(function (plan, i) {
+    plan.pastel = botanicalShuffledPastels[i % botanicalShuffledPastels.length];
+    plan.scale = 0.82 + Math.random() * 0.4;      // ~0.82 – 1.22
+    plan.tilt = Math.random() * 14 - 7;           // ~-7deg – 7deg
+    plan.xJitter = Math.random() * 20 - 10;       // ~-10px – 10px
+    return plan;
+  });
 
   function layoutBotanicalRail() {
     if (!botanicalRail || !botanicalFirst || !botanicalEnd) return;
@@ -7455,32 +7435,28 @@
     var railHeight = Math.max(0, railBottom - railTop);
     botanicalRail.style.top = railTop + 'px';
     botanicalRail.style.height = railHeight + 'px';
-    /* One master image owns the complete geometry on every breakpoint. Its
-       intrinsic ratio is preserved, so the stem never kinks, doubles or
-       changes thickness between treatment chapters. */
-    var horizontalScale = 1;
-    botanicalRail.style.width = (railHeight * botanicalSourceWidth / botanicalSourceHeight * horizontalScale).toFixed(2) + 'px';
   }
 
   function buildBotanicalButterflies() {
-    if (!botanicalMarkerLayer || !botanicalFirst) return;
+    if (!botanicalMarkerLayer || !botanicalFirst || !botanicalRail) return;
     botanicalMarkerLayer.replaceChildren();
     botanicalMarkers = [];
+
+    var railRect = botanicalRail.getBoundingClientRect();
+    var railWidth = botanicalRail.clientWidth;
+    var isMobile = window.innerWidth <= 767;
 
     botanicalMarkerPlans.forEach(function (plan, markerIndex) {
       var section = document.getElementById(plan.sectionId);
       if (!section) return;
+      var title = section.querySelector('.svc-title');
+      if (!title) return;
+      var titleRect = title.getBoundingClientRect();
 
-      var flower = getCompletePlantPoint(plan.sourceX, plan.sourceY);
-      if (!flower) return;
-      var markerX = flower.x;
-      var markerY = flower.y;
-
-      if (window.innerWidth <= 767) {
-        markerX = Math.max(24, Math.min(150, markerX));
-      } else {
-        markerX = Math.max(64, markerX);
-      }
+      /* Anchor each butterfly just under its own section's title. */
+      var markerY = titleRect.bottom - railRect.top + (isMobile ? 4 : 10);
+      var markerX = railWidth * (isMobile ? 0.42 : 0.58) + plan.xJitter;
+      markerX = Math.max(24, Math.min(railWidth - 16, markerX));
 
       var marker = document.createElement('div');
       marker.className = 'botanical-service-butterfly';
@@ -7600,12 +7576,9 @@
 
   layoutBotanicalRail();
   buildBotanicalButterflies();
-  /* SVG/image dimensions are not guaranteed during the first layout pass. */
-  if (botanicalCompletePlant) {
-    botanicalCompletePlant.addEventListener('load', resizeBotanicalRail, { once: true });
-    requestAnimationFrame(resizeBotanicalRail);
-    setTimeout(resizeBotanicalRail, 120);
-  }
+  /* Title layout/fonts are not guaranteed to be final on the first pass. */
+  requestAnimationFrame(resizeBotanicalRail);
+  setTimeout(resizeBotanicalRail, 120);
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(resizeBotanicalRail);
   }
