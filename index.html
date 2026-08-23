@@ -6532,7 +6532,7 @@
       'section-korean-cosmetics': 'korean-cosmetics',
       'section-natural-make-up': 'natural-make-up'
     };
-    let requestedService = '';
+    let requestedService = new URLSearchParams(location.search).get('service') || '';
     let butterflyRestTimer = 0;
 
     const animateBookingButterflyOnScroll = () => {
