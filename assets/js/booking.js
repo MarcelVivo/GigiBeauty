@@ -16,6 +16,8 @@
     ['korean-cosmetics', 'Korean Cosmetics', 140, '/public/images/services/KoreanCosmetics.png'],
     ['natural-make-up', 'Natural Make Up', 100, '/public/images/services/NaturalMakeUp.png']
   ].map((s, index) => ({ id: s[0], slug: s[0], name: s[1], price_chf: s[2], image_path: s[3], sort_order: index + 1 }));
+  const serviceAliases = { gelnaegel: 'gel-acryl-nails', 'nail-art': 'gel-acryl-nails', microblading: 'permanent-make-up', 'augenbrauen-tattoo': 'permanent-make-up', 'augenbrauen-styling': 'permanent-make-up', 'kuenstliche-wimpern': 'lashes', 'wimpern-lifting': 'lashes', 'make-up': 'natural-make-up' };
+  let pendingServiceSlug = null;
 
   function bookingAttribution() {
     const params = new URLSearchParams(location.search);
@@ -71,11 +73,28 @@
     return new URL(`../${siteRelativePath}`, document.baseURI).href;
   }
   function initialService() {
-    const requested = new URLSearchParams(location.search).get('service');
-    const aliases = { gelnaegel: 'gel-acryl-nails', 'nail-art': 'gel-acryl-nails', microblading: 'permanent-make-up', 'augenbrauen-tattoo': 'permanent-make-up', 'augenbrauen-styling': 'permanent-make-up', 'kuenstliche-wimpern': 'lashes', 'wimpern-lifting': 'lashes', 'make-up': 'natural-make-up' };
-    const slug = aliases[requested] || requested;
+    const requested = pendingServiceSlug || new URLSearchParams(location.search).get('service');
+    const slug = serviceAliases[requested] || requested;
     return state.services.find(service => service.slug === slug) || state.services[0];
   }
+
+  function selectServiceBySlug(requestedSlug, scrollBehavior = 'smooth') {
+    const slug = serviceAliases[requestedSlug] || requestedSlug;
+    const service = state.services.find(item => item.slug === slug);
+    if (!service) {
+      pendingServiceSlug = slug;
+      return;
+    }
+    pendingServiceSlug = null;
+    state.selectedService = service;
+    renderServices(scrollBehavior);
+  }
+
+  window.addEventListener('message', event => {
+    if (event.origin !== window.location.origin || event.source !== window.parent) return;
+    if (event.data?.type !== 'gigi-select-booking-service') return;
+    selectServiceBySlug(String(event.data.service || ''));
+  });
 
   function zonedDateTimeToUtc(key, time, timeZone = TZ) {
     const [year, month, day] = key.split('-').map(Number);
@@ -122,6 +141,7 @@
     if (!db) {
       state.services = fallbackServices;
       state.selectedService = initialService();
+      pendingServiceSlug = null;
       renderServices();
       await refreshCalendar();
       return;
@@ -134,6 +154,7 @@
     state.services = services?.length ? services : fallbackServices;
     state.hours = settings?.opening_hours || defaultHours;
     state.selectedService = initialService();
+    pendingServiceSlug = null;
     renderServices();
     await restoreSession();
     await refreshCalendar();
@@ -365,7 +386,14 @@
     await openAccount();
   }
 
-  function openModal(modal) { modal.hidden = false; document.body.style.overflow = 'hidden'; setTimeout(() => modal.querySelector('input, button')?.focus(), 0); }
+  function openModal(modal) {
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+    if (document.documentElement.classList.contains('booking-embed')) {
+      window.parent.postMessage({ type: 'gigi-booking-modal-open' }, window.location.origin);
+    }
+    setTimeout(() => modal.querySelector('input, button')?.focus(), 0);
+  }
   function closeModal(modal) { modal.hidden = true; document.body.style.overflow = ''; }
   let toastTimer;
   function showToast(text) { els.toast.textContent = text; els.toast.classList.add('is-visible'); clearTimeout(toastTimer); toastTimer = setTimeout(() => els.toast.classList.remove('is-visible'), 5000); }

@@ -3,13 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    if (new URLSearchParams(window.location.search).get('embed') === '1') {
+      document.documentElement.classList.add('booking-embed');
+    }
+  </script>
   <title>Termin online buchen | GiGi Beauty Bern</title>
   <meta name="description" content="Wähle deine Behandlung und buche deinen GiGi Beauty Termin in Bern direkt online.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/global.css">
   <link rel="stylesheet" href="../assets/css/pages/nav.css">
-  <link rel="stylesheet" href="../assets/css/pages/booking.css?v=20260810-4">
+  <link rel="stylesheet" href="../assets/css/pages/booking.css?v=20260811-4">
 </head>
 <body class="booking-page">
   <nav id="site-nav">
@@ -136,6 +141,25 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../assets/js/supabase-config.js"></script>
   <script src="../assets/js/main.js"></script>
-  <script src="../assets/js/booking.js?v=20260810-4"></script>
+  <script src="../assets/js/booking.js?v=20260811-2"></script>
+  <script>
+    if (document.documentElement.classList.contains('booking-embed')) {
+      let lastHeight = 0;
+      let resizeFrame = 0;
+      const reportHeight = () => {
+        cancelAnimationFrame(resizeFrame);
+        resizeFrame = requestAnimationFrame(() => {
+          const height = Math.ceil(document.documentElement.scrollHeight);
+          if (Math.abs(height - lastHeight) < 2) return;
+          lastHeight = height;
+          window.parent.postMessage({ type: 'gigi-booking-resize', height }, window.location.origin);
+        });
+      };
+      window.addEventListener('load', reportHeight);
+      window.addEventListener('resize', reportHeight);
+      new ResizeObserver(reportHeight).observe(document.body);
+      reportHeight();
+    }
+  </script>
 </body>
 </html>
