@@ -164,6 +164,8 @@ button { cursor: pointer; }
 .stock-status.is-low { color: #8b2d2d; background: #f9e8e5; }
 .content-service-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
 .content-service-card textarea.content-desc { min-height: 80px; resize: vertical; }
+.content-block-field { margin-bottom: .5rem; }
+.content-block-field textarea.content-block-text { resize: vertical; }
 .content-restore-list { display: flex; flex-wrap: wrap; gap: .5rem; }
 .restore-chip { display: inline-flex; align-items: center; gap: .4rem; padding: .35rem .6rem; border: 1px solid var(--dash-line); border-radius: 999px; font-size: .72rem; color: var(--dash-muted); background: var(--dash-card); }
 @media (max-width: 1200px) { .content-service-grid { grid-template-columns: 1fr; } }

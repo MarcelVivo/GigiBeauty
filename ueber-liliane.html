@@ -1089,6 +1089,9 @@
 })();
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/supabase-config.js"></script>
+
 <!-- Language toggle -->
 <script>
 (function() {
@@ -1246,6 +1249,24 @@
   // Restore saved language (shared with main page)
   _lang = localStorage.getItem('gigi-lang') || 'de';
   applyLang(_lang);
+
+  // Live-editierbare Texte aus dem Dashboard laden (nur Deutsch; die
+  // portugiesische Übersetzung bleibt statisch). Bei Fehler/offline bleibt
+  // der oben gesetzte statische Text sichtbar.
+  (function loadEditableContent() {
+    var CONFIG = window.GIGI_SUPABASE || {};
+    if (!CONFIG.url || !CONFIG.anonKey || !window.supabase) return;
+    var contentDb = window.supabase.createClient(CONFIG.url, CONFIG.anonKey);
+    contentDb.from('site_content_blocks').select('block_key, content').eq('page', 'ueber-liliane')
+      .then(function (result) {
+        if (result.error || !result.data) return;
+        result.data.forEach(function (row) {
+          if (row.content) T.de[row.block_key] = row.content;
+        });
+        applyLang(_lang);
+      })
+      .catch(function () { /* statischer Text bleibt sichtbar */ });
+  })();
 
   g('lang-btn').addEventListener('click', function(){
     applyLang(_lang === 'de' ? 'pt' : 'de');

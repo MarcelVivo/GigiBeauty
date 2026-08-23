@@ -3,7 +3,7 @@
   const config = window.GIGI_SUPABASE || {};
   const configured = /^https:\/\/.+\.supabase\.co$/.test(config.url || '') && !String(config.anonKey || '').startsWith('YOUR-');
   const db = configured && window.supabase ? window.supabase.createClient(config.url, config.anonKey) : null;
-  const state = { user: null, profile: null, settings: null, services: [], profiles: [], customers: [], appointments: [], blocks: [], invoices: [], campaigns: [], payments: [], expenses: [], inventory: [], serviceInventory: [], waitlist: [], tasks: [], communications: [], automations: [], marketingEvents: [], packages: [], giftCards: [], auditLog: [], servicePriceItems: [], week: startOfWeek(new Date()), customerFilter: '', customerSegment: 'all', analyticsMonths: 12 };
+  const state = { user: null, profile: null, settings: null, services: [], profiles: [], customers: [], appointments: [], blocks: [], invoices: [], campaigns: [], payments: [], expenses: [], inventory: [], serviceInventory: [], waitlist: [], tasks: [], communications: [], automations: [], marketingEvents: [], packages: [], giftCards: [], auditLog: [], servicePriceItems: [], siteContentBlocks: [], week: startOfWeek(new Date()), customerFilter: '', customerSegment: 'all', analyticsMonths: 12 };
   const $ = id => document.getElementById(id);
   const panelMeta = {
     overview: ['Guten Tag, Liliane', 'Das Wichtigste auf einen Blick.'],
@@ -109,7 +109,8 @@
           db.from('customer_packages').select('*, customers(full_name), services(name)').order('purchased_at', { ascending: false }),
           db.from('gift_cards').select('*').order('created_at', { ascending: false }),
           db.from('audit_log').select('*').order('changed_at', { ascending: false }).limit(50),
-          db.from('service_price_items').select('*').order('sort_order')
+          db.from('service_price_items').select('*').order('sort_order'),
+          db.from('site_content_blocks').select('*').order('sort_order')
         ]),
         new Promise((_, reject) => setTimeout(() => reject(new Error('Dashboard data timeout')), 20000))
       ]);
@@ -121,7 +122,7 @@
     if (failed) return toast(`Daten konnten nicht geladen werden: ${failed.error.message}`);
     state.services = results[0].data || [];
     state.settings = results[1].data || null;
-    [state.profiles, state.customers, state.appointments, state.blocks, state.invoices, state.campaigns, state.payments, state.expenses, state.inventory, state.serviceInventory, state.waitlist, state.tasks, state.communications, state.automations, state.marketingEvents, state.packages, state.giftCards, state.auditLog, state.servicePriceItems] = results.slice(2).map(result => result.data || []);
+    [state.profiles, state.customers, state.appointments, state.blocks, state.invoices, state.campaigns, state.payments, state.expenses, state.inventory, state.serviceInventory, state.waitlist, state.tasks, state.communications, state.automations, state.marketingEvents, state.packages, state.giftCards, state.auditLog, state.servicePriceItems, state.siteContentBlocks] = results.slice(2).map(result => result.data || []);
     fillServiceSelect();
     renderAll();
   }
@@ -409,7 +410,7 @@
       const admin = state.profiles.find(profile => profile.id === task.completed_by);
       return `<tr><td>${task.completed_at ? esc(fmt(task.completed_at, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })) : '–'}</td><td><strong>${esc(task.title)}</strong></td><td>${task.status === 'done' ? '<span class="status status-completed">Erledigt</span>' : '<span class="status status-cancelled">Nicht relevant</span>'}</td><td>${esc(admin?.full_name || 'System')}</td><td>${esc(task.dismissed_reason || '–')}</td></tr>`;
     }).join('') : '<tr><td colspan="5" class="empty">Noch keine abgeschlossenen Aufgaben.</td></tr>';
-    $('audit-table').innerHTML = state.auditLog.length ? state.auditLog.slice(0, 25).map(entry => `<tr><td>${esc(fmt(entry.changed_at, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }))}</td><td>${esc(({ customers: 'Kundenprofil', appointments: 'Termin', payments: 'Zahlung', expenses: 'Ausgabe', inventory_items: 'Lagerprodukt', waitlist_entries: 'Warteliste', services: 'Website-Inhalt', service_price_items: 'Preisposition' })[entry.table_name] || entry.table_name)}</td><td>${esc(({ insert: 'Erstellt', update: 'Geändert', delete: 'Gelöscht' })[entry.action] || entry.action)}</td><td><span class="muted">${esc(entry.record_id || '–')}</span></td></tr>`).join('') : '<tr><td colspan="4" class="empty">Noch keine Änderungen protokolliert.</td></tr>';
+    $('audit-table').innerHTML = state.auditLog.length ? state.auditLog.slice(0, 25).map(entry => `<tr><td>${esc(fmt(entry.changed_at, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }))}</td><td>${esc(({ customers: 'Kundenprofil', appointments: 'Termin', payments: 'Zahlung', expenses: 'Ausgabe', inventory_items: 'Lagerprodukt', waitlist_entries: 'Warteliste', services: 'Website-Inhalt', service_price_items: 'Preisposition', site_content_blocks: 'Website-Text' })[entry.table_name] || entry.table_name)}</td><td>${esc(({ insert: 'Erstellt', update: 'Geändert', delete: 'Gelöscht' })[entry.action] || entry.action)}</td><td><span class="muted">${esc(entry.record_id || '–')}</span></td></tr>`).join('') : '<tr><td colspan="4" class="empty">Noch keine Änderungen protokolliert.</td></tr>';
     document.querySelectorAll('[data-open-customer]').forEach(button => button.onclick = () => openCustomer(button.dataset.openCustomer));
     document.querySelectorAll('[data-complete-task]').forEach(button => button.onclick = () => completeTask(button.dataset.completeTask, 'done'));
     document.querySelectorAll('[data-snooze-task]').forEach(button => button.onclick = () => openTaskSnooze(button.dataset.snoozeTask));
@@ -797,6 +798,44 @@
     container.querySelectorAll('[data-delete-price-item]').forEach(button => button.onclick = () => deletePriceItem(button.dataset.deletePriceItem));
     container.querySelectorAll('[data-restore-price-item]').forEach(button => button.onclick = () => restorePriceItem(button.dataset.restorePriceItem));
     container.querySelectorAll('[data-add-price-item]').forEach(button => button.onclick = () => addPriceItem(button.dataset.addPriceItem));
+
+    renderContentBlocks();
+  }
+
+  function renderContentBlocks() {
+    const container = $('content-blocks');
+    if (!container) return;
+    const blocks = state.siteContentBlocks.filter(block => block.page === 'ueber-liliane').sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    container.innerHTML = blocks.map(block => `<div class="field content-block-field">
+        <label for="content-block-${block.id}">${esc(block.label)}</label>
+        <textarea id="content-block-${block.id}" class="content-block-text" rows="${block.content.length > 200 ? 5 : 2}" data-block-id="${block.id}">${esc(block.content)}</textarea>
+        <div class="content-desc-actions" style="display:flex;gap:8px;margin:6px 0 16px">
+          <button class="secondary" type="button" data-save-block="${block.id}">Speichern</button>
+          <button class="link-button" type="button" data-undo-block="${block.id}">Letzte Änderung rückgängig machen</button>
+        </div>
+      </div>`).join('') || '<div class="empty">Keine Inhalte gefunden.</div>';
+
+    container.querySelectorAll('[data-save-block]').forEach(button => button.onclick = () => saveContentBlock(button.dataset.saveBlock));
+    container.querySelectorAll('[data-undo-block]').forEach(button => button.onclick = () => undoContentBlock(button.dataset.undoBlock));
+  }
+
+  async function saveContentBlock(blockId) {
+    const textarea = document.querySelector(`textarea.content-block-text[data-block-id="${blockId}"]`);
+    const value = textarea.value.trim();
+    if (!value) return toast('Der Text darf nicht leer sein.');
+    const { error } = await db.from('site_content_blocks').update({ content: value }).eq('id', blockId);
+    if (error) return toast(`Fehler: ${error.message}`);
+    toast('Text gespeichert.'); await loadAll();
+  }
+
+  async function undoContentBlock(blockId) {
+    const { data, error } = await db.from('audit_log').select('*').eq('table_name', 'site_content_blocks').eq('record_id', blockId).order('changed_at', { ascending: false }).limit(10);
+    if (error) return toast(`Fehler: ${error.message}`);
+    const previous = (data || []).find(entry => entry.old_data && 'content' in entry.old_data);
+    if (!previous) return toast('Keine frühere Version dieses Texts gefunden.');
+    const { error: updateError } = await db.from('site_content_blocks').update({ content: previous.old_data.content }).eq('id', blockId);
+    if (updateError) return toast(`Fehler: ${updateError.message}`);
+    toast('Vorherige Version wiederhergestellt.'); await loadAll();
   }
 
   async function saveServiceDescription(serviceId) {
