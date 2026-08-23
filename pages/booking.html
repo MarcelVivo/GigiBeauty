@@ -31,7 +31,7 @@
   <header class="booking-hero">
     <span class="eyebrow">GiGi Beauty · Bern</span>
     <h1>Dein Termin bei GiGi Beauty</h1>
-    <p>Wähle eine Behandlung und finde einen Termin, der für dich passt. Alle Termine dauern 90 Minuten.</p>
+    <p>Wähle eine Behandlung und finde einen Termin, der für dich passt. Die Termindauer richtet sich nach der gewählten Position.</p>
   </header>
 
   <main class="booking-shell">
@@ -50,8 +50,13 @@
       <div class="service-grid" id="service-grid" aria-live="polite"></div>
     </section>
 
+    <section class="price-item-picker" id="price-item-picker" aria-label="Position wählen" hidden>
+      <span class="section-kicker">2 · Position wählen</span>
+      <div class="price-item-list" id="price-item-list" aria-live="polite"></div>
+    </section>
+
     <section class="calendar-section" aria-labelledby="calendar-label">
-      <span class="section-kicker" id="calendar-label">2 · Termin auswählen</span>
+      <span class="section-kicker" id="calendar-label">3 · Termin auswählen</span>
       <div class="calendar-card">
         <div class="calendar-toolbar">
           <div class="calendar-nav">

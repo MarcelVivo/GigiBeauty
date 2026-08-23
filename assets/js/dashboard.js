@@ -982,12 +982,28 @@
     $('customer-preferred-service').innerHTML = `<option value="">Nicht festgelegt</option>${options}`;
   }
 
+  function fillPriceItemSelect(serviceId, selectedItemId = '') {
+    const service = state.services.find(s => s.id === serviceId);
+    const defaultMinutes = Number(service?.duration_minutes) || 90;
+    const items = state.servicePriceItems
+      .filter(item => item.service_id === serviceId && item.active)
+      .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    const options = items.map(item => {
+      const minutes = Number(item.duration_minutes) > 0 ? Number(item.duration_minutes) : defaultMinutes;
+      return `<option value="${item.id}">${esc(item.name)} (${minutes} Min.)</option>`;
+    }).join('');
+    $('appointment-price-item').innerHTML = `<option value="">Keine bestimmte Position (${defaultMinutes} Min.)</option>${options}`;
+    $('appointment-price-item').value = selectedItemId || '';
+  }
+
   function openAppointment(id = null) {
     const item = id ? state.appointments.find(a => a.id === id) : null;
     $('appointment-modal-title').textContent = item ? 'Termin bearbeiten' : 'Termin eintragen';
     $('appointment-id').value = item?.id || '';
     $('appointment-kind').value = item?.is_private ? 'private' : 'customer';
-    $('appointment-service').value = item?.service_id || state.services[0]?.id || '';
+    const serviceId = item?.service_id || state.services[0]?.id || '';
+    $('appointment-service').value = serviceId;
+    fillPriceItemSelect(serviceId, item?.price_item_id || '');
     $('appointment-start').value = localInput(item?.starts_at || nextRoundedSlot());
     $('appointment-status').value = item?.status || 'booked';
     $('appointment-name').value = item?.customer_name || '';
@@ -1014,13 +1030,20 @@
     const id = $('appointment-id').value;
     const start = new Date($('appointment-start').value);
     const privateEntry = $('appointment-kind').value === 'private';
+    const priceItemId = privateEntry ? '' : $('appointment-price-item').value;
+    const priceItem = priceItemId ? state.servicePriceItems.find(item => item.id === priceItemId) : null;
+    const service = state.services.find(s => s.id === $('appointment-service').value);
+    const durationMinutes = Number(priceItem?.duration_minutes) > 0
+      ? Number(priceItem.duration_minutes)
+      : (Number(service?.duration_minutes) > 0 ? Number(service.duration_minutes) : 90);
     const payload = {
       service_id: privateEntry ? null : $('appointment-service').value,
+      price_item_id: privateEntry ? null : (priceItemId || null),
       customer_name: $('appointment-name').value.trim(),
       customer_email: privateEntry ? null : $('appointment-email').value.trim() || null,
       customer_phone: privateEntry ? null : $('appointment-phone').value.trim() || null,
       starts_at: start.toISOString(),
-      ends_at: new Date(start.getTime() + 90 * 60000).toISOString(),
+      ends_at: new Date(start.getTime() + durationMinutes * 60000).toISOString(),
       status: $('appointment-status').value,
       is_private: privateEntry,
       notes: $('appointment-notes').value.trim() || null,
@@ -1345,6 +1368,7 @@
   $('week-next').onclick = () => { state.week = addDays(state.week, 7); renderCalendar(); };
   $('week-today').onclick = () => { state.week = startOfWeek(new Date()); renderCalendar(); };
   $('appointment-kind').onchange = togglePrivateFields;
+  $('appointment-service').onchange = () => fillPriceItemSelect($('appointment-service').value);
   $('appointment-form').onsubmit = saveAppointment;
   $('delete-appointment').onclick = cancelAppointment;
   $('block-form').onsubmit = saveBlock;

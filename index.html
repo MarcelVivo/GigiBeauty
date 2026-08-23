@@ -6444,7 +6444,8 @@
       kicker.textContent = section.querySelector('.svc-title')?.textContent.trim() || '';
       title.textContent = visibleName;
       price.textContent = chf && amount ? `${chf} ${amount}` : value || '';
-      duration.textContent = pt ? 'Janela de 90 minutos' : '90-Minuten-Terminfenster';
+      const durationMinutes = Number(row.dataset.durationMinutes) || 90;
+      duration.textContent = pt ? `Janela de ${durationMinutes} minutos` : `${durationMinutes}-Minuten-Terminfenster`;
       copy.textContent = pt ? categoryCopy : row.dataset.detailCopy || details[canonicalName] || categoryCopy;
       note.textContent = pt
         ? 'Antes de começar, alinhamos pessoalmente o resultado desejado, a execução e todas as indicações relevantes.'
@@ -7064,7 +7065,7 @@
       natP4:'Hochzeits Make-up', natP5:'Probe Make-up', natP6:'Make-up Kurs',
       // Booking form
       bookTitle:'Termin buchen',
-      bookIntro:'Wähle deine Behandlung und finde direkt einen freien Termin von 90 Minuten.',
+      bookIntro:'Wähle deine Behandlung und finde direkt einen freien Termin – die Dauer richtet sich nach der gewählten Position.',
       bkService:'Leistung', bkPlease:'Bitte wählen', bkDate:'Wunschdatum',
       bkTime:'Wunschzeit', bkName:'Name', bkEmail:'E-Mail', bkPhone:'Telefon', bkNote:'Anmerkungen',
       phName:'Dein Name', phNote:'Wünsche, Fragen oder wichtige Hinweise',
@@ -7125,7 +7126,7 @@
       natP4:'Maquilhagem de Casamento', natP5:'Ensaio de Maquilhagem', natP6:'Curso de Maquilhagem',
       // Booking form
       bookTitle:'Agendar Consulta',
-      bookIntro:'Escolha o tratamento e encontre diretamente um horário livre de 90 minutos.',
+      bookIntro:'Escolha o tratamento e encontre diretamente um horário livre – a duração depende da posição escolhida.',
       bkService:'Serviço', bkPlease:'Por favor escolha', bkDate:'Data desejada',
       bkTime:'Hora desejada', bkName:'Nome', bkEmail:'E-Mail', bkPhone:'Telefone', bkNote:'Observações',
       phName:'O seu nome', phNote:'Desejos, perguntas ou informações importantes',
@@ -7776,6 +7777,7 @@
   function renderPriceItem(item) {
     var li = document.createElement('li');
     if (item.detail_copy) li.dataset.detailCopy = item.detail_copy;
+    li.dataset.durationMinutes = Number(item.duration_minutes) || Number(item.services?.duration_minutes) || 90;
     var name = document.createElement('span');
     name.className = 'price-name';
     name.textContent = item.name;
@@ -7810,7 +7812,7 @@
   Promise.all([
     db.from('services').select('slug, page_description'),
     db.from('service_price_items')
-      .select('name, price_chf, price_label, detail_copy, sort_order, active, services(slug)')
+      .select('name, price_chf, price_label, detail_copy, duration_minutes, sort_order, active, services(slug, duration_minutes)')
       .eq('active', true)
       .order('sort_order')
   ]).then(function (results) {

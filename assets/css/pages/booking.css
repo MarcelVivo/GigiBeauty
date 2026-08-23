@@ -112,6 +112,32 @@
   margin-top: .5rem;
 }
 
+.price-item-picker { flex: 0 0 auto; margin-bottom: .65rem; }
+.price-item-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-top: .5rem;
+}
+.price-item-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .1rem;
+  padding: .55rem .85rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--gold-light);
+  font: 600 .78rem/1.2 var(--font-body);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease;
+}
+.price-item-pill:hover { border-color: rgba(212, 175, 106, .65); }
+.price-item-pill.is-selected { border-color: var(--gold); background: rgba(212, 175, 106, .12); }
+.price-item-pill small { color: var(--gold); font: 400 .68rem var(--font-body); }
+
 .service-tile {
   position: relative;
   min-height: clamp(96px, 14vh, 136px);
@@ -406,6 +432,15 @@ html.booking-embed body.booking-page {
 
 .booking-embed .service-picker {
   margin-bottom: 8px;
+}
+
+.booking-embed .price-item-picker {
+  margin-bottom: 8px;
+}
+
+.booking-embed .price-item-pill {
+  padding: .45rem .7rem;
+  font-size: .72rem;
 }
 
 .booking-embed .calendar-section {

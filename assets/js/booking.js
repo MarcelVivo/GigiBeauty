@@ -35,6 +35,8 @@
     cursor: startOfDay(new Date()),
     services: [],
     selectedService: null,
+    priceItems: [],
+    selectedPriceItem: null,
     unavailable: [],
     hours: defaultHours,
     user: null,
@@ -45,6 +47,8 @@
 
   const els = {
     serviceGrid: document.getElementById('service-grid'),
+    priceItemPicker: document.getElementById('price-item-picker'),
+    priceItemList: document.getElementById('price-item-list'),
     calendar: document.getElementById('calendar-content'),
     calendarTitle: document.getElementById('calendar-title'),
     authButton: document.getElementById('auth-button'),
@@ -119,14 +123,22 @@
     return [start, addDays(start, 42)];
   }
 
+  function selectedDurationMinutes() {
+    const fromItem = Number(state.selectedPriceItem?.duration_minutes);
+    if (fromItem > 0) return fromItem;
+    const fromService = Number(state.selectedService?.duration_minutes);
+    return fromService > 0 ? fromService : SLOT_MINUTES;
+  }
+
   function createSlots(day) {
     const hours = state.hours[((day.getDay() + 6) % 7) + 1];
     if (!hours) return [];
+    const duration = selectedDurationMinutes();
     const slots = [];
-    for (let current = minutes(hours[0]); current + SLOT_MINUTES <= minutes(hours[1]); current += SLOT_MINUTES) {
+    for (let current = minutes(hours[0]); current + duration <= minutes(hours[1]); current += SLOT_MINUTES) {
       const label = timeLabel(current);
       const start = zonedDateTimeToUtc(dateKey(day), label);
-      slots.push({ start, end: new Date(start.getTime() + SLOT_MINUTES * 60000), label });
+      slots.push({ start, end: new Date(start.getTime() + duration * 60000), label });
     }
     return slots;
   }
@@ -146,12 +158,14 @@
       await refreshCalendar();
       return;
     }
-    const [{ data: services, error: serviceError }, { data: settings }] = await Promise.all([
+    const [{ data: services, error: serviceError }, { data: settings }, { data: priceItems }] = await Promise.all([
       db.from('services').select('*').eq('active', true).order('sort_order'),
-      db.from('business_settings').select('*').eq('id', true).maybeSingle()
+      db.from('business_settings').select('*').eq('id', true).maybeSingle(),
+      db.from('service_price_items').select('*').eq('active', true).order('sort_order')
     ]);
     if (serviceError) showToast(serviceError.message);
     state.services = services?.length ? services : fallbackServices;
+    state.priceItems = priceItems || [];
     state.hours = settings?.opening_hours || defaultHours;
     state.selectedService = initialService();
     pendingServiceSlug = null;
@@ -164,12 +178,13 @@
     els.serviceGrid.innerHTML = state.services.map(service => `
       <button class="service-tile${state.selectedService?.id === service.id ? ' is-selected' : ''}" type="button" data-service-id="${escapeHtml(service.id)}" aria-pressed="${state.selectedService?.id === service.id}">
         <img src="${escapeHtml(serviceImageUrl(service.image_path))}" alt="" loading="lazy" decoding="async">
-        <span>${escapeHtml(service.name)}<small>90 Min. · CHF ${Number(service.price_chf || 0).toFixed(0)}</small></span>
+        <span>${escapeHtml(service.name)}<small>CHF ${Number(service.price_chf || 0).toFixed(0)}</small></span>
       </button>`).join('');
     els.serviceGrid.querySelectorAll('[data-service-id]').forEach(button => button.addEventListener('click', () => {
       state.selectedService = state.services.find(s => s.id === button.dataset.serviceId);
       renderServices('smooth');
     }));
+    renderPriceItemPicker();
 
     if (window.innerWidth <= 720) {
       requestAnimationFrame(() => {
@@ -179,6 +194,41 @@
         els.serviceGrid.scrollTo({ left: Math.max(0, left), behavior: scrollBehavior });
       });
     }
+  }
+
+  // Positions within a category can have very different durations (e.g. a
+  // Permanent-Make-up touch-up vs. a full Ombré session), so the calendar
+  // needs to know exactly which one is selected before it can compute
+  // available slots.
+  function renderPriceItemPicker() {
+    if (!els.priceItemPicker || !els.priceItemList) return;
+    const items = state.priceItems
+      .filter(item => item.service_id === state.selectedService?.id)
+      .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+
+    if (!items.length) {
+      els.priceItemPicker.hidden = true;
+      state.selectedPriceItem = null;
+      return;
+    }
+
+    if (!state.selectedPriceItem || !items.some(item => item.id === state.selectedPriceItem.id)) {
+      state.selectedPriceItem = items[0];
+    }
+
+    els.priceItemPicker.hidden = false;
+    els.priceItemList.innerHTML = items.map(item => {
+      const priceText = item.price_chf != null ? `CHF ${Number(item.price_chf).toFixed(0)}` : (item.price_label || '');
+      const duration = Number(item.duration_minutes) > 0 ? Number(item.duration_minutes) : Number(state.selectedService?.duration_minutes) || SLOT_MINUTES;
+      return `<button class="price-item-pill${state.selectedPriceItem?.id === item.id ? ' is-selected' : ''}" type="button" data-price-item-id="${escapeHtml(item.id)}" aria-pressed="${state.selectedPriceItem?.id === item.id}">
+        ${escapeHtml(item.name)}<small>${duration} Min.${priceText ? ' · ' + escapeHtml(priceText) : ''}</small>
+      </button>`;
+    }).join('');
+    els.priceItemList.querySelectorAll('[data-price-item-id]').forEach(button => button.addEventListener('click', () => {
+      state.selectedPriceItem = items.find(item => item.id === button.dataset.priceItemId) || null;
+      renderPriceItemPicker();
+      refreshCalendar();
+    }));
   }
 
   async function refreshCalendar() {
@@ -271,7 +321,14 @@
 
   function openBookingModal() {
     const summary = document.getElementById('booking-summary');
-    summary.innerHTML = `<strong>${escapeHtml(state.selectedService.name)}</strong>${formatDate(state.selectedSlot, { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}<br>${formatDate(state.selectedSlot, { hour: '2-digit', minute: '2-digit' })} bis ${formatDate(new Date(state.selectedSlot.getTime() + SLOT_MINUTES * 60000), { hour: '2-digit', minute: '2-digit' })} Uhr<br>Preis: CHF ${Number(state.selectedService.price_chf || 0).toFixed(2)}`;
+    const duration = selectedDurationMinutes();
+    const treatmentName = state.selectedPriceItem
+      ? `${state.selectedService.name} – ${state.selectedPriceItem.name}`
+      : state.selectedService.name;
+    const priceText = state.selectedPriceItem
+      ? (state.selectedPriceItem.price_chf != null ? `CHF ${Number(state.selectedPriceItem.price_chf).toFixed(2)}` : (state.selectedPriceItem.price_label || 'auf Anfrage'))
+      : `CHF ${Number(state.selectedService.price_chf || 0).toFixed(2)}`;
+    summary.innerHTML = `<strong>${escapeHtml(treatmentName)}</strong>${formatDate(state.selectedSlot, { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}<br>${formatDate(state.selectedSlot, { hour: '2-digit', minute: '2-digit' })} bis ${formatDate(new Date(state.selectedSlot.getTime() + duration * 60000), { hour: '2-digit', minute: '2-digit' })} Uhr<br>Preis: ${escapeHtml(priceText)}`;
     document.getElementById('booking-phone').value = state.profile?.phone || '';
     document.getElementById('booking-message').textContent = '';
     openModal(els.bookingModal);
@@ -351,7 +408,8 @@
       requested_service_id: state.selectedService.id,
       requested_start: state.selectedSlot.toISOString(),
       requested_phone: document.getElementById('booking-phone').value.trim() || null,
-      requested_notes: document.getElementById('booking-notes').value.trim() || null
+      requested_notes: document.getElementById('booking-notes').value.trim() || null,
+      requested_price_item_id: state.selectedPriceItem?.id || null
     });
     if (error) { message.textContent = error.message; await refreshCalendar(); return; }
     const attribution = bookingAttribution();
