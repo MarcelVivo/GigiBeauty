@@ -6445,7 +6445,7 @@
       title.textContent = visibleName;
       price.textContent = chf && amount ? `${chf} ${amount}` : value || '';
       duration.textContent = pt ? 'Janela de 90 minutos' : '90-Minuten-Terminfenster';
-      copy.textContent = pt ? categoryCopy : details[canonicalName] || categoryCopy;
+      copy.textContent = pt ? categoryCopy : row.dataset.detailCopy || details[canonicalName] || categoryCopy;
       note.textContent = pt
         ? 'Antes de começar, alinhamos pessoalmente o resultado desejado, a execução e todas as indicações relevantes.'
         : 'Vor Beginn stimmen wir gewünschtes Ergebnis, Ausführung und relevante Hinweise persönlich mit dir ab.';
@@ -7775,6 +7775,7 @@
 
   function renderPriceItem(item) {
     var li = document.createElement('li');
+    if (item.detail_copy) li.dataset.detailCopy = item.detail_copy;
     var name = document.createElement('span');
     name.className = 'price-name';
     name.textContent = item.name;
@@ -7809,7 +7810,7 @@
   Promise.all([
     db.from('services').select('slug, page_description'),
     db.from('service_price_items')
-      .select('name, price_chf, price_label, sort_order, active, services(slug)')
+      .select('name, price_chf, price_label, detail_copy, sort_order, active, services(slug)')
       .eq('active', true)
       .order('sort_order')
   ]).then(function (results) {

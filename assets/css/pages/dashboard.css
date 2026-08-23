@@ -166,6 +166,8 @@ button { cursor: pointer; }
 .content-service-card textarea.content-desc { min-height: 80px; resize: vertical; }
 .content-block-field { margin-bottom: .5rem; }
 .content-block-field textarea.content-block-text { resize: vertical; }
+.price-item-detail-row td { padding-top: 0; border-bottom: 1px dashed var(--dash-line); white-space: normal; }
+.price-item-detail-row textarea { resize: vertical; }
 .drag-handle { cursor: grab; color: var(--dash-muted); letter-spacing: -2px; padding: 0 .3rem; -webkit-user-select: none; user-select: none; }
 .drag-handle:active { cursor: grabbing; }
 tr[data-price-item].is-dragging { opacity: .4; }
