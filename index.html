@@ -7320,6 +7320,15 @@
   document.addEventListener('mouseleave', function() { dot.style.opacity = '0'; });
   document.addEventListener('mouseenter', function() { dot.style.opacity = '1'; });
 
+  /* The embedded booking calendar is a separate document, so mousemove
+     over it never reaches this listener -- the dot would otherwise freeze
+     at the iframe's edge while the real cursor reappears inside it. */
+  var gcBookingFrame = document.getElementById('booking-calendar-frame');
+  if (gcBookingFrame) {
+    gcBookingFrame.addEventListener('mouseenter', function() { dot.style.opacity = '0'; });
+    gcBookingFrame.addEventListener('mouseleave', function() { dot.style.opacity = '1'; });
+  }
+
   function spawnStar() {
     /* Occasionally spawn 2 stars for denser trail on fast movement */
     var count = Math.random() < 0.4 ? 2 : 1;
