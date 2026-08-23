@@ -1045,10 +1045,13 @@
   function nextRoundedSlot() { const d = new Date(); d.setSeconds(0, 0); d.setMinutes(d.getMinutes() < 30 ? 30 : 0); if (d.getMinutes() === 0) d.setHours(d.getHours() + 1); return d; }
   function togglePrivateFields() {
     const privateEntry = $('appointment-kind').value === 'private';
-    // Behandlung/Position/E-Mail/Telefon betreffen nur Kundentermine -- bei
-    // privaten Einträgen (z. B. Arzt, Ferien) blenden wir sie komplett aus,
-    // statt sie nur ausgegraut mit einem stehengebliebenen Wert zu zeigen.
-    [['appointment-service', ''], ['appointment-price-item', ''], ['appointment-email', ''], ['appointment-phone', '']].forEach(([id]) => {
+    // Behandlung/Position/Status/E-Mail/Telefon betreffen nur Kundentermine
+    // -- "abgeschlossen"/"nicht erschienen" ergeben bei einem privaten
+    // Eintrag (z. B. Arzt, Ferien) keinen Sinn, und Stornieren läuft ohnehin
+    // über den eigenen Button. Bei privaten Einträgen blenden wir diese
+    // Felder komplett aus, statt sie nur ausgegraut mit einem
+    // stehengebliebenen Wert zu zeigen.
+    ['appointment-service', 'appointment-price-item', 'appointment-status', 'appointment-email', 'appointment-phone'].forEach(id => {
       const field = $(id).closest('.field');
       if (field) field.hidden = privateEntry;
       $(id).disabled = privateEntry;
