@@ -1045,10 +1045,18 @@
   function nextRoundedSlot() { const d = new Date(); d.setSeconds(0, 0); d.setMinutes(d.getMinutes() < 30 ? 30 : 0); if (d.getMinutes() === 0) d.setHours(d.getHours() + 1); return d; }
   function togglePrivateFields() {
     const privateEntry = $('appointment-kind').value === 'private';
-    $('appointment-service').disabled = privateEntry;
-    $('appointment-email').disabled = privateEntry;
-    $('appointment-phone').disabled = privateEntry;
+    // Behandlung/Position/E-Mail/Telefon betreffen nur Kundentermine -- bei
+    // privaten Einträgen (z. B. Arzt, Ferien) blenden wir sie komplett aus,
+    // statt sie nur ausgegraut mit einem stehengebliebenen Wert zu zeigen.
+    [['appointment-service', ''], ['appointment-price-item', ''], ['appointment-email', ''], ['appointment-phone', '']].forEach(([id]) => {
+      const field = $(id).closest('.field');
+      if (field) field.hidden = privateEntry;
+      $(id).disabled = privateEntry;
+    });
+    $('appointment-name-label').textContent = privateEntry ? 'Bezeichnung' : 'Name';
+    $('appointment-name').placeholder = privateEntry ? 'z. B. Arzttermin, Ferien' : '';
     if (privateEntry && !$('appointment-name').value) $('appointment-name').value = 'Privat, Liliane';
+    if (!privateEntry && $('appointment-name').value === 'Privat, Liliane') $('appointment-name').value = '';
   }
 
   async function saveAppointment(event) {
