@@ -772,10 +772,23 @@
     const attributedBookings = state.marketingEvents.filter(event => event.event_type === 'booked').length;
     const attributedRevenue = state.marketingEvents.filter(event => event.event_type === 'revenue').reduce((sum, event) => sum + Number(event.revenue_chf || 0), 0);
     $('marketing-live-metrics').innerHTML = [metricCard('Zielgruppe', consent, 'mit Einwilligung + E-Mail'), metricCard('E-Mails gesendet', sent, 'Journeys und Kampagnen'), metricCard('Klicks', clicks, 'gemessene Reaktionen'), metricCard('Buchungen', attributedBookings, 'Marketing zugeordnet'), metricCard('Kampagnenumsatz', money(attributedRevenue), 'direkt zugeordnet')].join('');
-    $('automation-rules').innerHTML = state.automations.length ? state.automations.map(rule => `<article class="automation-card ${rule.active ? 'is-active' : ''}"><div class="automation-icon">${rule.active ? '●' : '○'}</div><div><h3>${esc(rule.name)}</h3><p>${esc(rule.description || '')}</p><span>${rule.requires_marketing_consent ? 'Nur mit Einwilligung' : 'Transaktional'}${rule.delay_hours ? ` · nach ${rule.delay_hours} Std.` : ''}</span></div><label class="switch"><input type="checkbox" data-toggle-automation="${rule.id}" ${rule.active ? 'checked' : ''}><i></i></label></article>`).join('') : '<div class="empty">Automationen werden nach der Datenbank-Erweiterung angezeigt.</div>';
+    $('automation-rules').innerHTML = state.automations.length ? state.automations.map(rule => `<article class="automation-card ${rule.active ? 'is-active' : ''}"><div class="automation-icon">${rule.active ? '●' : '○'}</div><div class="automation-body"><h3>${esc(rule.name)}</h3><p>${esc(rule.description || '')}</p><span>${rule.requires_marketing_consent ? 'Nur mit Einwilligung' : 'Transaktional'}${rule.delay_hours ? ` · nach ${rule.delay_hours} Std.` : ''}</span>
+      <div class="field"><label for="automation-subject-${rule.id}">Betreff der E-Mail</label><input id="automation-subject-${rule.id}" value="${esc(rule.subject_template || '')}"></div>
+      <div class="field"><label for="automation-content-${rule.id}">Text der E-Mail</label><textarea id="automation-content-${rule.id}" rows="3">${esc(rule.content_template || '')}</textarea></div>
+      <button class="link-button" type="button" data-save-automation="${rule.id}">Text speichern</button>
+    </div><label class="switch"><input type="checkbox" data-toggle-automation="${rule.id}" ${rule.active ? 'checked' : ''}><i></i></label></article>`).join('') : '<div class="empty">Automationen werden nach der Datenbank-Erweiterung angezeigt.</div>';
     $('campaign-table').innerHTML = state.campaigns.length ? state.campaigns.map(c => { const events = state.marketingEvents.filter(event => event.campaign_id === c.id); const revenue = events.filter(event => event.event_type === 'revenue').reduce((sum, event) => sum + Number(event.revenue_chf || 0), 0); return `<tr><td><strong>${esc(c.title)}</strong><br><span class="muted">${events.filter(event => event.event_type === 'clicked').length} Klicks · ${events.filter(event => event.event_type === 'booked').length} Buchungen · ${esc(money(revenue))}</span></td><td>${esc(c.subject)}</td><td>${c.scheduled_at ? fmt(c.scheduled_at, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '–'}</td><td>${statusPill(c.status)}</td><td>${!c.queued_at && (c.status === 'draft' || c.status === 'scheduled') ? `<button class="link-button" data-send-campaign="${c.id}">Versand einplanen</button>` : ''}</td></tr>`; }).join('') : '<tr><td colspan="5" class="empty">Noch keine Kampagnen.</td></tr>';
     document.querySelectorAll('[data-send-campaign]').forEach(button => button.onclick = () => queueCampaign(button.dataset.sendCampaign));
     document.querySelectorAll('[data-toggle-automation]').forEach(input => input.onchange = () => toggleAutomation(input.dataset.toggleAutomation, input.checked));
+    document.querySelectorAll('[data-save-automation]').forEach(button => button.onclick = () => saveAutomationTemplate(button.dataset.saveAutomation));
+  }
+
+  async function saveAutomationTemplate(id) {
+    const subject = $(`automation-subject-${id}`).value.trim();
+    const content = $(`automation-content-${id}`).value.trim();
+    const { error } = await db.from('automation_rules').update({ subject_template: subject || null, content_template: content || null }).eq('id', id);
+    if (error) return toast(error.message);
+    toast('E-Mail-Text gespeichert.'); await loadAll();
   }
 
   function renderContent() {
