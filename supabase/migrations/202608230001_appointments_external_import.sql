@@ -5,7 +5,10 @@
 
 -- The original constraint was declared unnamed at table-creation time, so
 -- Postgres auto-assigned it a name (appointments_check or similar). Find and
--- drop it by its definition instead of guessing that name.
+-- drop it by its definition instead of guessing that name. Match on the
+-- raw expression, not on "90 minutes" -- Postgres normalizes interval
+-- literals (e.g. to '01:30:00'), so the original wording never survives
+-- into pg_get_constraintdef().
 do $$
 declare
   fixed_duration_constraint text;
@@ -14,7 +17,8 @@ begin
   from pg_constraint
   where conrelid = 'public.appointments'::regclass
     and contype = 'c'
-    and pg_get_constraintdef(oid) ilike '%ends_at%90 minutes%';
+    and pg_get_constraintdef(oid) ilike '%ends_at = (starts_at%'
+    and pg_get_constraintdef(oid) not ilike '%4 hours%';
 
   if fixed_duration_constraint is not null then
     execute format('alter table public.appointments drop constraint %I', fixed_duration_constraint);
