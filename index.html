@@ -7423,11 +7423,10 @@
     { sectionId: 'section-natural-make-up' }
   ].map(function (plan, i) {
     plan.pastel = botanicalShuffledPastels[i % botanicalShuffledPastels.length];
-    plan.scale = 0.62 + Math.random() * 1.0;      // ~0.62 – 1.62, strongly varied
-    plan.tilt = Math.random() * 36 - 18;          // ~-18deg – 18deg
+    plan.scale = 0.48 + Math.random() * 0.5;      // ~0.48 – 0.98, varied but modest
+    plan.tilt = Math.random() * 24 - 12;          // ~-12deg – 12deg
     plan.flip = Math.random() < 0.5 ? -1 : 1;     // head facing left or right
-    plan.xJitter = Math.random() * 24 - 12;       // ~-12px – 12px
-    plan.yJitter = Math.random() * 20 - 10;       // ~-10px – 10px
+    plan.yJitter = Math.random() * 10 - 5;        // ~-5px – 5px
     return plan;
   });
 
@@ -7455,16 +7454,10 @@
       if (!title) return;
       var titleRect = title.getBoundingClientRect();
 
-      /* Hug each butterfly right up against its own section's title,
-         hovering just to the left of the title text. */
-      var markerY = titleRect.top - railRect.top + titleRect.height / 2 + plan.yJitter;
-      var markerX = titleRect.left - railRect.left - (isMobile ? 32 : 56) + plan.xJitter;
-      markerX = Math.max(16, markerX);
-
       var marker = document.createElement('div');
       marker.className = 'botanical-service-butterfly';
-      marker.style.left = markerX.toFixed(2) + 'px';
-      marker.style.top = markerY.toFixed(2) + 'px';
+      marker.style.left = '0px';
+      marker.style.top = '0px';
       marker.style.setProperty('--butterfly-size', plan.scale.toFixed(3));
       marker.style.setProperty('--butterfly-turn', plan.tilt + 'deg');
       marker.style.setProperty('--butterfly-flip', plan.flip);
@@ -7488,6 +7481,19 @@
       butterfly.decoding = 'async';
       marker.appendChild(butterfly);
       botanicalMarkerLayer.appendChild(marker);
+
+      /* Measure the actually rendered size (scale transform included) so the
+         butterfly always clears the title text — never on top of it. */
+      var markerRect = marker.getBoundingClientRect();
+      var halfWidth = markerRect.width / 2;
+      var minGap = isMobile ? 8 : 14;
+      var extraGap = Math.random() * (isMobile ? 10 : 20);
+      var markerX = titleRect.left - railRect.left - halfWidth - minGap - extraGap;
+      markerX = Math.max(12, markerX);
+      var markerY = titleRect.top - railRect.top + titleRect.height / 2 + plan.yJitter;
+
+      marker.style.left = markerX.toFixed(2) + 'px';
+      marker.style.top = markerY.toFixed(2) + 'px';
 
       botanicalMarkers.push({
         root: marker,
