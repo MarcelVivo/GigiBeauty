@@ -1088,6 +1088,15 @@
     }
   });
   $('logout').onclick = async () => { await db.auth.signOut(); location.reload(); };
+  $('forgot-password').onclick = async () => {
+    if (!db) return;
+    const email = $('admin-email').value.trim();
+    if (!email) { $('login-message').textContent = 'Bitte zuerst die E-Mail-Adresse eingeben.'; return; }
+    $('login-message').textContent = 'Der Link wird verschickt.';
+    const base = location.pathname.replace(/[^/]*$/, '');
+    const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}${base}reset-password.html` });
+    $('login-message').textContent = error ? loginErrorMessage(error) : 'Falls ein Konto mit dieser E-Mail-Adresse besteht, wurde ein Link zum Zurücksetzen verschickt. Bitte auch den Spam-Ordner prüfen.';
+  };
   document.querySelectorAll('[data-panel]').forEach(button => button.onclick = () => showPanel(button.dataset.panel));
   document.querySelectorAll('[data-go]').forEach(button => button.onclick = () => showPanel(button.dataset.go));
   document.querySelectorAll('[data-close]').forEach(button => button.onclick = () => closeModal(button.closest('.modal-backdrop').id));

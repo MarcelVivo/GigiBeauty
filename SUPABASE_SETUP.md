@@ -18,7 +18,7 @@ Die Website enthält keine geheimen Schlüssel. Vor dem Livegang sind diese einm
 Unter Authentication → URL Configuration:
 
 - Site URL: `https://www.gigibeauty.ch`
-- Redirect URL: `https://www.gigibeauty.ch/pages/booking.html`
+- Redirect URLs: `https://www.gigibeauty.ch/pages/booking.html` und `https://www.gigibeauty.ch/dashboard/reset-password.html` (für „Passwort vergessen?" im Dashboard-Login; bis zur Domain-Umstellung zusätzlich `https://marcelvivo.github.io/GigiBeauty/dashboard/reset-password.html` eintragen)
 
 E-Mail/Passwort und „Confirm email“ aktivieren. Danach über die Buchungsseite ein Konto für Liliane anlegen und im SQL Editor einmalig zur Administratorin machen:
 
