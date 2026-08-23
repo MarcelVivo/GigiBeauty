@@ -7280,6 +7280,11 @@
     applyLang(_lang === 'de' ? 'pt' : 'de');
   });
 
+  // Expose to the dashboard-content loader further down the page, so DB
+  // edits can patch T.de and re-apply instead of only touching the DOM
+  // once (which a later language toggle would otherwise overwrite).
+  window.__gigiLang = { T: T, applyLang: applyLang, getLang: function () { return _lang; } };
+
 })();
 </script>
 
@@ -7788,6 +7793,15 @@
     return li;
   }
 
+  // Maps each service slug to its German translation key in the language
+  // switcher's T.de object, so an edited description stays correct even
+  // if the visitor toggles to Portuguese and back (T.de is what applyLang
+  // re-reads from, not the DOM).
+  var descKeyBySlug = {
+    'gel-acryl-nails': 'gelDesc', 'permanent-make-up': 'pmuDesc', 'kosmetische-pedicure': 'pedDesc',
+    'fillers': 'fillDesc', 'lashes': 'lasDesc', 'korean-cosmetics': 'korDesc', 'natural-make-up': 'natDesc'
+  };
+
   Promise.all([
     db.from('services').select('slug, page_description'),
     db.from('service_price_items')
@@ -7797,11 +7811,16 @@
   ]).then(function (results) {
     var services = results[0].data || [];
     var priceItems = results[1].data || [];
+    var lang = window.__gigiLang;
 
     services.forEach(function (service) {
       if (!service.page_description) return;
       var p = document.querySelector('[data-service-text="' + service.slug + '"]');
       if (p) p.textContent = service.page_description;
+      // Keep the DE translation table in sync so a later PT<->DE toggle
+      // shows the edited text instead of reverting to the old default.
+      var key = descKeyBySlug[service.slug];
+      if (lang && key) lang.T.de[key] = service.page_description;
     });
 
     var bySlug = {};
@@ -7819,6 +7838,14 @@
       ul.innerHTML = '';
       items.forEach(function (item) { ul.appendChild(renderPriceItem(item)); });
     });
+    // Note: price-item names are intentionally not synced into T.de/T.pt.
+    // The Portuguese price list is a fixed, hand-translated list matched by
+    // position to the original 7 price lists; once the dashboard is used to
+    // add, remove or reorder items, that position-based match no longer
+    // lines up. Portuguese price names are not kept in sync with edits made
+    // here until that translation approach is redesigned.
+
+    if (lang && lang.getLang() === 'de') lang.applyLang('de');
   }).catch(function () {
     /* Datenbank nicht erreichbar -- die statischen Texte im HTML bleiben sichtbar. */
   });
