@@ -7486,7 +7486,7 @@
       var extraGap = Math.random() * (isMobile ? 14 : 26);
       var markerX = titleRect.left - railRect.left - halfWidth - minGap - extraGap;
       markerX = Math.max(12, markerX);
-      var markerY = titleRect.top - railRect.top + titleRect.height / 2 + plan.yJitter;
+      var markerY = titleRect.top - railRect.top + plan.yJitter;
       if (plan.sectionId === 'section-gel-acryl-nails') {
         markerY -= markerRect.height;
       }
