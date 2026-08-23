@@ -774,7 +774,7 @@
     $('marketing-live-metrics').innerHTML = [metricCard('Zielgruppe', consent, 'mit Einwilligung + E-Mail'), metricCard('E-Mails gesendet', sent, 'Journeys und Kampagnen'), metricCard('Klicks', clicks, 'gemessene Reaktionen'), metricCard('Buchungen', attributedBookings, 'Marketing zugeordnet'), metricCard('Kampagnenumsatz', money(attributedRevenue), 'direkt zugeordnet')].join('');
     $('automation-rules').innerHTML = state.automations.length ? state.automations.map(rule => `<article class="automation-card ${rule.active ? 'is-active' : ''}"><div class="automation-icon">${rule.active ? '●' : '○'}</div><div class="automation-body"><h3>${esc(rule.name)}</h3><p>${esc(rule.description || '')}</p><span>${rule.requires_marketing_consent ? 'Nur mit Einwilligung' : 'Transaktional'}${rule.delay_hours ? ` · nach ${rule.delay_hours} Std.` : ''}</span>
       <div class="field"><label for="automation-subject-${rule.id}">Betreff der E-Mail</label><input id="automation-subject-${rule.id}" value="${esc(rule.subject_template || '')}"></div>
-      <div class="field"><label for="automation-content-${rule.id}">Text der E-Mail</label><textarea id="automation-content-${rule.id}" rows="3">${esc(rule.content_template || '')}</textarea></div>
+      <div class="field"><label for="automation-content-${rule.id}">${rule.rule_key === 'aftercare' ? 'Text der E-Mail (nur Rückfallwert – die eigentlichen Pflegehinweise pro Behandlung stehen unter „Website-Inhalte“)' : 'Text der E-Mail'}</label><textarea id="automation-content-${rule.id}" rows="3">${esc(rule.content_template || '')}</textarea></div>
       <button class="link-button" type="button" data-save-automation="${rule.id}">Text speichern</button>
     </div><label class="switch"><input type="checkbox" data-toggle-automation="${rule.id}" ${rule.active ? 'checked' : ''}><i></i></label></article>`).join('') : '<div class="empty">Automationen werden nach der Datenbank-Erweiterung angezeigt.</div>';
     $('campaign-table').innerHTML = state.campaigns.length ? state.campaigns.map(c => { const events = state.marketingEvents.filter(event => event.campaign_id === c.id); const revenue = events.filter(event => event.event_type === 'revenue').reduce((sum, event) => sum + Number(event.revenue_chf || 0), 0); return `<tr><td><strong>${esc(c.title)}</strong><br><span class="muted">${events.filter(event => event.event_type === 'clicked').length} Klicks · ${events.filter(event => event.event_type === 'booked').length} Buchungen · ${esc(money(revenue))}</span></td><td>${esc(c.subject)}</td><td>${c.scheduled_at ? fmt(c.scheduled_at, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '–'}</td><td>${statusPill(c.status)}</td><td>${!c.queued_at && (c.status === 'draft' || c.status === 'scheduled') ? `<button class="link-button" data-send-campaign="${c.id}">Versand einplanen</button>` : ''}</td></tr>`; }).join('') : '<tr><td colspan="5" class="empty">Noch keine Kampagnen.</td></tr>';
@@ -808,6 +808,13 @@
           <button class="secondary" type="button" data-save-desc="${service.id}">Text speichern</button>
           <button class="link-button" type="button" data-undo-desc="${service.id}">Letzte Änderung rückgängig machen</button>
         </div>
+        <div class="field"><label for="content-aftercare-${service.id}">Pflegehinweise nach der Behandlung (E-Mail 2 Std. nach Termin-Abschluss)</label>
+          <textarea id="content-aftercare-${service.id}" class="content-aftercare" rows="3" data-service-id="${service.id}" placeholder="z. B. Nicht kratzen, 24 Std. kein Wasser, direkte Sonne meiden...">${esc(service.aftercare_copy || '')}</textarea>
+        </div>
+        <div class="content-desc-actions" style="display:flex;gap:8px;margin:8px 0 14px">
+          <button class="secondary" type="button" data-save-aftercare="${service.id}">Pflegetext speichern</button>
+          <button class="link-button" type="button" data-undo-aftercare="${service.id}">Letzte Änderung rückgängig machen</button>
+        </div>
         <div class="table-wrap embedded">
           <table>
             <thead><tr><th></th><th>Position</th><th>Preis (CHF)</th><th>Oder Text (z. B. „demnächst“)</th><th>Dauer (Min.)</th><th></th></tr></thead>
@@ -838,6 +845,8 @@
 
     container.querySelectorAll('[data-save-desc]').forEach(button => button.onclick = () => saveServiceDescription(button.dataset.saveDesc));
     container.querySelectorAll('[data-undo-desc]').forEach(button => button.onclick = () => undoServiceDescription(button.dataset.undoDesc));
+    container.querySelectorAll('[data-save-aftercare]').forEach(button => button.onclick = () => saveServiceAftercare(button.dataset.saveAftercare));
+    container.querySelectorAll('[data-undo-aftercare]').forEach(button => button.onclick = () => undoServiceAftercare(button.dataset.undoAftercare));
     container.querySelectorAll('[data-save-price-item]').forEach(button => button.onclick = () => savePriceItem(button.dataset.savePriceItem));
     container.querySelectorAll('[data-delete-price-item]').forEach(button => button.onclick = () => deletePriceItem(button.dataset.deletePriceItem));
     container.querySelectorAll('[data-restore-price-item]').forEach(button => button.onclick = () => restorePriceItem(button.dataset.restorePriceItem));
@@ -959,6 +968,24 @@
     const previous = (data || []).find(entry => entry.old_data && 'page_description' in entry.old_data);
     if (!previous) return toast('Keine frühere Version dieses Texts gefunden.');
     const { error: updateError } = await db.from('services').update({ page_description: previous.old_data.page_description }).eq('id', serviceId);
+    if (updateError) return toast(`Fehler: ${updateError.message}`);
+    toast('Vorherige Version wiederhergestellt.'); await loadAll();
+  }
+
+  async function saveServiceAftercare(serviceId) {
+    const textarea = document.querySelector(`textarea.content-aftercare[data-service-id="${serviceId}"]`);
+    const value = textarea.value.trim();
+    const { error } = await db.from('services').update({ aftercare_copy: value || null }).eq('id', serviceId);
+    if (error) return toast(`Fehler: ${error.message}`);
+    toast('Pflegetext gespeichert.'); await loadAll();
+  }
+
+  async function undoServiceAftercare(serviceId) {
+    const { data, error } = await db.from('audit_log').select('*').eq('table_name', 'services').eq('record_id', serviceId).order('changed_at', { ascending: false }).limit(10);
+    if (error) return toast(`Fehler: ${error.message}`);
+    const previous = (data || []).find(entry => entry.old_data && 'aftercare_copy' in entry.old_data);
+    if (!previous) return toast('Keine frühere Version dieses Texts gefunden.');
+    const { error: updateError } = await db.from('services').update({ aftercare_copy: previous.old_data.aftercare_copy }).eq('id', serviceId);
     if (updateError) return toast(`Fehler: ${updateError.message}`);
     toast('Vorherige Version wiederhergestellt.'); await loadAll();
   }
