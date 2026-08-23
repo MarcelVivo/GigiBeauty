@@ -323,10 +323,10 @@
     $('weekday-chart').innerHTML = orderedWeekdays.map(item => `<div class="weekday-column"><div class="weekday-bar-wrap"><div class="weekday-bar" style="height:${Math.max(3, (item.value / weekdayMaximum) * 100)}%"></div></div><strong>${esc(item.label)}</strong><span>${item.value}</span></div>`).join('');
 
     const upcoming = booked.filter(a => new Date(a.starts_at) >= now).sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at)).slice(0, 7);
-    $('upcoming').innerHTML = upcoming.length ? upcoming.map(a => `<button class="upcoming-item" type="button" data-edit-appointment="${a.id}" style="width:100%;background:transparent;text-align:left;cursor:pointer"><span class="upcoming-time">${fmt(a.starts_at, { hour: '2-digit', minute: '2-digit' })}</span><span><strong>${esc(a.customer_name)}</strong><small>${esc(a.services?.name || 'Privat')} · ${fmt(a.starts_at, { weekday: 'short', day: '2-digit', month: '2-digit' })}</small></span>${statusPill(a.status)}</button>`).join('') : '<div class="empty">Keine kommenden Termine.</div>';
+    $('upcoming').innerHTML = upcoming.length ? upcoming.map(a => `<button class="upcoming-item" type="button" data-edit-appointment="${a.id}" style="width:100%;background:transparent;text-align:left;cursor:pointer"><span class="upcoming-time">${fmt(a.starts_at, { hour: '2-digit', minute: '2-digit' })}</span><span><strong>${esc(a.customer_name)}</strong><small>${esc(a.services?.name || 'Privat')} · ${fmt(a.starts_at, { weekday: 'short', day: '2-digit', month: '2-digit' })}</small><span class="calendar-event-origin">${esc(appointmentOriginLabel(appointmentOrigin(a)))}</span></span>${statusPill(a.status)}</button>`).join('') : '<div class="empty">Keine kommenden Termine.</div>';
     const todaySlots = availableSlots(startOfDay(now), addDays(startOfDay(now), 1));
     $('today-capacity').textContent = `${todayAppointments.length} von ${todaySlots} verfügbaren Zeitfenstern belegt`;
-    $('today-summary').innerHTML = todayAppointments.length ? todayAppointments.map(a => `<button class="today-item" type="button" data-edit-appointment="${a.id}"><time>${fmt(a.starts_at, { hour: '2-digit', minute: '2-digit' })}–${fmt(a.ends_at, { hour: '2-digit', minute: '2-digit' })}</time><strong>${esc(a.customer_name)}</strong><span>${esc(a.services?.name || 'Privat')}</span></button>`).join('') : '<div class="empty">Heute sind keine Termine eingetragen.</div>';
+    $('today-summary').innerHTML = todayAppointments.length ? todayAppointments.map(a => `<button class="today-item" type="button" data-edit-appointment="${a.id}"><time>${fmt(a.starts_at, { hour: '2-digit', minute: '2-digit' })}–${fmt(a.ends_at, { hour: '2-digit', minute: '2-digit' })}</time><strong>${esc(a.customer_name)}</strong><span>${esc(a.services?.name || 'Privat')}</span><span class="calendar-event-origin">${esc(appointmentOriginLabel(appointmentOrigin(a)))}</span></button>`).join('') : '<div class="empty">Heute sind keine Termine eingetragen.</div>';
 
     const openTasks = actionableTasks(now);
     const urgentTasks = openTasks.filter(task => ['urgent', 'high'].includes(task.priority)).length;
@@ -341,6 +341,24 @@
     document.querySelectorAll('[data-go]').forEach(button => button.onclick = () => showPanel(button.dataset.go));
   }
 
+  // Kundentermine, die online über die Buchungsseite entstanden sind, tragen
+  // dieselbe profile-id in customer_id UND created_by (die Kundin hat sich
+  // selbst gebucht). Termine, die Liliane im Dashboard für eine Kundin
+  // einträgt, haben kein verknüpftes Kundenprofil (customer_id ist leer) --
+  // dieses Muster braucht kein neues Datenbankfeld, es steckt schon in den
+  // bestehenden Spalten.
+  function appointmentOrigin(appointment) {
+    if (appointment.is_private) return 'private';
+    if (appointment.customer_id && appointment.customer_id === appointment.created_by) return 'online';
+    return 'admin';
+  }
+  function appointmentOriginLabel(origin) {
+    return { private: 'Privat', online: 'Online gebucht', admin: 'Von Liliane erfasst' }[origin] || '';
+  }
+  function appointmentOriginClass(origin) {
+    return { private: 'is-private', online: 'is-online', admin: 'is-admin-entered' }[origin] || '';
+  }
+
   function renderCalendar() {
     const end = addDays(state.week, 6);
     $('week-title').textContent = `${fmt(state.week, { day: '2-digit', month: 'short' })} bis ${fmt(end, { day: '2-digit', month: 'short', year: 'numeric' })}`;
@@ -350,9 +368,13 @@
       const events = state.appointments.filter(a => dayKey(a.starts_at) === key && a.status !== 'cancelled').map(a => ({ ...a, type: 'appointment' }));
       const blocks = state.blocks.filter(b => dayKey(b.starts_at) === key).map(b => ({ ...b, type: 'block' }));
       return `<section class="admin-day"><div class="admin-day-head"><strong>${fmt(date, { weekday: 'short' })}</strong><span>${fmt(date, { day: '2-digit', month: '2-digit' })}</span></div>
-        ${[...events, ...blocks].sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at)).map(event => event.type === 'block' ? `
-          <button class="calendar-event is-block" type="button" data-delete-block="${event.id}"><time>${fmt(event.starts_at, { hour: '2-digit', minute: '2-digit' })}–${fmt(event.ends_at, { hour: '2-digit', minute: '2-digit' })}</time><strong>Gesperrt</strong><small>${esc(event.reason)}</small></button>` : `
-          <button class="calendar-event${event.is_private ? ' is-private' : ''}" type="button" data-edit-appointment="${event.id}"><time>${fmt(event.starts_at, { hour: '2-digit', minute: '2-digit' })}–${fmt(event.ends_at, { hour: '2-digit', minute: '2-digit' })}</time><strong>${esc(event.customer_name)}</strong><small>${esc(event.services?.name || 'Privat')}</small></button>`).join('')}
+        ${[...events, ...blocks].sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at)).map(event => {
+          if (event.type === 'block') {
+            return `<button class="calendar-event is-block" type="button" data-delete-block="${event.id}"><time>${fmt(event.starts_at, { hour: '2-digit', minute: '2-digit' })}–${fmt(event.ends_at, { hour: '2-digit', minute: '2-digit' })}</time><strong>Gesperrt</strong><small>${esc(event.reason)}</small></button>`;
+          }
+          const origin = appointmentOrigin(event);
+          return `<button class="calendar-event ${appointmentOriginClass(origin)}" type="button" data-edit-appointment="${event.id}"><time>${fmt(event.starts_at, { hour: '2-digit', minute: '2-digit' })}–${fmt(event.ends_at, { hour: '2-digit', minute: '2-digit' })}</time><strong>${esc(event.customer_name)}</strong><small>${esc(event.services?.name || 'Privat')}</small><span class="calendar-event-origin">${esc(appointmentOriginLabel(origin))}</span></button>`;
+        }).join('')}
       </section>`;
     }).join('');
     document.querySelectorAll('[data-edit-appointment]').forEach(button => button.onclick = () => openAppointment(button.dataset.editAppointment));
