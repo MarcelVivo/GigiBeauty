@@ -231,7 +231,7 @@
     const customerAnalytics = state.customers.map(customer => ({ customer, stats: customerStats(customer) }));
     const customersWithHistory = customerAnalytics.filter(item => item.stats.totalBookings > 0);
     const repeatCustomers = customerAnalytics.filter(item => item.stats.totalBookings >= 2).length;
-    const reachableCustomers = state.customers.filter(customer => customer.email && customer.marketing_consent).length;
+    const reachableCustomers = state.customers.filter(customer => customer.email && customer.marketing_consent && !customer.do_not_contact).length;
     const customersWithEmail = state.customers.filter(customer => customer.email).length;
     const capacityEnd = addDays(startOfDay(now), 30);
     const capacity = availableSlots(startOfDay(now), capacityEnd);
@@ -765,7 +765,7 @@
   }
 
   function renderCampaigns() {
-    const consent = state.customers.filter(p => p.marketing_consent && p.email).length;
+    const consent = state.customers.filter(p => p.marketing_consent && p.email && !p.do_not_contact).length;
     $('marketing-audience').textContent = `${consent} Kundinnen haben dem Marketingversand zugestimmt.`;
     const sent = state.communications.filter(item => item.status === 'sent' && item.channel === 'email').length;
     const clicks = state.marketingEvents.filter(event => event.event_type === 'clicked').length;
