@@ -6460,21 +6460,28 @@
       requestAnimationFrame(() => closeButton.focus());
     }
 
-    document.querySelectorAll('.svc-prices .price-list li').forEach(row => {
-      const treatmentName = row.querySelector('.price-name')?.textContent.trim();
-      if (!treatmentName) return;
-      row.dataset.treatmentKey = treatmentName;
-      row.classList.add('price-detail-trigger');
-      row.tabIndex = 0;
-      row.setAttribute('role', 'button');
-      row.setAttribute('aria-haspopup', 'dialog');
-      row.addEventListener('click', () => openDetail(row));
-      row.addEventListener('keydown', event => {
-        if (event.key !== 'Enter' && event.key !== ' ') return;
-        event.preventDefault();
-        openDetail(row);
+    function wireTreatmentDetailTriggers() {
+      document.querySelectorAll('.svc-prices .price-list li:not(.price-detail-trigger)').forEach(row => {
+        const treatmentName = row.querySelector('.price-name')?.textContent.trim();
+        if (!treatmentName) return;
+        row.dataset.treatmentKey = treatmentName;
+        row.classList.add('price-detail-trigger');
+        row.tabIndex = 0;
+        row.setAttribute('role', 'button');
+        row.setAttribute('aria-haspopup', 'dialog');
+        row.addEventListener('click', () => openDetail(row));
+        row.addEventListener('keydown', event => {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          event.preventDefault();
+          openDetail(row);
+        });
       });
-    });
+    }
+    wireTreatmentDetailTriggers();
+    /* The price lists are rebuilt from the database after this script runs
+       (dashboard-editable content, appended near the end of the page) --
+       re-run the wiring whenever that happens so new rows stay clickable. */
+    window.__wireTreatmentDetailTriggers = wireTreatmentDetailTriggers;
 
     closeButton.addEventListener('click', closeDetail);
     backdrop.addEventListener('click', event => {
@@ -7835,6 +7842,9 @@
       ul.innerHTML = '';
       items.forEach(function (item) { ul.appendChild(renderPriceItem(item)); });
     });
+    // Rebuilding the lists above drops the click-to-open-details wiring the
+    // static HTML had -- re-attach it to the freshly created rows.
+    if (window.__wireTreatmentDetailTriggers) window.__wireTreatmentDetailTriggers();
     // Note: price-item names are intentionally not synced into T.de/T.pt.
     // The Portuguese price list is a fixed, hand-translated list matched by
     // position to the original 7 price lists; once the dashboard is used to
