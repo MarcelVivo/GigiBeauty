@@ -775,14 +775,15 @@
         </div>
         <div class="table-wrap embedded">
           <table>
-            <thead><tr><th>Position</th><th>Preis (CHF)</th><th>Oder Text (z. B. „demnächst“)</th><th></th></tr></thead>
-            <tbody>
+            <thead><tr><th></th><th>Position</th><th>Preis (CHF)</th><th>Oder Text (z. B. „demnächst“)</th><th></th></tr></thead>
+            <tbody class="price-item-body" data-service-id="${service.id}">
               ${activeItems.map(item => `<tr data-price-item="${item.id}">
+                <td><span class="drag-handle" title="Ziehen zum Verschieben">⠿⠿</span></td>
                 <td><input class="table-input table-input-wide" type="text" value="${esc(item.name)}" data-field="name"></td>
                 <td><input class="table-input" type="number" min="0" step="0.05" value="${item.price_chf ?? ''}" data-field="price_chf"></td>
                 <td><input class="table-input table-input-wide" type="text" value="${esc(item.price_label || '')}" data-field="price_label"></td>
                 <td><button class="link-button" type="button" data-save-price-item="${item.id}">Speichern</button> <button class="link-button" type="button" data-delete-price-item="${item.id}">Entfernen</button></td>
-              </tr>`).join('') || '<tr><td colspan="4" class="empty">Noch keine Positionen.</td></tr>'}
+              </tr>`).join('') || '<tr><td colspan="5" class="empty">Noch keine Positionen.</td></tr>'}
             </tbody>
           </table>
         </div>
@@ -798,8 +799,71 @@
     container.querySelectorAll('[data-delete-price-item]').forEach(button => button.onclick = () => deletePriceItem(button.dataset.deletePriceItem));
     container.querySelectorAll('[data-restore-price-item]').forEach(button => button.onclick = () => restorePriceItem(button.dataset.restorePriceItem));
     container.querySelectorAll('[data-add-price-item]').forEach(button => button.onclick = () => addPriceItem(button.dataset.addPriceItem));
+    attachPriceItemDragHandlers(container);
 
     renderContentBlocks();
+  }
+
+  let draggedPriceItemId = null;
+
+  function attachPriceItemDragHandlers(container) {
+    container.querySelectorAll('tr[data-price-item]').forEach(row => {
+      const handle = row.querySelector('.drag-handle');
+      if (handle) {
+        handle.setAttribute('draggable', 'true');
+        handle.addEventListener('dragstart', event => {
+          draggedPriceItemId = row.dataset.priceItem;
+          event.dataTransfer.effectAllowed = 'move';
+          event.dataTransfer.setData('text/plain', draggedPriceItemId);
+          row.classList.add('is-dragging');
+        });
+        handle.addEventListener('dragend', () => {
+          row.classList.remove('is-dragging');
+          container.querySelectorAll('.drop-before, .drop-after').forEach(el => el.classList.remove('drop-before', 'drop-after'));
+          draggedPriceItemId = null;
+        });
+      }
+      row.addEventListener('dragover', event => {
+        if (!draggedPriceItemId || draggedPriceItemId === row.dataset.priceItem) return;
+        event.preventDefault();
+        const before = (event.clientY - row.getBoundingClientRect().top) < row.offsetHeight / 2;
+        container.querySelectorAll('.drop-before, .drop-after').forEach(el => el.classList.remove('drop-before', 'drop-after'));
+        row.classList.add(before ? 'drop-before' : 'drop-after');
+      });
+      row.addEventListener('drop', event => {
+        if (!draggedPriceItemId || draggedPriceItemId === row.dataset.priceItem) return;
+        event.preventDefault();
+        const before = (event.clientY - row.getBoundingClientRect().top) < row.offsetHeight / 2;
+        reorderPriceItem(draggedPriceItemId, row.dataset.priceItem, before);
+        draggedPriceItemId = null;
+      });
+    });
+  }
+
+  async function reorderPriceItem(draggedId, targetId, before) {
+    const dragged = state.servicePriceItems.find(item => item.id === draggedId);
+    const target = state.servicePriceItems.find(item => item.id === targetId);
+    if (!dragged || !target || dragged.service_id !== target.service_id) return;
+
+    const ordered = state.servicePriceItems
+      .filter(item => item.service_id === dragged.service_id && item.active)
+      .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    const withoutDragged = ordered.filter(item => item.id !== draggedId);
+    const targetIndex = withoutDragged.findIndex(item => item.id === targetId);
+    if (targetIndex === -1) return;
+    withoutDragged.splice(before ? targetIndex : targetIndex + 1, 0, dragged);
+
+    const changes = withoutDragged
+      .map((item, index) => ({ id: item.id, sort_order: index + 1 }))
+      .filter(update => {
+        const original = ordered.find(item => item.id === update.id);
+        return !original || (original.sort_order || 0) !== update.sort_order;
+      });
+    if (!changes.length) return;
+    const results = await Promise.all(changes.map(update => db.from('service_price_items').update({ sort_order: update.sort_order }).eq('id', update.id)));
+    const failed = results.find(result => result.error);
+    if (failed) return toast(`Reihenfolge konnte nicht gespeichert werden: ${failed.error.message}`);
+    toast('Reihenfolge aktualisiert.'); await loadAll();
   }
 
   function renderContentBlocks() {
