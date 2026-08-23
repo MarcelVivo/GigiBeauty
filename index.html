@@ -956,7 +956,7 @@
   .botanical-butterfly-pastel-fill,
   .botanical-butterfly-gold-veins,
   .botanical-service-butterfly img {
-    transform: rotate(var(--butterfly-turn, 0deg)) scaleX(var(--butterfly-open, 0.94));
+    transform: rotate(var(--butterfly-turn, 0deg)) scaleX(calc(var(--butterfly-flip, 1) * var(--butterfly-open, 0.94)));
     transform-origin: center;
     will-change: transform;
   }
@@ -7390,16 +7390,17 @@
   var botanicalLastScrollInputTime = -Infinity;
   var botanicalWingPhase = 0;
 
-  /* One butterfly per treatment chapter, resting just below that section's
-     title. Pastel color, size and tilt are randomized once per page load. */
+  /* One butterfly per treatment chapter, resting right beside that
+     section's title. Pastel hue, size, tilt and facing direction are
+     randomized once per page load so each butterfly reads as distinct. */
   var botanicalPastelPalette = [
-    'linear-gradient(135deg, #f7e3dc 0%, #edcfc8 48%, #f5ead9 100%)',
-    'linear-gradient(135deg, #dfe5d3 0%, #cdd9c5 48%, #eee6d3 100%)',
-    'linear-gradient(135deg, #edd4d6 0%, #e5c2c5 48%, #f0dfd6 100%)',
-    'linear-gradient(135deg, #f4dacd 0%, #edc4b6 48%, #f4e3d6 100%)',
-    'linear-gradient(135deg, #eadfdc 0%, #d8cadb 48%, #eee4d4 100%)',
-    'linear-gradient(135deg, #f1dedb 0%, #dfccd8 48%, #f4e8df 100%)',
-    'linear-gradient(135deg, #e2e4d2 0%, #c9d5bd 48%, #eee2ce 100%)'
+    'linear-gradient(135deg, #fadde8 0%, #f0b8cf 48%, #fbe7ee 100%)',
+    'linear-gradient(135deg, #cfe8f7 0%, #a9d0ec 48%, #e3f2fb 100%)',
+    'linear-gradient(135deg, #fdf0b0 0%, #f8dd7a 48%, #fdf6d6 100%)',
+    'linear-gradient(135deg, #d6f0d6 0%, #a8dcaf 48%, #e9f7e6 100%)',
+    'linear-gradient(135deg, #e3d6f5 0%, #c6a8e8 48%, #f1e6fa 100%)',
+    'linear-gradient(135deg, #ffd9bd 0%, #ffb37f 48%, #ffe9d4 100%)',
+    'linear-gradient(135deg, #bdeee6 0%, #85d9cd 48%, #dbf7f2 100%)'
   ];
 
   function shuffledCopy(list) {
@@ -7422,9 +7423,11 @@
     { sectionId: 'section-natural-make-up' }
   ].map(function (plan, i) {
     plan.pastel = botanicalShuffledPastels[i % botanicalShuffledPastels.length];
-    plan.scale = 0.82 + Math.random() * 0.4;      // ~0.82 – 1.22
-    plan.tilt = Math.random() * 14 - 7;           // ~-7deg – 7deg
-    plan.xJitter = Math.random() * 20 - 10;       // ~-10px – 10px
+    plan.scale = 0.62 + Math.random() * 1.0;      // ~0.62 – 1.62, strongly varied
+    plan.tilt = Math.random() * 36 - 18;          // ~-18deg – 18deg
+    plan.flip = Math.random() < 0.5 ? -1 : 1;     // head facing left or right
+    plan.xJitter = Math.random() * 24 - 12;       // ~-12px – 12px
+    plan.yJitter = Math.random() * 20 - 10;       // ~-10px – 10px
     return plan;
   });
 
@@ -7443,7 +7446,6 @@
     botanicalMarkers = [];
 
     var railRect = botanicalRail.getBoundingClientRect();
-    var railWidth = botanicalRail.clientWidth;
     var isMobile = window.innerWidth <= 767;
 
     botanicalMarkerPlans.forEach(function (plan, markerIndex) {
@@ -7453,10 +7455,11 @@
       if (!title) return;
       var titleRect = title.getBoundingClientRect();
 
-      /* Anchor each butterfly just under its own section's title. */
-      var markerY = titleRect.bottom - railRect.top + (isMobile ? 4 : 10);
-      var markerX = railWidth * (isMobile ? 0.42 : 0.58) + plan.xJitter;
-      markerX = Math.max(24, Math.min(railWidth - 16, markerX));
+      /* Hug each butterfly right up against its own section's title,
+         hovering just to the left of the title text. */
+      var markerY = titleRect.top - railRect.top + titleRect.height / 2 + plan.yJitter;
+      var markerX = titleRect.left - railRect.left - (isMobile ? 32 : 56) + plan.xJitter;
+      markerX = Math.max(16, markerX);
 
       var marker = document.createElement('div');
       marker.className = 'botanical-service-butterfly';
@@ -7464,6 +7467,7 @@
       marker.style.top = markerY.toFixed(2) + 'px';
       marker.style.setProperty('--butterfly-size', plan.scale.toFixed(3));
       marker.style.setProperty('--butterfly-turn', plan.tilt + 'deg');
+      marker.style.setProperty('--butterfly-flip', plan.flip);
       marker.style.setProperty('--butterfly-pastel', plan.pastel);
 
       var pastelFill = document.createElement('span');
