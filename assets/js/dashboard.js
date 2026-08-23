@@ -775,22 +775,23 @@
         </div>
         <div class="table-wrap embedded">
           <table>
-            <thead><tr><th></th><th>Position</th><th>Preis (CHF)</th><th>Oder Text (z. B. „demnächst“)</th><th></th></tr></thead>
+            <thead><tr><th></th><th>Position</th><th>Preis (CHF)</th><th>Oder Text (z. B. „demnächst“)</th><th>Dauer (Min.)</th><th></th></tr></thead>
             <tbody class="price-item-body" data-service-id="${service.id}">
               ${activeItems.map(item => `<tr data-price-item="${item.id}">
                 <td><span class="drag-handle" title="Ziehen zum Verschieben">⠿⠿</span></td>
                 <td><input class="table-input table-input-wide" type="text" value="${esc(item.name)}" data-field="name"></td>
                 <td><input class="table-input" type="number" min="0" step="0.05" value="${item.price_chf ?? ''}" data-field="price_chf"></td>
                 <td><input class="table-input table-input-wide" type="text" value="${esc(item.price_label || '')}" data-field="price_label"></td>
+                <td><input class="table-input" type="number" min="1" step="5" placeholder="${service.duration_minutes || 90}" value="${item.duration_minutes ?? ''}" data-field="duration_minutes"></td>
                 <td><button class="link-button" type="button" data-save-price-item="${item.id}">Speichern</button> <button class="link-button" type="button" data-delete-price-item="${item.id}">Entfernen</button></td>
               </tr>
               <tr class="price-item-detail-row">
                 <td></td>
-                <td colspan="4">
+                <td colspan="5">
                   <label style="display:block;font-size:.62rem;color:var(--dash-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Zusatzinfo (Info-Karte beim Anklicken)</label>
                   <textarea class="table-input table-input-wide" rows="2" data-detail-item="${item.id}" placeholder="Wird in der Info-Karte gezeigt, wenn Besucher auf diese Position klicken.">${esc(item.detail_copy || '')}</textarea>
                 </td>
-              </tr>`).join('') || '<tr><td colspan="5" class="empty">Noch keine Positionen.</td></tr>'}
+              </tr>`).join('') || '<tr><td colspan="6" class="empty">Noch keine Positionen.</td></tr>'}
             </tbody>
           </table>
         </div>
@@ -932,13 +933,16 @@
     const name = row.querySelector('[data-field="name"]').value.trim();
     const priceRaw = row.querySelector('[data-field="price_chf"]').value.trim();
     const label = row.querySelector('[data-field="price_label"]').value.trim();
+    const durationRaw = row.querySelector('[data-field="duration_minutes"]').value.trim();
     const detailTextarea = document.querySelector(`[data-detail-item="${itemId}"]`);
     const detail_copy = detailTextarea ? detailTextarea.value.trim() : '';
     if (!name) return toast('Bitte einen Namen eingeben.');
     const price_chf = priceRaw === '' ? null : Number(priceRaw);
     if (price_chf !== null && Number.isNaN(price_chf)) return toast('Ungültiger Preis.');
     if (price_chf === null && !label) return toast('Bitte einen Preis oder einen Text angeben.');
-    const { error } = await db.from('service_price_items').update({ name, price_chf, price_label: price_chf === null ? label : null, detail_copy: detail_copy || null }).eq('id', itemId);
+    const duration_minutes = durationRaw === '' ? null : Number(durationRaw);
+    if (duration_minutes !== null && (Number.isNaN(duration_minutes) || duration_minutes <= 0)) return toast('Ungültige Dauer.');
+    const { error } = await db.from('service_price_items').update({ name, price_chf, price_label: price_chf === null ? label : null, duration_minutes, detail_copy: detail_copy || null }).eq('id', itemId);
     if (error) return toast(`Fehler: ${error.message}`);
     toast('Position gespeichert.'); await loadAll();
   }
