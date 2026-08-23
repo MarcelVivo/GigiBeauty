@@ -2538,27 +2538,40 @@
     will-change: transform;
   }
 
+  /* Two hanging ribbon tails behind the round medal, matching the
+     "Über GiGi Beauty" award section's medallion (.ul-award-*). */
   .championship-ribbons {
     position: absolute;
-    top: 0;
+    top: 76px;
     left: 50%;
     z-index: 0;
-    width: 136px;
-    height: 178px;
+    width: 86px;
+    height: 86px;
+    background:
+      linear-gradient(90deg, rgba(255,255,255,0.08), transparent 30%, rgba(0,0,0,0.24) 82%),
+      linear-gradient(180deg, #741520, #3d080e);
+    clip-path: polygon(31% 0, 69% 0, 65% 100%, 50% 78%, 35% 100%);
     filter: drop-shadow(0 9px 15px rgba(8, 2, 2, 0.34));
     transform: translateX(-50%);
   }
 
-  .championship-standard-shape {
-    display: block;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
+  .championship-ribbons::before,
+  .championship-ribbons::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 42px;
+    height: 78px;
+    border: 0.7px solid rgba(226, 183, 95, 0.54);
+    background:
+      linear-gradient(90deg, rgba(255,255,255,0.10), transparent 25%, rgba(0,0,0,0.26) 82%),
+      linear-gradient(180deg, #831b27, #4a0a12);
+    clip-path: polygon(0 0, 100% 0, 87% 100%, 50% 78%, 13% 100%);
+    box-shadow: inset 0 0 18px rgba(16, 2, 4, 0.44);
   }
 
-  .championship-standard-fold {
-    opacity: 0.27;
-  }
+  .championship-ribbons::before { left: 6px; transform: rotate(8deg); }
+  .championship-ribbons::after { right: 6px; transform: rotate(-8deg); }
 
   .championship-medal {
     position: relative;
@@ -2727,7 +2740,11 @@
     }
 
     .championship-standard-content { height: 122px; padding-top: 7px; }
-    .championship-ribbons { width: 90px; height: 120px; }
+    .championship-ribbons { top: 51px; width: 58px; height: 58px; }
+    .championship-ribbons::before,
+    .championship-ribbons::after { width: 28px; height: 52px; }
+    .championship-ribbons::before { left: 4px; }
+    .championship-ribbons::after { right: 4px; }
 
     .championship-medal {
       width: 72px;
@@ -2754,7 +2771,9 @@
   @media (max-width: 360px) {
     #championship-badge { top: 64px; right: 6px; width: 82px; height: 110px; }
     .championship-standard-content { height: 110px; padding-top: 6px; }
-    .championship-ribbons { width: 80px; height: 108px; }
+    .championship-ribbons { top: 45px; width: 51px; height: 51px; }
+    .championship-ribbons::before,
+    .championship-ribbons::after { width: 25px; height: 46px; }
     .championship-medal { width: 64px; height: 64px; flex-basis: 64px; }
     .championship-badge-category { min-width: 76px; padding-inline: 4px; font-size: 0.32rem; }
   }
@@ -3216,38 +3235,7 @@
 
 <a id="championship-badge" href="ueber-liliane.html#auszeichnung-2026" aria-label="3. Platz bei der PMU-Weltmeisterschaft 2026 in Portugal. Mehr erfahren">
   <span class="championship-standard-content">
-    <span class="championship-ribbons" aria-hidden="true">
-      <svg class="championship-standard-shape" viewBox="0 0 176 230" preserveAspectRatio="none" focusable="false">
-        <defs>
-          <linearGradient id="championship-standard-gold" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#f3d99b"/>
-            <stop offset="0.36" stop-color="#b77a2d"/>
-            <stop offset="0.67" stop-color="#e4bd69"/>
-            <stop offset="1" stop-color="#7b4718"/>
-          </linearGradient>
-          <linearGradient id="championship-standard-fabric" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stop-color="#68111c"/>
-            <stop offset="0.22" stop-color="#831a27"/>
-            <stop offset="0.48" stop-color="#5c0d17"/>
-            <stop offset="0.72" stop-color="#791522"/>
-            <stop offset="1" stop-color="#3c070d"/>
-          </linearGradient>
-          <linearGradient id="championship-standard-sheen" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stop-color="#fff0cb" stop-opacity="0"/>
-            <stop offset="0.5" stop-color="#fff0cb" stop-opacity="0.22"/>
-            <stop offset="1" stop-color="#fff0cb" stop-opacity="0"/>
-          </linearGradient>
-        </defs>
-        <!-- Three ceremonial ribbon tails sit behind the medallion. -->
-        <path fill="url(#championship-standard-fabric)" stroke="url(#championship-standard-gold)" stroke-width="1.1" vector-effect="non-scaling-stroke" d="M42 130L78 140L68 216L55 201L38 217L42 145Z"/>
-        <path fill="url(#championship-standard-fabric)" stroke="url(#championship-standard-gold)" stroke-width="1.1" vector-effect="non-scaling-stroke" d="M69 139H107L103 222L88 205L73 222Z"/>
-        <path fill="url(#championship-standard-fabric)" stroke="url(#championship-standard-gold)" stroke-width="1.1" vector-effect="non-scaling-stroke" d="M98 140L134 130L134 145L138 217L121 201L108 216Z"/>
-        <!-- The upper edge is straight so the crest meets the navbar cleanly. -->
-        <path fill="url(#championship-standard-fabric)" stroke="url(#championship-standard-gold)" stroke-width="1.15" vector-effect="non-scaling-stroke" d="M0.7 0.7H175.3V68C175.3 121.5 136.5 164.5 88 164.5C39.5 164.5 0.7 121.5 0.7 68Z"/>
-        <path class="championship-standard-fold" fill="none" stroke="url(#championship-standard-sheen)" stroke-width="15" d="M35 4C43 58 33 113 58 151"/>
-        <path class="championship-standard-fold" fill="none" stroke="url(#championship-standard-sheen)" stroke-width="10" d="M139 4C129 60 142 111 118 151"/>
-      </svg>
-    </span>
+    <span class="championship-ribbons" aria-hidden="true"></span>
     <span class="championship-medal">
       <svg class="championship-medal-copy" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
         <defs>
