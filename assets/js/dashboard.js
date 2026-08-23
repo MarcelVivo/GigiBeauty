@@ -206,6 +206,15 @@
     return Math.max(0, slots - blocked);
   }
 
+  // Der Buchungsraster steht weiterhin auf 90 Minuten (jeder Termin startet
+  // auf einem 90-Minuten-Raster), aber seit es Positionen mit abweichender
+  // Dauer gibt (z. B. 3 Stunden für Permanent-Make-up), belegt ein einzelner
+  // Termin nicht mehr zwingend nur ein Zeitfenster -- ein 3-Stunden-Termin
+  // blockiert zwei aufeinanderfolgende 90-Minuten-Slots.
+  function appointmentSlotUnits(appointment) {
+    return Math.max(1, Math.ceil((new Date(appointment.ends_at) - new Date(appointment.starts_at)) / 5400000));
+  }
+
   function upcomingBirthday(customer, days = 30) {
     if (!customer.birth_date) return false;
     const now = startOfDay(new Date());
@@ -235,7 +244,7 @@
     const customersWithEmail = state.customers.filter(customer => customer.email).length;
     const capacityEnd = addDays(startOfDay(now), 30);
     const capacity = availableSlots(startOfDay(now), capacityEnd);
-    const occupied = booked.filter(a => new Date(a.starts_at) >= startOfDay(now) && new Date(a.starts_at) < capacityEnd).length;
+    const occupied = booked.filter(a => new Date(a.starts_at) >= startOfDay(now) && new Date(a.starts_at) < capacityEnd).reduce((sum, a) => sum + appointmentSlotUnits(a), 0);
     const openInvoices = state.invoices.filter(invoice => ['draft', 'sent'].includes(invoice.status));
     const openInvoiceTotal = openInvoices.reduce((sum, invoice) => sum + Number(invoice.amount_chf || 0), 0);
 
@@ -325,13 +334,14 @@
     const upcoming = booked.filter(a => new Date(a.starts_at) >= now).sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at)).slice(0, 7);
     $('upcoming').innerHTML = upcoming.length ? upcoming.map(a => `<button class="upcoming-item" type="button" data-edit-appointment="${a.id}" style="width:100%;background:transparent;text-align:left;cursor:pointer"><span class="upcoming-time">${fmt(a.starts_at, { hour: '2-digit', minute: '2-digit' })}</span><span><strong>${esc(a.customer_name)}</strong><small>${esc(a.services?.name || 'Privat')} · ${fmt(a.starts_at, { weekday: 'short', day: '2-digit', month: '2-digit' })}</small><span class="calendar-event-origin">${esc(appointmentOriginLabel(appointmentOrigin(a)))}</span></span>${statusPill(a.status)}</button>`).join('') : '<div class="empty">Keine kommenden Termine.</div>';
     const todaySlots = availableSlots(startOfDay(now), addDays(startOfDay(now), 1));
-    $('today-capacity').textContent = `${todayAppointments.length} von ${todaySlots} verfügbaren Zeitfenstern belegt`;
+    const todayOccupiedSlots = todayAppointments.reduce((sum, a) => sum + appointmentSlotUnits(a), 0);
+    $('today-capacity').textContent = `${todayOccupiedSlots} von ${todaySlots} verfügbaren Zeitfenstern belegt`;
     $('today-summary').innerHTML = todayAppointments.length ? todayAppointments.map(a => `<button class="today-item" type="button" data-edit-appointment="${a.id}"><time>${fmt(a.starts_at, { hour: '2-digit', minute: '2-digit' })}–${fmt(a.ends_at, { hour: '2-digit', minute: '2-digit' })}</time><strong>${esc(a.customer_name)}</strong><span>${esc(a.services?.name || 'Privat')}</span><span class="calendar-event-origin">${esc(appointmentOriginLabel(appointmentOrigin(a)))}</span></button>`).join('') : '<div class="empty">Heute sind keine Termine eingetragen.</div>';
 
     const openTasks = actionableTasks(now);
     const urgentTasks = openTasks.filter(task => ['urgent', 'high'].includes(task.priority)).length;
     const expectedToday = todayAppointments.reduce((sum, appointment) => sum + Number(appointment.amount_chf ?? appointment.services?.price_chf ?? 0), 0);
-    const freeToday = Math.max(0, todaySlots - todayAppointments.length);
+    const freeToday = Math.max(0, todaySlots - todayOccupiedSlots);
     $('daily-brief-title').textContent = `${todayAppointments.length} Termine · ${money(expectedToday)} Potenzial · ${freeToday} freie Zeitfenster`;
     $('daily-brief-copy').textContent = urgentTasks ? `${urgentTasks} wichtige CRM-Aufgaben warten auf Bearbeitung. Die Warteliste enthält ${state.waitlist.filter(item => item.status === 'open').length} offene Wünsche.` : `Keine dringenden CRM-Aufgaben. Die Warteliste enthält ${state.waitlist.filter(item => item.status === 'open').length} offene Wünsche.`;
     $('daily-brief-actions').innerHTML = `<button class="brief-button" type="button" data-go="tasks"><strong>${openTasks.length}</strong><span>CRM-Aufgaben</span></button><button class="brief-button" type="button" data-go="waitlist"><strong>${state.waitlist.filter(item => item.status === 'open').length}</strong><span>Warteliste</span></button><button class="brief-button" type="button" data-go="invoices"><strong>${openInvoices.length}</strong><span>Forderungen</span></button>`;
