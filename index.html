@@ -7418,6 +7418,12 @@
     botanicalRail.style.height = railHeight + 'px';
   }
 
+  /* Intrinsic size of SchmetterlingNeu.png (1536x1024) -- used to compute the
+     natural rendered height from the CSS width alone, since relying on the
+     <img>'s own rendered box would race against the image actually loading
+     (it can measure 0 height and silently fall back to a too-small size). */
+  var BOTANICAL_BUTTERFLY_ASPECT = 1024 / 1536;
+
   function buildBotanicalButterflies() {
     if (!botanicalMarkerLayer || !botanicalFirst || !botanicalRail) return;
     botanicalMarkerLayer.replaceChildren();
@@ -7463,10 +7469,13 @@
 
       /* Scale each butterfly relative to the actually rendered height of its
          title so it always stands taller than the big letter next to it,
-         never the other way round. */
-      var naturalRect = marker.getBoundingClientRect();
+         never the other way round. Natural height is derived from the CSS
+         width (always known synchronously), not the <img> element itself,
+         which may not have finished loading yet. */
+      var naturalWidth = marker.getBoundingClientRect().width;
+      var naturalHeight = naturalWidth * BOTANICAL_BUTTERFLY_ASPECT;
       var targetHeight = titleRect.height * plan.overreach;
-      var finalScale = naturalRect.height > 0 ? targetHeight / naturalRect.height : 1;
+      var finalScale = naturalHeight > 0 ? targetHeight / naturalHeight : 1;
       marker.style.setProperty('--butterfly-size', finalScale.toFixed(3));
 
       /* Re-measure now that the final size is applied. */
