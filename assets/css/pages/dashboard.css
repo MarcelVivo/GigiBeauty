@@ -245,12 +245,11 @@ tbody tr:last-child td { border-bottom: 0; }
 .customer-table-wrap { overflow-x: hidden; }
 .customer-table { table-layout: fixed; }
 .customer-table th, .customer-table td { padding: .68rem .72rem; vertical-align: middle; white-space: normal; line-height: 1.25; overflow-wrap: anywhere; }
-.customer-table th:nth-child(1) { width: 23%; }
-.customer-table th:nth-child(2) { width: 18%; }
-.customer-table th:nth-child(3) { width: 10%; }
-.customer-table th:nth-child(4) { width: 12%; }
-.customer-table th:nth-child(5) { width: 23%; }
-.customer-table th:nth-child(6) { width: 14%; }
+.customer-table th:nth-child(1) { width: 32%; }
+.customer-table th:nth-child(2) { width: 16%; }
+.customer-table th:nth-child(3) { width: 18%; }
+.customer-table th:nth-child(4) { width: 20%; }
+.customer-table th:nth-child(5) { width: 14%; }
 .customer-row { cursor: pointer; transition: background .16s ease; }
 .customer-row:hover { background: #faf7f2; }
 .customer-name, .customer-contact, .customer-meta, .appointment-pair { display: block; }
