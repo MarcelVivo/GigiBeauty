@@ -3303,6 +3303,19 @@
     filter: drop-shadow(0 3px 9px rgba(0, 0, 0, 0.5));
   }
 
+  /* Small drag-hint chevrons flanking the line, below the butterfly. */
+  .ba-arrow {
+    position: absolute;
+    top: calc(50% + 40px);
+    color: rgba(212, 175, 106, 0.92);
+    font: 700 1.1rem/1 Georgia, serif;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+  }
+
+  .ba-arrow--left { right: calc(50% + 10px); }
+  .ba-arrow--right { left: calc(50% + 10px); }
+
   .ba-wing-fill,
   .ba-wing-veins {
     position: absolute;
@@ -6570,6 +6583,8 @@
           <span class="ba-wing-fill" id="ba-wing-fill" aria-hidden="true"></span>
           <span class="ba-wing-veins" aria-hidden="true"></span>
         </span>
+        <span class="ba-arrow ba-arrow--left" aria-hidden="true">❮</span>
+        <span class="ba-arrow ba-arrow--right" aria-hidden="true">❯</span>
       </div>
 
     </div>
@@ -6765,9 +6780,17 @@
       handle.style.left = pct + '%';
       slider.setAttribute('aria-valuenow', Math.round(pct));
 
-      // Wing saturation: 100% on the left, 50% in the middle, 0% on the
-      // right -- a direct 1:1 mapping to the handle position.
-      wingFill.style.filter = `saturate(${(100 - pct).toFixed(0)}%)`;
+      // Dramatic range: dull/pale/murky on the right, up through a balanced
+      // midpoint, to vivid, bright, glowing colour on the left -- still a
+      // direct 1:1 mapping to the handle position, just stretched much
+      // further at both ends than a plain 0-100% saturation would give.
+      const vividness = (100 - pct) / 100;
+      const saturateVal = 10 + vividness * 260;
+      const brightnessVal = 62 + vividness * 60;
+      const contrastVal = 78 + vividness * 40;
+      const glowBlur = vividness * 14;
+      const glowAlpha = (vividness * 0.85).toFixed(2);
+      wingFill.style.filter = `saturate(${saturateVal.toFixed(0)}%) brightness(${brightnessVal.toFixed(0)}%) contrast(${contrastVal.toFixed(0)}%) drop-shadow(0 0 ${glowBlur.toFixed(1)}px rgba(232,197,121,${glowAlpha}))`;
     }
 
     function pctFromEvent(event) {
