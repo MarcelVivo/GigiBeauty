@@ -3583,6 +3583,58 @@
   }
   .aip-textarea:focus { outline: none; border-color: rgba(212,175,106,0.7); }
 
+  .aip-preset-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .aip-preset-chip {
+    padding: 9px 16px;
+    border: 1px solid rgba(212,175,106,0.35);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.03);
+    color: rgba(245,230,200,0.85);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.86rem;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .aip-preset-chip:hover { border-color: rgba(212,175,106,0.7); }
+  .aip-preset-chip.is-selected { background: rgba(212,175,106,0.85); border-color: rgba(212,175,106,0.9); color: #1a0a0a; font-weight: 600; }
+
+  .aip-color-row { display: flex; flex-wrap: wrap; gap: 12px; }
+  .aip-color-swatch {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .aip-color-swatch::after {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    background: var(--swatch-colour);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
+  }
+  .aip-color-swatch:hover { transform: scale(1.08); }
+  .aip-color-swatch.is-selected { border-color: rgba(232,197,121,0.95); }
+  .aip-color-swatch.is-selected::before {
+    content: "✓";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  }
+
   .aip-privacy-note {
     margin: 14px 0 20px;
     color: rgba(255, 238, 207, 0.48);
@@ -6943,9 +6995,17 @@
         <span id="aip-dropzone-label">Foto auswählen (JPG, PNG oder WEBP)</span>
         <input type="file" id="aip-file-input" accept="image/jpeg,image/jpg,image/png,image/webp">
       </label>
+      <div class="aip-field" id="aip-preset-field" hidden>
+        <label>Wähle einen Stil</label>
+        <div class="aip-preset-grid" id="aip-preset-grid"></div>
+      </div>
+      <div class="aip-field" id="aip-color-field" hidden>
+        <label>Farbton</label>
+        <div class="aip-color-row" id="aip-color-row"></div>
+      </div>
       <div class="aip-field">
-        <label for="aip-wish">Wie soll dein Look aussehen?</label>
-        <textarea class="aip-textarea" id="aip-wish" rows="3"></textarea>
+        <label for="aip-wish" id="aip-wish-label">Weitere Wünsche (optional)</label>
+        <textarea class="aip-textarea" id="aip-wish" rows="2"></textarea>
       </div>
       <p class="aip-privacy-note">Dein Foto wird ausschliesslich zur Erstellung deiner persönlichen KI-Vorschau verarbeitet und danach nicht dauerhaft gespeichert.</p>
       <button class="aip-primary-btn" type="button" id="aip-generate" disabled>Meinen Look erstellen</button>
@@ -7250,6 +7310,89 @@
       'korean-cosmetics': { label: 'Korean Cosmetics', hint: 'Foto deines Gesichts auswählen (JPG, PNG oder WEBP)', placeholder: 'z. B. gesunder Glass-Skin-Glow und ebenmässiger Teint' },
       'natural-make-up': { label: 'Natural Make Up', hint: 'Foto deines Gesichts auswählen (JPG, PNG oder WEBP)', placeholder: 'z. B. natürlicher Glow, dezenter Eyeliner und Nude-Lippen' }
     };
+    /* Guided picks per treatment -- presets and colour swatches the customer
+       can tap instead of (or in addition to) typing. Selections are combined
+       into one free-text instruction before being sent -- the backend prompt
+       builder is unchanged, it only ever sees the resulting sentence. */
+    const AIP_GUIDED_OPTIONS = {
+      'gel-acryl-nails': {
+        presets: [
+          { label: 'Mandelform Natural', text: 'Mandelform, dezentes glänzendes Finish' },
+          { label: 'French Elegance', text: 'Mandelform, klares French mit weisser Spitze, glänzendes Finish' },
+          { label: 'Bold Ombré', text: 'Eckige Form, Ombré-Verlauf, mattes Finish' },
+          { label: 'Glamour Gold', text: 'Stiletto-Form mit feinen goldenen Akzenten' }
+        ],
+        colors: [
+          { label: 'Milchiges Rosa', hex: '#f3d9d6' },
+          { label: 'Nude', hex: '#e3c1a5' },
+          { label: 'Klassisches Rot', hex: '#b3202c' },
+          { label: 'Schwarz', hex: '#1a1a1a' },
+          { label: 'Beere', hex: '#7a2848' },
+          { label: 'Pastellblau', hex: '#b7d3e0' }
+        ]
+      },
+      'permanent-make-up': {
+        presets: [
+          { label: 'Natürliche Augenbrauen', text: 'Ombré-Augenbrauen, weicher Verlauf, natürlich wirkend' },
+          { label: 'Definierte Brauen', text: 'Microblading-Optik, klar definierte Haarstriche' },
+          { label: 'Aquarell Lippen', text: 'Zarte Aquarell-Lippenpigmentierung' },
+          { label: 'Eyeliner', text: 'Feiner Eyeliner entlang des oberen Wimpernkranzes, dezent' }
+        ],
+        colors: [
+          { label: 'Warmes Braun', hex: '#8b5a2b' },
+          { label: 'Aschbraun', hex: '#6e5a4a' },
+          { label: 'Nude-Rosé', hex: '#d9a9a0' }
+        ]
+      },
+      'kosmetische-pedicure': {
+        presets: [
+          { label: 'Klassisch Rot', text: 'Klassisches Rot, glänzendes Finish' },
+          { label: 'French Pedicure', text: 'Klares French mit weisser Spitze' },
+          { label: 'Nude Elegance', text: 'Nude-Ton, mattes Finish' },
+          { label: 'Glitzer-Akzent', text: 'Nude-Grundton mit feinem Glitzer-Akzent' }
+        ],
+        colors: [
+          { label: 'Klassisches Rot', hex: '#b3202c' },
+          { label: 'Nude', hex: '#e3c1a5' },
+          { label: 'Pastellrosa', hex: '#f3c9d1' },
+          { label: 'Schwarz', hex: '#1a1a1a' }
+        ]
+      },
+      fillers: {
+        presets: [
+          { label: 'Lippen dezent', text: 'Dezent mehr Volumen auf den Lippen, natürliche Kontur' },
+          { label: 'Wangen sanft betont', text: 'Sanfte Betonung der Wangenpartie' },
+          { label: 'Kinnkontur', text: 'Harmonische Betonung der Kinnkontur' }
+        ]
+      },
+      lashes: {
+        presets: [
+          { label: 'Natürlich', text: 'Natürlich, leicht länger, dezente Dichte' },
+          { label: 'Mittlere Dichte', text: 'Mittlere Länge und Dichte, weicher Schwung' },
+          { label: 'Dramatic Volume', text: 'Deutlich länger und dichter, ausdrucksstarker Schwung' }
+        ]
+      },
+      'korean-cosmetics': {
+        presets: [
+          { label: 'Glass Skin', text: 'Gesunder Glass-Skin-Glow, ebenmässiger Teint' },
+          { label: 'Matte Glow', text: 'Mattierter, aber frischer Teint' },
+          { label: 'Dewy Radiance', text: 'Strahlender, taufrischer Glanz' }
+        ]
+      },
+      'natural-make-up': {
+        presets: [
+          { label: 'Alltag', text: 'Natürlicher Glow, dezenter Eyeliner' },
+          { label: 'Abend-Look', text: 'Betonte Augen, definierter Lidstrich' },
+          { label: 'Bräutlich', text: 'Zarter, langanhaltender Braut-Look' }
+        ],
+        colors: [
+          { label: 'Nude', hex: '#c98b7a' },
+          { label: 'Rosé', hex: '#d98a95' },
+          { label: 'Klassisches Rot', hex: '#b3202c' },
+          { label: 'Beere', hex: '#7a2848' }
+        ]
+      }
+    };
     const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     const MAX_RAW_BYTES = 15 * 1024 * 1024;
     const AIP_REVEAL_PCT = 14;
@@ -7264,6 +7407,10 @@
     const dropzoneLabel = document.getElementById('aip-dropzone-label');
     const fileInput = document.getElementById('aip-file-input');
     const wishTextarea = document.getElementById('aip-wish');
+    const presetField = document.getElementById('aip-preset-field');
+    const presetGrid = document.getElementById('aip-preset-grid');
+    const colorField = document.getElementById('aip-color-field');
+    const colorRow = document.getElementById('aip-color-row');
     const generateBtn = document.getElementById('aip-generate');
     const slider = document.getElementById('aip-slider');
     const handle = document.getElementById('aip-handle');
@@ -7277,7 +7424,55 @@
 
     let currentSlug = null;
     let originalDataUrl = null;
+    let selectedPresetText = '';
+    let selectedColorLabel = '';
     let busy = false;
+
+    function renderGuidedOptions(slug) {
+      const options = AIP_GUIDED_OPTIONS[slug] || {};
+      selectedPresetText = '';
+      selectedColorLabel = '';
+
+      presetGrid.innerHTML = '';
+      presetField.hidden = !options.presets?.length;
+      (options.presets || []).forEach(preset => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'aip-preset-chip';
+        chip.textContent = preset.label;
+        chip.addEventListener('click', () => {
+          const alreadySelected = chip.classList.contains('is-selected');
+          presetGrid.querySelectorAll('.aip-preset-chip').forEach(el => el.classList.remove('is-selected'));
+          selectedPresetText = alreadySelected ? '' : preset.text;
+          if (!alreadySelected) chip.classList.add('is-selected');
+        });
+        presetGrid.appendChild(chip);
+      });
+
+      colorRow.innerHTML = '';
+      colorField.hidden = !options.colors?.length;
+      (options.colors || []).forEach(color => {
+        const swatch = document.createElement('button');
+        swatch.type = 'button';
+        swatch.className = 'aip-color-swatch';
+        swatch.style.setProperty('--swatch-colour', color.hex);
+        swatch.setAttribute('aria-label', color.label);
+        swatch.title = color.label;
+        swatch.addEventListener('click', () => {
+          const alreadySelected = swatch.classList.contains('is-selected');
+          colorRow.querySelectorAll('.aip-color-swatch').forEach(el => el.classList.remove('is-selected'));
+          selectedColorLabel = alreadySelected ? '' : color.label;
+          if (!alreadySelected) swatch.classList.add('is-selected');
+        });
+        colorRow.appendChild(swatch);
+      });
+    }
+
+    function composedUserRequest() {
+      return [selectedPresetText, selectedColorLabel ? `Farbton: ${selectedColorLabel}` : '', wishTextarea.value.trim()]
+        .filter(Boolean)
+        .join('. ');
+    }
     let oscillating = false;
     let animToken = 0;
     let currentAbort = null;
@@ -7408,7 +7603,7 @@
         const response = await fetch(`${CONFIG.url}/functions/v1/beauty-ai-preview`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${CONFIG.anonKey}`, apikey: CONFIG.anonKey },
-          body: JSON.stringify({ serviceType: currentSlug, userRequest: wishTextarea.value.trim().slice(0, 300), image: originalDataUrl }),
+          body: JSON.stringify({ serviceType: currentSlug, userRequest: composedUserRequest().slice(0, 300), image: originalDataUrl }),
           signal: currentAbort.signal
         });
         const payload = await response.json().catch(() => null);
@@ -7497,6 +7692,7 @@
       dropzoneLabel.textContent = meta.hint;
       wishTextarea.placeholder = meta.placeholder;
       wishTextarea.value = '';
+      renderGuidedOptions(serviceType);
       const privacyNote = document.querySelector('[data-aip-panel="upload"] .aip-privacy-note');
       privacyNote.textContent = meta.disclaimer
         ? 'Dein Foto wird ausschliesslich zur Erstellung deiner persönlichen KI-Vorschau verarbeitet und danach nicht dauerhaft gespeichert. KI-generierte Vorschau -- das tatsächliche Behandlungsergebnis kann abweichen.'
