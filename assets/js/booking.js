@@ -423,18 +423,45 @@
     showToast('Dein Termin ist bestätigt. Die Bestätigung kommt per E-Mail.');
   }
 
+  const APPOINTMENT_STATUS_LABEL = { booked: 'Gebucht', completed: 'Abgeschlossen', cancelled: 'Storniert', no_show: 'Nicht erschienen' };
+
   async function openAccount() {
-    const list = document.getElementById('account-appointments');
-    list.innerHTML = '<div class="calendar-loading" style="min-height:160px">Termine werden geladen.</div>';
+    const upcomingList = document.getElementById('account-upcoming');
+    const pastList = document.getElementById('account-past');
+    upcomingList.innerHTML = '<div class="calendar-loading" style="min-height:120px">Termine werden geladen.</div>';
+    pastList.innerHTML = '';
     openModal(els.accountModal);
-    const { data, error } = await db.from('appointments').select('id, starts_at, status, services(name)').eq('customer_id', state.user.id).gte('starts_at', new Date().toISOString()).order('starts_at');
-    if (error) { list.innerHTML = `<div class="account-empty">${escapeHtml(error.message)}</div>`; return; }
-    const appointments = (data || []).filter(item => item.status === 'booked');
-    list.innerHTML = appointments.length ? appointments.map(item => {
-      const canCancel = new Date(item.starts_at).getTime() - Date.now() >= 12 * 60 * 60 * 1000;
+
+    const newsletter = document.getElementById('account-newsletter');
+    newsletter.checked = Boolean(state.profile?.marketing_consent);
+    document.getElementById('account-newsletter-message').textContent = '';
+
+    const { data, error } = await db.from('appointments').select('id, starts_at, status, services(name)').eq('is_private', false).order('starts_at', { ascending: false });
+    if (error) { upcomingList.innerHTML = `<div class="account-empty">${escapeHtml(error.message)}</div>`; return; }
+    const now = Date.now();
+    const upcoming = (data || []).filter(item => item.status === 'booked' && new Date(item.starts_at).getTime() >= now).sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
+    const past = (data || []).filter(item => item.status !== 'booked' || new Date(item.starts_at).getTime() < now);
+
+    upcomingList.innerHTML = upcoming.length ? upcoming.map(item => {
+      const canCancel = new Date(item.starts_at).getTime() - now >= 12 * 60 * 60 * 1000;
       return `<div class="account-appointment"><div><strong>${escapeHtml(item.services?.name || 'Behandlung')}</strong><span>${formatDate(new Date(item.starts_at), { weekday: 'long', day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' })} Uhr</span></div>${canCancel ? `<button class="small-button" type="button" data-cancel-own="${item.id}">Stornieren</button>` : '<span>Bitte direkt kontaktieren</span>'}</div>`;
     }).join('') : '<div class="account-empty">Du hast keine kommenden Termine.</div>';
-    list.querySelectorAll('[data-cancel-own]').forEach(button => button.addEventListener('click', () => cancelOwnAppointment(button.dataset.cancelOwn)));
+    upcomingList.querySelectorAll('[data-cancel-own]').forEach(button => button.addEventListener('click', () => cancelOwnAppointment(button.dataset.cancelOwn)));
+
+    pastList.innerHTML = past.length ? past.map(item => {
+      return `<div class="account-appointment"><div><strong>${escapeHtml(item.services?.name || 'Behandlung')}</strong><span>${formatDate(new Date(item.starts_at), { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span></div><span>${escapeHtml(APPOINTMENT_STATUS_LABEL[item.status] || item.status)}</span></div>`;
+    }).join('') : '<div class="account-empty">Noch keine vergangenen Termine.</div>';
+  }
+
+  async function saveNewsletterConsent() {
+    const message = document.getElementById('account-newsletter-message');
+    const checked = document.getElementById('account-newsletter').checked;
+    message.textContent = 'Wird gespeichert.';
+    const { error } = await db.from('profiles').update({ marketing_consent: checked }).eq('id', state.user.id);
+    if (error) { message.textContent = error.message; return; }
+    if (state.profile) state.profile.marketing_consent = checked;
+    message.textContent = 'Gespeichert.';
+    setTimeout(() => { message.textContent = ''; }, 3000);
   }
 
   async function cancelOwnAppointment(id) {
@@ -472,6 +499,7 @@
     else openModal(els.authModal);
   });
   document.getElementById('my-appointments').addEventListener('click', openAccount);
+  document.getElementById('account-newsletter-save').addEventListener('click', saveNewsletterConsent);
 
   loadData().then(() => {
     if (new URLSearchParams(location.search).get('register') === '1' && !state.user) {

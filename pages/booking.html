@@ -41,7 +41,7 @@
       </div>
       <div class="auth-state">
         <div class="auth-state-copy" id="auth-copy">Noch nicht angemeldet<strong>Zum Buchen brauchst du ein Konto</strong></div>
-        <button class="small-button" id="my-appointments" type="button" hidden>Meine Termine</button>
+        <button class="small-button" id="my-appointments" type="button" hidden>Mein Konto</button>
         <button class="small-button" id="auth-button" type="button">Anmelden</button>
       </div>
     </div>
@@ -133,11 +133,25 @@
   </div>
 
   <div class="modal-backdrop" id="account-modal" hidden>
-    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="account-title">
+    <section class="modal account-modal" role="dialog" aria-modal="true" aria-labelledby="account-title">
       <button class="modal-close" type="button" data-close-modal aria-label="Schliessen">×</button>
-      <h2 id="account-title">Meine Termine</h2>
-      <p>Bis 12 Stunden vor Beginn kannst du einen Termin direkt stornieren.</p>
-      <div class="slot-list" id="account-appointments" style="margin-top:1.5rem"></div>
+      <h2 id="account-title">Mein Konto</h2>
+
+      <h3 class="account-subhead">Anstehende Termine</h3>
+      <p class="account-hint">Bis 12 Stunden vor Beginn kannst du einen Termin direkt stornieren.</p>
+      <div class="slot-list" id="account-upcoming"></div>
+
+      <h3 class="account-subhead">Vergangene Termine</h3>
+      <div class="slot-list" id="account-past"></div>
+
+      <h3 class="account-subhead">Newsletter</h3>
+      <label class="checkbox"><input id="account-newsletter" type="checkbox"> Ich möchte Neuigkeiten und Angebote von GiGi Beauty per E-Mail erhalten.</label>
+      <button class="small-button" type="button" id="account-newsletter-save" style="margin-top:.6rem">Speichern</button>
+      <span class="form-message" id="account-newsletter-message"></span>
+
+      <h3 class="account-subhead">Wie war dein Besuch?</h3>
+      <p class="account-hint">Wir freuen uns über deine Bewertung auf Google.</p>
+      <a class="btn btn-outline" href="https://share.google/fqi3emL8ITxyLjpff" target="_blank" rel="noopener">GiGi Beauty bewerten</a>
     </section>
   </div>
 
