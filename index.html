@@ -3704,21 +3704,79 @@
     transform: translateX(-50%);
     pointer-events: none;
   }
-  .aip-grip {
+  /* Same butterfly artwork/colour logic as the 7 reference sliders' handle
+     (.ba-wing / .ba-wing-fill / .ba-wing-veins) -- reused assets and formula
+     on an entirely separate element set, not the same DOM/instance. */
+  .aip-wing {
     position: absolute;
     top: 50%;
     left: 50%;
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: rgba(232, 197, 121, 0.94);
-    color: #1a0a0a;
-    font-size: 1rem;
-    font-weight: 700;
+    width: 64px;
+    height: 64px;
     transform: translate(-50%, -50%);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    filter: drop-shadow(0 3px 9px rgba(0, 0, 0, 0.5));
+  }
+  .aip-arrow {
+    position: absolute;
+    top: calc(50% + 40px);
+    color: rgba(212, 175, 106, 0.92);
+    font: 700 1.1rem/1 Georgia, serif;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+  }
+  .aip-arrow--left { right: calc(50% + 10px); }
+  .aip-arrow--right { left: calc(50% + 10px); }
+
+  .aip-wing-fill,
+  .aip-wing-veins {
+    position: absolute;
+    inset: 0;
+    display: block;
+    -webkit-mask: url('public/images/Butterfly/SchmetterlingNeu-mask.png') center / 100% 100% no-repeat;
+    mask: url('public/images/Butterfly/SchmetterlingNeu-mask.png') center / 100% 100% no-repeat;
+  }
+  .aip-wing-fill {
+    z-index: 1;
+    background:
+      radial-gradient(circle at 24% 28%, #a9d0ec 0%, transparent 46%),
+      radial-gradient(circle at 76% 22%, #f0b8cf 0%, transparent 50%),
+      radial-gradient(circle at 62% 74%, #f8dd7a 0%, transparent 48%),
+      radial-gradient(circle at 22% 76%, #9bd99a 0%, transparent 46%),
+      radial-gradient(circle at 85% 62%, #85d9cd 0%, transparent 42%),
+      radial-gradient(circle at 48% 48%, #ffb37f 0%, transparent 58%);
+  }
+  .aip-wing-veins {
+    z-index: 2;
+    background: url('public/images/Butterfly/SchmetterlingNeu-photo-overlay.png') center / 100% 100% no-repeat;
+  }
+
+  /* Magic sparkle field -- visible only in the still-dark "after" area
+     while a look is being generated, radiating out from the butterfly. */
+  .aip-sparkle-field {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .aip-spark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    color: #e8c579;
+    font-size: 13px;
+    opacity: 0;
+    text-shadow: 0 0 7px rgba(232, 197, 121, 0.85), 0 0 2px rgba(255, 255, 255, 0.6);
+    animation: aipSparkFly 2.6s ease-out infinite;
+    animation-delay: var(--spark-delay, 0s);
+  }
+  @keyframes aipSparkFly {
+    0% { opacity: 0; transform: translate(-50%, -50%) translate(0, 0) scale(0.4); }
+    18% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--spark-dx, 0px), var(--spark-dy, 0px)) scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .aip-spark { animation: none; opacity: 0; }
   }
 
   .aip-generating-copy {
@@ -7065,11 +7123,17 @@
     <div data-aip-panel="stage" hidden>
       <div class="aip-slider is-locked" id="aip-slider" role="slider" tabindex="0" aria-label="Vorher/Nachher-Vergleich deines persönlichen Looks" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
         <img class="aip-image aip-image--after" id="aip-image-after" src="" alt="Dein KI-Look">
+        <div class="aip-sparkle-field" id="aip-sparkle-field" aria-hidden="true"></div>
         <img class="aip-image aip-image--before" id="aip-image-before" src="" alt="Dein Originalfoto">
         <span class="aip-tag aip-tag--before">Vorher</span>
         <span class="aip-tag aip-tag--after">Nachher</span>
         <div class="aip-handle" id="aip-handle">
-          <span class="aip-grip" aria-hidden="true">↔</span>
+          <span class="aip-wing">
+            <span class="aip-wing-fill" id="aip-wing-fill" aria-hidden="true"></span>
+            <span class="aip-wing-veins" aria-hidden="true"></span>
+          </span>
+          <span class="aip-arrow aip-arrow--left" aria-hidden="true">❮</span>
+          <span class="aip-arrow aip-arrow--right" aria-hidden="true">❯</span>
         </div>
       </div>
       <p class="aip-generating-copy" id="aip-generating-copy" hidden>Wir kreieren deinen persönlichen Look …<small>Deine natürlichen Merkmale bleiben erhalten.</small></p>
@@ -7514,6 +7578,8 @@
     const generateBtn = document.getElementById('aip-generate');
     const slider = document.getElementById('aip-slider');
     const handle = document.getElementById('aip-handle');
+    const wingFill = document.getElementById('aip-wing-fill');
+    const sparkleField = document.getElementById('aip-sparkle-field');
     const imageBefore = document.getElementById('aip-image-before');
     const imageAfter = document.getElementById('aip-image-after');
     const generatingCopy = document.getElementById('aip-generating-copy');
@@ -7677,6 +7743,31 @@
       imageBefore.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
       handle.style.left = pct + '%';
       slider.setAttribute('aria-valuenow', Math.round(pct));
+
+      // Same wing-fill formula as the 7 reference sliders: empty gold rim at
+      // one extreme, fully pastel-filled at the other.
+      const vividness = (100 - pct) / 100;
+      wingFill.style.opacity = vividness.toFixed(2);
+      wingFill.style.filter = `saturate(${(15 + vividness * 135).toFixed(0)}%)`;
+    }
+
+    function startSparkles() {
+      sparkleField.innerHTML = '';
+      for (let i = 0; i < 10; i++) {
+        const spark = document.createElement('span');
+        spark.className = 'aip-spark';
+        spark.textContent = '✦';
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 60 + Math.random() * 110;
+        spark.style.setProperty('--spark-dx', `${Math.cos(angle) * distance}px`);
+        spark.style.setProperty('--spark-dy', `${Math.sin(angle) * distance}px`);
+        spark.style.setProperty('--spark-delay', `${(Math.random() * 2.6).toFixed(2)}s`);
+        spark.style.fontSize = `${10 + Math.random() * 8}px`;
+        sparkleField.appendChild(spark);
+      }
+    }
+    function stopSparkles() {
+      sparkleField.innerHTML = '';
     }
 
     function easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
@@ -7798,6 +7889,7 @@
       setAipSlider(50);
       resetConsent();
       setFunnelState('generating');
+      startSparkles();
       runOscillation();
 
       try {
@@ -7813,12 +7905,14 @@
 
         await preloadImage(payload.generatedImage);
         stopOscillation();
+        stopSparkles();
         imageAfter.src = payload.generatedImage;
         setFunnelState('revealing');
         await tweenAipPct(AIP_REVEAL_PCT, 1400);
         setFunnelState('result');
       } catch (error) {
         stopOscillation();
+        stopSparkles();
         setFunnelState('error');
       } finally {
         clearTimeout(timeout);
@@ -7861,6 +7955,7 @@
 
     function resetFunnel() {
       stopOscillation();
+      stopSparkles();
       ++animToken;
       if (currentAbort) currentAbort.abort();
       busy = false;
