@@ -250,6 +250,8 @@
 .checkbox input { margin-top: .35rem; accent-color: var(--gold); }
 .form-message { min-height: 1.4rem; color: #e8b7ad; font-size: .85rem; }
 .form-message.success { color: #bcd9bc; }
+.link-button { justify-self: start; margin-top: -.5rem; padding: 0; border: 0; background: none; color: var(--gold); font-size: .82rem; text-decoration: underline; cursor: pointer; }
+.link-button:hover { color: var(--gold-light); }
 .modal .btn { width: 100%; }
 .booking-summary { margin: 1.5rem 0; padding: 1rem; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
 .booking-summary strong { color: var(--gold); display: block; }

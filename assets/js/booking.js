@@ -364,6 +364,7 @@
     state.authMode = mode;
     document.querySelectorAll('[data-auth-mode]').forEach(tab => tab.classList.toggle('is-active', tab.dataset.authMode === mode));
     document.querySelectorAll('.signup-only').forEach(field => { field.hidden = mode !== 'signup'; });
+    document.querySelectorAll('.login-only').forEach(field => { field.hidden = mode !== 'login'; });
     document.getElementById('auth-submit').textContent = mode === 'signup' ? 'Konto erstellen' : 'Anmelden';
     document.getElementById('auth-password').autocomplete = mode === 'signup' ? 'new-password' : 'current-password';
     document.getElementById('auth-phone').required = mode === 'signup';
@@ -581,6 +582,17 @@
   document.querySelectorAll('[data-close-modal]').forEach(button => button.addEventListener('click', () => closeModal(button.closest('.modal-backdrop'))));
   document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.addEventListener('click', event => { if (event.target === backdrop) closeModal(backdrop); }));
   document.getElementById('auth-form').addEventListener('submit', submitAuth);
+  document.getElementById('auth-forgot-password').addEventListener('click', async () => {
+    const message = document.getElementById('auth-message');
+    const email = document.getElementById('auth-email').value.trim();
+    if (!email) { message.textContent = 'Bitte zuerst deine E-Mail-Adresse eingeben.'; return; }
+    message.className = 'form-message';
+    message.textContent = 'Der Link wird verschickt.';
+    const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo: new URL('reset-password.html', location.href).href });
+    if (error) { message.textContent = error.message; return; }
+    message.className = 'form-message success';
+    message.textContent = 'Falls ein Konto mit dieser E-Mail-Adresse besteht, wurde ein Link zum Zurücksetzen verschickt. Bitte auch den Spam-Ordner prüfen.';
+  });
   document.getElementById('booking-form').addEventListener('submit', submitBooking);
   els.authButton.addEventListener('click', async () => {
     if (state.user) { await db.auth.signOut(); showToast('Du bist abgemeldet.'); }
