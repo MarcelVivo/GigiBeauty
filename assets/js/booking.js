@@ -454,7 +454,10 @@
     if (upcoming.length) {
       const next = upcoming[0];
       const canCancel = new Date(next.starts_at).getTime() - Date.now() >= 12 * 60 * 60 * 1000;
-      const extra = upcoming.slice(1).map(item => `<div class="account-appointment"><div><strong>${escapeHtml(item.services?.name || 'Behandlung')}</strong><span>${formatDate(new Date(item.starts_at), { weekday: 'long', day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' })} Uhr</span></div></div>`).join('');
+      const extra = upcoming.slice(1).map(item => {
+        const itemCanCancel = new Date(item.starts_at).getTime() - Date.now() >= 12 * 60 * 60 * 1000;
+        return `<div class="account-appointment"><div><strong>${escapeHtml(item.services?.name || 'Behandlung')}</strong><span>${formatDate(new Date(item.starts_at), { weekday: 'long', day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' })} Uhr</span></div>${itemCanCancel ? `<button class="small-button" type="button" data-cancel-own="${item.id}">Stornieren</button>` : '<span>Bitte direkt kontaktieren</span>'}</div>`;
+      }).join('');
       hero.innerHTML = `<div class="account-hero-card">
         <span class="account-hero-eyebrow">Deine nächste Behandlung</span>
         <h4 class="account-hero-service">${escapeHtml(next.services?.name || 'Behandlung')}</h4>
