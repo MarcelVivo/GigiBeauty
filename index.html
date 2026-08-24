@@ -3751,33 +3751,41 @@
     background: url('public/images/Butterfly/SchmetterlingNeu-photo-overlay.png') center / 100% 100% no-repeat;
   }
 
-  /* Magic sparkle field -- visible only in the still-dark "after" area
-     while a look is being generated, radiating out from the butterfly. */
+  /* Magic sparkle field -- above BOTH photo layers (not hidden behind
+     whichever side the oscillating slider currently covers), scattered
+     across the whole frame, left and right of the butterfly. */
   .aip-sparkle-field {
     position: absolute;
     inset: 0;
-    z-index: 1;
+    z-index: 3;
     overflow: hidden;
     pointer-events: none;
   }
-  .aip-spark {
+  .aip-spark, .aip-particle {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    color: #e8c579;
-    font-size: 13px;
     opacity: 0;
-    text-shadow: 0 0 7px rgba(232, 197, 121, 0.85), 0 0 2px rgba(255, 255, 255, 0.6);
     animation: aipSparkFly 2.6s ease-out infinite;
     animation-delay: var(--spark-delay, 0s);
   }
+  .aip-spark {
+    color: #e8c579;
+    font-size: 13px;
+    text-shadow: 0 0 7px rgba(232, 197, 121, 0.85), 0 0 2px rgba(255, 255, 255, 0.6);
+  }
+  .aip-particle {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff6d8 0%, #e8c579 45%, transparent 75%);
+    box-shadow: 0 0 6px rgba(232, 197, 121, 0.9);
+  }
   @keyframes aipSparkFly {
-    0% { opacity: 0; transform: translate(-50%, -50%) translate(0, 0) scale(0.4); }
-    18% { opacity: 1; }
+    0% { opacity: 0; transform: translate(-50%, -50%) translate(0, 0) scale(0.3); }
+    22% { opacity: 1; }
     100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--spark-dx, 0px), var(--spark-dy, 0px)) scale(1); }
   }
   @media (prefers-reduced-motion: reduce) {
-    .aip-spark { animation: none; opacity: 0; }
+    .aip-spark, .aip-particle { animation: none; opacity: 0; }
   }
 
   .aip-generating-copy {
@@ -7758,17 +7766,23 @@
 
     function startSparkles() {
       sparkleField.innerHTML = '';
-      for (let i = 0; i < 34; i++) {
-        const spark = document.createElement('span');
-        spark.className = 'aip-spark';
-        spark.textContent = '✦';
+      const count = 48;
+      for (let i = 0; i < count; i++) {
+        const isParticle = Math.random() < 0.4;
+        const el = document.createElement('span');
+        el.className = isParticle ? 'aip-particle' : 'aip-spark';
+        if (!isParticle) el.textContent = '✦';
+        // Scattered across the whole frame -- left and right of the
+        // butterfly -- not clustered at the centre.
+        el.style.left = `${4 + Math.random() * 92}%`;
+        el.style.top = `${6 + Math.random() * 88}%`;
         const angle = Math.random() * Math.PI * 2;
-        const distance = 40 + Math.random() * 190;
-        spark.style.setProperty('--spark-dx', `${Math.cos(angle) * distance}px`);
-        spark.style.setProperty('--spark-dy', `${Math.sin(angle) * distance}px`);
-        spark.style.setProperty('--spark-delay', `${(Math.random() * 2.6).toFixed(2)}s`);
-        spark.style.fontSize = `${9 + Math.random() * 10}px`;
-        sparkleField.appendChild(spark);
+        const distance = 18 + Math.random() * 60;
+        el.style.setProperty('--spark-dx', `${Math.cos(angle) * distance}px`);
+        el.style.setProperty('--spark-dy', `${Math.sin(angle) * distance}px`);
+        el.style.setProperty('--spark-delay', `${(Math.random() * 2.6).toFixed(2)}s`);
+        if (!isParticle) el.style.fontSize = `${9 + Math.random() * 10}px`;
+        sparkleField.appendChild(el);
       }
     }
     function stopSparkles() {
