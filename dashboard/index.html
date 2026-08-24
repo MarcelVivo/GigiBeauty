@@ -35,6 +35,7 @@
         <button class="nav-item" data-panel="inventory"><span>◇</span><span>Lager</span></button>
         <button class="nav-item" data-panel="marketing"><span>✦</span><span>Marketing</span></button>
         <button class="nav-item" data-panel="content"><span>✎</span><span>Website-Inhalte</span></button>
+        <button class="nav-item" data-panel="settings"><span>⚙</span><span>Einstellungen</span></button>
       </nav>
       <div class="sidebar-foot">
         <div class="admin-chip"><strong id="admin-name">Liliane Serrano</strong><span id="admin-email-label"></span></div>
@@ -143,6 +144,29 @@
         <div class="content-service-grid" id="content-services"></div>
         <div class="subsection-head"><div><h2>Über GiGi Beauty / Liliane Serrano</h2><p>Texte der Seite „Über GiGi Beauty“ (ueber-liliane.html).</p></div></div>
         <div id="content-blocks"></div>
+      </section>
+
+      <section class="view-panel" data-view-panel="settings" hidden>
+        <div class="toolbar"><div><strong>Geschäftseinstellungen</strong><p class="muted">Öffnungszeiten und Kontaktdaten für Website und Buchungskalender.</p></div></div>
+
+        <div class="card">
+          <div class="card-head"><div><h2>Öffnungszeiten</h2><p class="muted">Gilt für die öffentliche Anzeige und dafür, welche Zeiten online buchbar sind.</p></div></div>
+          <div class="opening-hours-grid" id="opening-hours-grid"></div>
+          <button class="primary" type="button" id="save-opening-hours" style="margin-top:14px">Öffnungszeiten speichern</button>
+          <div class="form-message" id="opening-hours-message"></div>
+        </div>
+
+        <div class="card" style="margin-top:18px">
+          <div class="card-head"><div><h2>Kontaktdaten</h2><p class="muted">Erscheint in der Fusszeile der Website.</p></div></div>
+          <div class="form-grid">
+            <div class="field"><label for="settings-phone">Telefon</label><input id="settings-phone" placeholder="+41 76 222 06 63"></div>
+            <div class="field"><label for="settings-email">E-Mail</label><input id="settings-email" type="email" placeholder="info@gigibeauty.ch"></div>
+            <div class="field"><label for="settings-address1">Adresse Zeile 1</label><input id="settings-address1" placeholder="Bierhübeliweg 27"></div>
+            <div class="field"><label for="settings-address2">Adresse Zeile 2</label><input id="settings-address2" placeholder="3012 Bern"></div>
+          </div>
+          <button class="primary" type="button" id="save-contact" style="margin-top:14px">Kontaktdaten speichern</button>
+          <div class="form-message" id="settings-contact-message"></div>
+        </div>
       </section>
     </main>
   </div>

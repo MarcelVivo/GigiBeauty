@@ -14,8 +14,11 @@
     invoices: ['Finanzen', 'Einnahmen, Ausgaben, Rechnungen und Profitabilität.'],
     inventory: ['Lager', 'Bestände, Materialkosten und Nachbestellungen.'],
     marketing: ['Marketing', 'Kampagnen für Kundinnen mit Einwilligung erstellen.'],
-    content: ['Website-Inhalte', 'Behandlungstexte und Preislisten direkt auf der Website pflegen.']
+    content: ['Website-Inhalte', 'Behandlungstexte und Preislisten direkt auf der Website pflegen.'],
+    settings: ['Einstellungen', 'Öffnungszeiten und Kontaktdaten pflegen.']
   };
+
+  const WEEKDAY_LABELS = { '1': 'Montag', '2': 'Dienstag', '3': 'Mittwoch', '4': 'Donnerstag', '5': 'Freitag', '6': 'Samstag', '7': 'Sonntag' };
 
   function startOfDay(value) { const d = new Date(value); d.setHours(0, 0, 0, 0); return d; }
   function startOfWeek(value) { const d = startOfDay(value); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d; }
@@ -127,7 +130,7 @@
     renderAll();
   }
 
-  function renderAll() { renderOverview(); renderCalendar(); renderTasks(); renderCustomers(); renderWaitlist(); renderInvoices(); renderInventory(); renderCampaigns(); renderContent(); }
+  function renderAll() { renderOverview(); renderCalendar(); renderTasks(); renderCustomers(); renderWaitlist(); renderInvoices(); renderInventory(); renderCampaigns(); renderContent(); renderSettings(); }
 
   function appointmentRevenue(appointment) {
     return appointment.status === 'completed' && !appointment.is_private ? Number(appointment.amount_chf ?? appointment.services?.price_chf ?? 0) : 0;
@@ -1018,6 +1021,61 @@
     toast('Vorherige Version wiederhergestellt.'); await loadAll();
   }
 
+  function renderSettings() {
+    const grid = $('opening-hours-grid');
+    if (!grid) return;
+    const hours = state.settings?.opening_hours || {};
+    grid.innerHTML = Object.keys(WEEKDAY_LABELS).map(key => {
+      const range = Array.isArray(hours[key]) ? hours[key] : null;
+      const isOpen = Boolean(range);
+      return `<div class="opening-hours-row">
+        <label class="opening-hours-day"><input type="checkbox" data-day-open="${key}" ${isOpen ? 'checked' : ''}> ${WEEKDAY_LABELS[key]}</label>
+        <input type="time" data-day-from="${key}" value="${isOpen ? range[0] : '09:00'}" ${isOpen ? '' : 'disabled'}>
+        <span>bis</span>
+        <input type="time" data-day-to="${key}" value="${isOpen ? range[1] : '18:00'}" ${isOpen ? '' : 'disabled'}>
+      </div>`;
+    }).join('');
+    grid.querySelectorAll('[data-day-open]').forEach(input => input.onchange = () => {
+      const day = input.dataset.dayOpen;
+      grid.querySelector(`[data-day-from="${day}"]`).disabled = !input.checked;
+      grid.querySelector(`[data-day-to="${day}"]`).disabled = !input.checked;
+    });
+
+    if ($('settings-phone')) {
+      $('settings-phone').value = state.settings?.public_phone || '';
+      $('settings-email').value = state.settings?.public_email || '';
+      $('settings-address1').value = state.settings?.address_line1 || '';
+      $('settings-address2').value = state.settings?.address_line2 || '';
+    }
+  }
+
+  async function saveOpeningHours() {
+    const hours = {};
+    Object.keys(WEEKDAY_LABELS).forEach(key => {
+      const isOpen = document.querySelector(`[data-day-open="${key}"]`).checked;
+      if (!isOpen) return;
+      const from = document.querySelector(`[data-day-from="${key}"]`).value;
+      const to = document.querySelector(`[data-day-to="${key}"]`).value;
+      if (from && to) hours[key] = [from, to];
+    });
+    const { error } = await db.from('business_settings').update({ opening_hours: hours }).eq('id', true);
+    if (error) return $('opening-hours-message').textContent = error.message;
+    $('opening-hours-message').textContent = '';
+    toast('Öffnungszeiten gespeichert.'); await loadAll();
+  }
+
+  async function saveContact() {
+    const { error } = await db.from('business_settings').update({
+      public_phone: $('settings-phone').value.trim() || null,
+      public_email: $('settings-email').value.trim() || null,
+      address_line1: $('settings-address1').value.trim() || null,
+      address_line2: $('settings-address2').value.trim() || null
+    }).eq('id', true);
+    if (error) return $('settings-contact-message').textContent = error.message;
+    $('settings-contact-message').textContent = '';
+    toast('Kontaktdaten gespeichert.'); await loadAll();
+  }
+
   async function savePriceItem(itemId) {
     const row = document.querySelector(`tr[data-price-item="${itemId}"]`);
     const name = row.querySelector('[data-field="name"]').value.trim();
@@ -1469,6 +1527,8 @@
   $('add-gift-card').onclick = openGiftCard;
   $('add-package').onclick = openPackage;
   $('new-campaign').onclick = () => { $('campaign-message').textContent = ''; openModal('campaign-modal'); };
+  $('save-opening-hours').onclick = saveOpeningHours;
+  $('save-contact').onclick = saveContact;
   $('week-prev').onclick = () => { state.week = addDays(state.week, -7); renderCalendar(); };
   $('week-next').onclick = () => { state.week = addDays(state.week, 7); renderCalendar(); };
   $('week-today').onclick = () => { state.week = startOfWeek(new Date()); renderCalendar(); };

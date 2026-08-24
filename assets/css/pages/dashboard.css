@@ -60,6 +60,14 @@ button { cursor: pointer; }
 .card-head p { margin: .2rem 0 0; color: var(--dash-muted); font-size: .72rem; }
 .analytics-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: .8rem; margin-top: .8rem; }
 .analytics-card { min-width: 0; }
+
+.opening-hours-grid { display: grid; gap: .5rem; }
+.opening-hours-row { display: flex; align-items: center; gap: 1rem; padding: .55rem .2rem; border-bottom: 1px solid var(--dash-line); }
+.opening-hours-row:last-child { border-bottom: 0; }
+.opening-hours-day { display: flex; align-items: center; gap: .5rem; width: 150px; flex-shrink: 0; font-size: .85rem; }
+.opening-hours-row input[type="time"] { padding: .45rem .5rem; border: 1px solid var(--dash-line); border-radius: 7px; color: var(--dash-ink); background: white; }
+.opening-hours-row input[type="time"]:disabled { opacity: .4; }
+.opening-hours-row span { color: var(--dash-muted); font-size: .78rem; }
 .span-4 { grid-column: span 4; }
 .span-8 { grid-column: span 8; }
 .span-12 { grid-column: span 12; }
