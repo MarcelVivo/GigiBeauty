@@ -3284,36 +3284,23 @@
     left: 50%;
     z-index: 4;
     width: 2px;
-    background: rgba(255, 243, 220, 0.9);
+    background: rgba(212, 175, 106, 0.92);
     box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
     transform: translateX(-50%);
     pointer-events: none;
   }
 
-  .ba-handle-grip {
+  /* Butterfly sits directly on the divider line, no coin backdrop. Its own
+     gold veins stay constant; only the wing fill's saturation tracks the
+     handle position, set live in JS. */
+  .ba-wing {
     position: absolute;
     top: 50%;
     left: 50%;
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    overflow: hidden;
-    border: 1px solid rgba(232, 197, 121, 0.7);
-    border-radius: 50%;
+    width: 64px;
+    height: 64px;
     transform: translate(-50%, -50%);
-    background: linear-gradient(135deg, #c8a06a 0%, #d4af6a 50%, #b8903a 100%);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-  }
-
-  /* Butterfly replaces the plain arrow glyph inside the round handle coin.
-     The gold coin ring and the butterfly's own gold veins stay constant;
-     only the pastel wing fill fades from pale (100% Vorher) to fully
-     vibrant and glowing (100% Nachher), updated live in JS. */
-  .ba-wing {
-    position: relative;
-    width: 30px;
-    height: 30px;
+    filter: drop-shadow(0 3px 9px rgba(0, 0, 0, 0.5));
   }
 
   .ba-wing-fill,
@@ -6577,12 +6564,10 @@
       <span class="ba-tag ba-tag--before">Vorher</span>
       <span class="ba-tag ba-tag--after">Nachher</span>
       <div class="ba-handle" id="ba-handle">
-        <span class="ba-handle-grip">
-          <span class="ba-wing">
-            <span class="ba-wing-fill" id="ba-wing-fill" aria-hidden="true"></span>
-            <span class="ba-wing-veins" aria-hidden="true"></span>
-            <img src="public/images/Butterfly/SchmetterlingNeu.png" alt="">
-          </span>
+        <span class="ba-wing">
+          <span class="ba-wing-fill" id="ba-wing-fill" aria-hidden="true"></span>
+          <span class="ba-wing-veins" aria-hidden="true"></span>
+          <img src="public/images/Butterfly/SchmetterlingNeu.png" alt="">
         </span>
       </div>
 
@@ -6779,12 +6764,9 @@
       handle.style.left = pct + '%';
       slider.setAttribute('aria-valuenow', Math.round(pct));
 
-      // At pct=100 the Vorher photo shows fully, at pct=0 the Nachher photo
-      // shows fully -- so vibrancy (t) has to rise as pct falls, not rise
-      // with it, or the butterfly ends up glowing on the wrong side.
-      const t = 1 - pct / 100;
-      wingFill.style.opacity = (0.32 + t * 0.63).toFixed(2);
-      wingFill.style.filter = `saturate(${(0.12 + t * 1.35).toFixed(2)}) brightness(${(0.78 + t * 0.32).toFixed(2)}) drop-shadow(0 0 ${(t * 5).toFixed(1)}px rgba(232,197,121,${(t * 0.7).toFixed(2)}))`;
+      // Wing saturation: 100% on the left, 50% in the middle, 0% on the
+      // right -- a direct 1:1 mapping to the handle position.
+      wingFill.style.filter = `saturate(${(100 - pct).toFixed(0)}%)`;
     }
 
     function pctFromEvent(event) {
