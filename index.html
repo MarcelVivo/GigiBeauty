@@ -6778,6 +6778,7 @@
     const closeButton = document.getElementById('before-after-close');
     const beforeImg = document.getElementById('ba-image-before');
     const afterImg = document.getElementById('ba-image-after');
+    const title = document.getElementById('before-after-title');
     if (!backdrop || !slider) return;
 
     function setSlider(pct) {
@@ -6823,6 +6824,8 @@
       if (!pair) return;
       beforeImg.src = pair.before;
       afterImg.src = pair.after;
+      const sectionTitle = document.querySelector('#section-' + slug + ' .svc-title');
+      title.textContent = sectionTitle ? sectionTitle.textContent + ' — Vorher / Nachher' : 'Vorher / Nachher';
       setSlider(50);
       backdrop.hidden = false;
       document.body.classList.add('treatment-modal-open');
