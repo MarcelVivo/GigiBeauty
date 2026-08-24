@@ -147,13 +147,31 @@
     'natural-make-up': 'Natural Make Up'
   };
 
-  function renderAiPreviewRequests() {
+  async function signedAiPreviewPhotoUrl(path) {
+    const { data } = await db.storage.from('ai-preview-photos').createSignedUrl(path, 3600);
+    return data?.signedUrl || '';
+  }
+
+  async function renderAiPreviewRequests() {
     const table = $('ai-preview-table');
     if (!table) return;
-    table.innerHTML = state.aiPreviewRequests.length ? state.aiPreviewRequests.map(item => {
+    if (!state.aiPreviewRequests.length) {
+      table.innerHTML = '<tr><td colspan="7" class="empty">Noch keine KI-Vorschau-Anfragen.</td></tr>';
+      return;
+    }
+    table.innerHTML = '';
+    for (const item of state.aiPreviewRequests) {
       const colorChips = Object.values(item.colors || {}).map(c => `<span class="ai-color-chip"><span class="ai-color-dot" style="background:${esc(c.hex)}"></span>${esc(c.areaLabel)}: ${esc(c.label)} <code>${esc(c.hex)}</code></span>`).join('');
-      return `<tr><td>${esc(fmt(item.created_at, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }))}</td><td>${esc(AI_PREVIEW_SERVICE_LABELS[item.service_type] || item.service_type)}</td><td>${esc(item.customer_name || '–')}</td><td>${esc(item.preset_label || '–')}</td><td>${colorChips || '<span class="muted">–</span>'}</td><td>${esc(item.wish_note || '–')}</td></tr>`;
-    }).join('') : '<tr><td colspan="6" class="empty">Noch keine KI-Vorschau-Anfragen.</td></tr>';
+      const row = document.createElement('tr');
+      row.innerHTML = `<td>${esc(fmt(item.created_at, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }))}</td><td class="ai-preview-photo-cell">${item.photo_path ? '<span class="muted">Lädt …</span>' : '<span class="muted">Kein Foto</span>'}</td><td>${esc(AI_PREVIEW_SERVICE_LABELS[item.service_type] || item.service_type)}</td><td>${esc(item.customer_name || '–')}</td><td>${esc(item.preset_label || '–')}</td><td>${colorChips || '<span class="muted">–</span>'}</td><td>${esc(item.wish_note || '–')}</td>`;
+      table.appendChild(row);
+      if (item.photo_path) {
+        signedAiPreviewPhotoUrl(item.photo_path).then(url => {
+          const cell = row.querySelector('.ai-preview-photo-cell');
+          if (cell && url) cell.innerHTML = `<a href="${esc(url)}" target="_blank" rel="noopener"><img class="ai-preview-thumb" src="${esc(url)}" alt="Foto der Kundin" loading="lazy"></a>`;
+        });
+      }
+    }
   }
 
   function renderMessages() {

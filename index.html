@@ -3733,6 +3733,45 @@
 
   .aip-result-actions { display: grid; gap: 10px; margin-top: 6px; }
 
+  .aip-consent {
+    margin-top: 20px;
+    padding: 16px;
+    border: 1px solid rgba(212,175,106,0.25);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+  }
+  .aip-consent-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    color: rgba(245,230,200,0.8);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    cursor: pointer;
+  }
+  .aip-consent-check input { margin-top: 3px; accent-color: #d4af6a; }
+  .aip-send-btn {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+    padding: 12px 18px;
+    border: 1px solid rgba(212,175,106,0.55);
+    border-radius: 2px;
+    background: transparent;
+    color: #f1d78e;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 0.82rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .aip-send-btn:hover:not(:disabled) { background: rgba(212,175,106,0.12); border-color: rgba(232,197,121,0.85); }
+  .aip-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .aip-consent-message { margin: 10px 0 0; color: rgba(190,220,190,0.9); font-family: 'Cormorant Garamond', serif; font-size: 0.85rem; }
+
   @media (max-width: 767px) {
     .aip-backdrop { align-items: end; padding: 8px 8px max(8px, env(safe-area-inset-bottom)); }
     .aip-modal { width: 100%; max-height: calc(100dvh - 16px); padding: 26px 18px 22px; border-radius: 20px 20px 12px 12px; animation-name: treatmentSheetIn; }
@@ -7038,6 +7077,14 @@
         <button class="aip-primary-btn" type="button" id="aip-book">Diesen Look buchen</button>
         <button class="aip-secondary-btn" type="button" id="aip-retry">Anderen Look testen</button>
       </div>
+      <div class="aip-consent" id="aip-consent" hidden>
+        <label class="aip-consent-check">
+          <input type="checkbox" id="aip-consent-checkbox">
+          <span>Ich bin einverstanden, dass mein Foto zusammen mit den gewählten Farben an Liliane übermittelt wird, damit sie die passenden Farbtöne beim Termin vorbereiten kann.</span>
+        </label>
+        <button class="aip-send-btn" type="button" id="aip-send-to-liliane" disabled>Foto &amp; Farben an Liliane senden</button>
+        <p class="aip-consent-message" id="aip-consent-message"></p>
+      </div>
     </div>
 
     <div data-aip-panel="error" hidden>
@@ -7474,6 +7521,10 @@
     const bookButton = document.getElementById('aip-book');
     const retryButton = document.getElementById('aip-retry');
     const errorRetryButton = document.getElementById('aip-error-retry');
+    const consentBlock = document.getElementById('aip-consent');
+    const consentCheckbox = document.getElementById('aip-consent-checkbox');
+    const sendButton = document.getElementById('aip-send-to-liliane');
+    const consentMessage = document.getElementById('aip-consent-message');
 
     let currentSlug = null;
     let originalDataUrl = null;
@@ -7570,24 +7621,51 @@
     // Fire-and-forget: stores the chosen preset/colours (not the photo) so
     // Liliane can look up exactly which shades a customer picked and use
     // them when mixing products for the real treatment.
-    function saveAiPreviewRequest(CONFIG) {
+    // Only runs when the customer explicitly ticks the consent checkbox and
+    // clicks "Foto & Farben an Liliane senden" on the result screen -- never
+    // automatically. The photo is uploaded ONLY at this point, specifically
+    // because the customer agreed to it; before that, the funnel never
+    // persists the photo anywhere (see the OpenAI edit call, which sends it
+    // to the Edge Function only for ephemeral processing).
+    async function sendPhotoAndColorsToLiliane() {
+      if (!consentCheckbox.checked || sendButton.disabled) return;
+      sendButton.disabled = true;
+      sendButton.textContent = 'Wird gesendet …';
+      consentMessage.textContent = '';
       try {
-        if (!window.supabase || !CONFIG?.url || !CONFIG?.anonKey) return;
+        const CONFIG = window.GIGI_SUPABASE || {};
+        if (!window.supabase || !CONFIG?.url || !CONFIG?.anonKey) throw new Error('not_configured');
         const db = window.supabase.createClient(CONFIG.url, CONFIG.anonKey);
+
+        const photoPath = `${crypto.randomUUID()}.jpg`;
+        const photoBlob = await (await fetch(originalDataUrl)).blob();
+        const { error: uploadError } = await db.storage.from('ai-preview-photos').upload(photoPath, photoBlob, { contentType: 'image/jpeg' });
+        if (uploadError) throw uploadError;
+
         const colors = {};
         Object.entries(selectedColors).forEach(([key, value]) => { colors[key] = value; });
-        db.from('ai_preview_requests').insert({
+        const { error: insertError } = await db.from('ai_preview_requests').insert({
           service_type: currentSlug,
           customer_name: nameInput.value.trim() || null,
           preset_label: selectedPresetLabel || null,
           colors: Object.keys(colors).length ? colors : null,
-          wish_note: wishTextarea.value.trim() || null
-        }).then(() => {});
+          wish_note: wishTextarea.value.trim() || null,
+          photo_path: photoPath
+        });
+        if (insertError) throw insertError;
+
+        sendButton.textContent = 'Gesendet ✓';
+        consentMessage.textContent = 'Danke! Liliane hat dein Foto und deine Farbwahl erhalten.';
+        consentCheckbox.disabled = true;
       } catch {
-        // Never let this block the customer's result -- it's a nice-to-have
-        // record for Liliane, not part of the funnel itself.
+        sendButton.disabled = false;
+        sendButton.textContent = 'Foto & Farben an Liliane senden';
+        consentMessage.textContent = 'Das hat gerade nicht geklappt. Bitte nochmal versuchen.';
       }
     }
+
+    consentCheckbox.addEventListener('change', () => { sendButton.disabled = !consentCheckbox.checked; });
+    sendButton.addEventListener('click', sendPhotoAndColorsToLiliane);
     let oscillating = false;
     let animToken = 0;
     let currentAbort = null;
@@ -7635,8 +7713,16 @@
       document.querySelectorAll('[data-aip-panel]').forEach(panel => { panel.hidden = panel.dataset.aipPanel !== panelFor[next]; });
       generatingCopy.hidden = next !== 'generating';
       resultActions.hidden = next !== 'result';
+      consentBlock.hidden = next !== 'result';
       slider.classList.toggle('is-live', next === 'result');
       slider.classList.toggle('is-locked', next !== 'result');
+    }
+
+    function resetConsent() {
+      consentCheckbox.checked = false;
+      sendButton.disabled = true;
+      sendButton.textContent = 'Foto & Farben an Liliane senden';
+      consentMessage.textContent = '';
     }
 
     function updateGenerateAvailability() {
@@ -7710,6 +7796,7 @@
       imageAfter.removeAttribute('src');
       imageBefore.src = originalDataUrl;
       setAipSlider(50);
+      resetConsent();
       setFunnelState('generating');
       runOscillation();
 
@@ -7727,7 +7814,6 @@
         await preloadImage(payload.generatedImage);
         stopOscillation();
         imageAfter.src = payload.generatedImage;
-        saveAiPreviewRequest(CONFIG);
         setFunnelState('revealing');
         await tweenAipPct(AIP_REVEAL_PCT, 1400);
         setFunnelState('result');
@@ -7788,6 +7874,8 @@
       if (preview) preview.remove();
       imageBefore.removeAttribute('src');
       imageAfter.removeAttribute('src');
+      consentCheckbox.disabled = false;
+      resetConsent();
       setFunnelState('intro');
     }
 
