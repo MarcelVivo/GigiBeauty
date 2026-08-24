@@ -503,7 +503,13 @@
     newsletter.checked = Boolean(state.profile?.marketing_consent);
     document.getElementById('account-newsletter-message').textContent = '';
 
-    const { data, error } = await db.from('appointments').select('id, starts_at, status, services(name, slug)').eq('is_private', false).order('starts_at', { ascending: false });
+    // Bewusst nicht allein auf RLS verlassen: ein Konto, das zugleich Admin
+    // ist, darf laut RLS alle Termine lesen -- "meine Termine" muss aber
+    // trotzdem explizit auf die eigene Identität eingegrenzt werden.
+    const ownConditions = [`customer_id.eq.${state.user.id}`];
+    if (state.customerId) ownConditions.push(`customer_ref_id.eq.${state.customerId}`);
+    if (state.profile?.email) ownConditions.push(`customer_email.ilike.${state.profile.email}`);
+    const { data, error } = await db.from('appointments').select('id, starts_at, status, services(name, slug)').eq('is_private', false).or(ownConditions.join(',')).order('starts_at', { ascending: false });
     if (error) { hero.innerHTML = `<div class="account-empty">${escapeHtml(error.message)}</div>`; return; }
     const now = Date.now();
     const upcoming = (data || []).filter(item => item.status === 'booked' && new Date(item.starts_at).getTime() >= now).sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
