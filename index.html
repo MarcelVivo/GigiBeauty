@@ -3312,24 +3312,26 @@
     mask: url('public/images/Butterfly/SchmetterlingNeu-mask.png') center / 100% 100% no-repeat;
   }
 
+  /* Abstract, organic blend of the same pastel hues used by the section
+     marker butterflies (blue, orange, green, pink, teal, yellow) -- not a
+     single flat colour, so it reads as painterly rather than a plain tint. */
   .ba-wing-fill {
     z-index: 1;
-    background: linear-gradient(135deg, #fadde8 0%, #cfe8f7 30%, #bdeee6 55%, #fdf0b0 78%, #ffd9bd 100%);
+    background:
+      radial-gradient(circle at 24% 28%, #a9d0ec 0%, transparent 46%),
+      radial-gradient(circle at 76% 22%, #f0b8cf 0%, transparent 50%),
+      radial-gradient(circle at 62% 74%, #f8dd7a 0%, transparent 48%),
+      radial-gradient(circle at 22% 76%, #9bd99a 0%, transparent 46%),
+      radial-gradient(circle at 85% 62%, #85d9cd 0%, transparent 42%),
+      radial-gradient(circle at 48% 48%, #ffb37f 0%, transparent 58%);
   }
 
+  /* Same gold rim artwork used on the actual hero butterflies. */
   .ba-wing-veins {
     z-index: 2;
-    background: url('public/images/Butterfly/SchmetterlingNeu-veins.svg') center / 100% 100% no-repeat;
-    opacity: 0.95;
+    background: url('public/images/Butterfly/SchmetterlingNeu-photo-overlay.png') center / 100% 100% no-repeat;
   }
 
-  .ba-wing img {
-    position: relative;
-    z-index: 3;
-    display: block;
-    width: 100%;
-    height: auto;
-  }
 
   .before-after-hint {
     margin: 14px 0 0;
@@ -6567,7 +6569,6 @@
         <span class="ba-wing">
           <span class="ba-wing-fill" id="ba-wing-fill" aria-hidden="true"></span>
           <span class="ba-wing-veins" aria-hidden="true"></span>
-          <img src="public/images/Butterfly/SchmetterlingNeu.png" alt="">
         </span>
       </div>
 
