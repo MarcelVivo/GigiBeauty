@@ -675,6 +675,10 @@
   .footer-col a:hover { color: #b8903a; }
   .footer-gap { margin-top: 0.9rem !important; }
 
+  .footer-map { margin-top: 1rem; }
+  .footer-map iframe { display: block; width: 100%; height: 150px; border: 1px solid rgba(44,31,14,0.18); border-radius: 6px; filter: sepia(0.12) saturate(0.92); }
+  .footer-map-link { display: inline-block; margin-top: 0.6rem; font-size: 0.85rem; letter-spacing: 0.02em; }
+
   .footer-hours { display: grid; grid-template-columns: auto auto; gap: 0.28rem 1.2rem; font-size: 0.9rem; }
 
   .footer-icons { display: flex; gap: 0.65rem; margin-top: 0.2rem; }
@@ -943,6 +947,15 @@
       <p>3012 Bern</p>
       <p class="footer-gap">Telefon: <a href="tel:+41762220663">076 222 06 63</a></p>
       <p>E-Mail: <a href="mailto:info@gigibeauty.ch">info@gigibeauty.ch</a></p>
+      <div class="footer-map">
+        <iframe
+          src="https://www.google.com/maps?q=Bierh%C3%BCbeliweg%2027%2C%203012%20Bern&output=embed"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          aria-label="Karte: Standort von GiGi Beauty"
+        ></iframe>
+        <a class="footer-map-link" href="https://www.google.com/maps/dir/?api=1&destination=Bierh%C3%BCbeliweg%2027%2C%203012%20Bern" target="_blank" rel="noopener">Route planen →</a>
+      </div>
     </div>
 
     <div class="footer-col">
