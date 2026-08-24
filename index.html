@@ -1328,6 +1328,9 @@
   /* Vorher/Nachher button -- only shown once a section has an actual photo
      pair (see beforeAfterBySlug near the modal script); stays hidden
      otherwise so nothing broken ships before real photos exist. */
+  .btn-before-after[hidden] {
+    display: none;
+  }
   .btn-before-after {
     display: inline-flex;
     align-items: center;
