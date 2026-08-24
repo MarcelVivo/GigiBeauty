@@ -1363,38 +1363,6 @@
   }
   .btn-before-after:hover::after { transform: translateX(4px); }
 
-  /* "Teste deinen eigenen Look" -- separate CTA into the new AI preview
-     funnel (#aip-backdrop). Deliberately its own, slightly warmer style so
-     it reads as a distinct, special action next to the plain reference
-     Vorher/Nachher button, without becoming a loud SaaS-style button. */
-  .btn-ai-preview {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-    margin-top: 12px;
-    margin-left: 10px;
-    padding: 11px 22px;
-    border: 1px solid rgba(212,175,106,0.55);
-    border-radius: 2px;
-    background: linear-gradient(135deg, rgba(200,160,106,0.16), rgba(184,144,58,0.10));
-    color: #f1d78e;
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.25s ease;
-  }
-  .btn-ai-preview:hover {
-    border-color: rgba(232,197,121,0.9);
-    background: linear-gradient(135deg, rgba(212,175,106,0.28), rgba(184,144,58,0.18));
-    color: #fff3dc;
-  }
-  @media (max-width: 767px) {
-    .btn-ai-preview { margin-left: 0; }
-  }
-
   /* Price list */
   .price-list {
     list-style: none;
@@ -2533,6 +2501,53 @@
     }
   }
 
+  /* ── GiGi AI Beauty Preview -- exclusive nav entry point ───────────────
+     Floats over the navbar next to the logo, same fixed-overlay technique
+     as #championship-badge below, so it never disturbs the nav-links flex
+     row (that row has fragile positional i18n code keyed to child index). */
+  .nav-ai-badge {
+    position: fixed;
+    top: 12px;
+    left: clamp(96px, 15vw, 168px);
+    z-index: 202;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(200,160,106,0.22), rgba(184,144,58,0.14));
+    border: 1px solid rgba(232,197,121,0.55);
+    color: #f1d78e;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.35);
+    transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  }
+  .nav-ai-badge:hover {
+    border-color: rgba(232,197,121,0.9);
+    background: linear-gradient(135deg, rgba(212,175,106,0.32), rgba(184,144,58,0.22));
+    box-shadow: 0 6px 26px rgba(212,175,106,0.32);
+    transform: translateY(-1px);
+  }
+  .nav-ai-badge-icon { animation: navAiPulse 2.4s ease-in-out infinite; }
+  @keyframes navAiPulse {
+    0%, 100% { opacity: 0.65; text-shadow: none; }
+    50% { opacity: 1; text-shadow: 0 0 8px rgba(232,197,121,0.85); }
+  }
+  @media (max-width: 640px) {
+    .nav-ai-badge { top: 11px; left: 68px; padding: 7px 10px; gap: 0; }
+    .nav-ai-badge-label { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nav-ai-badge-icon { animation: none; }
+  }
+
   /* ── PMU championship distinction ─────────────────────────────────────
      A ceremonial burgundy standard hangs directly from the navigation. The
      enamel medal remains crisp while the fabric moves almost imperceptibly. */
@@ -3386,6 +3401,32 @@
     text-align: center;
   }
 
+  /* Additive link into the separate GiGi AI Beauty Preview funnel -- does
+     not touch this modal's own slider/close/backdrop logic. */
+  .before-after-try-own {
+    display: block;
+    width: 100%;
+    margin-top: 18px;
+    padding: 12px 20px;
+    border: 1px solid rgba(232,197,121,0.5);
+    border-radius: 2px;
+    background: linear-gradient(135deg, rgba(200,160,106,0.16), rgba(184,144,58,0.10));
+    color: #f1d78e;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .before-after-try-own:hover {
+    border-color: rgba(232,197,121,0.9);
+    background: linear-gradient(135deg, rgba(212,175,106,0.28), rgba(184,144,58,0.18));
+    color: #fff3dc;
+  }
+
   @media (max-width: 767px) {
     .before-after-backdrop { align-items: end; padding: 8px 8px max(8px, env(safe-area-inset-bottom)); }
     .before-after-modal { width: 100%; max-height: calc(100dvh - 16px); padding: 26px 18px 22px; border-radius: 20px 20px 12px 12px; animation-name: treatmentSheetIn; }
@@ -3798,46 +3839,37 @@
   }
   .aip-generating-copy small { display: block; margin-top: 4px; color: rgba(255, 238, 207, 0.42); font-size: 0.78rem; }
 
-  .aip-result-actions { display: grid; gap: 10px; margin-top: 6px; }
-
-  .aip-consent {
-    margin-top: 20px;
-    padding: 16px;
-    border: 1px solid rgba(212,175,106,0.25);
-    border-radius: 12px;
-    background: rgba(255,255,255,0.03);
+  /* The one decisive moment after seeing the result: a single booking CTA,
+     with the data-transfer consent built right into the same card instead
+     of a separate, easy-to-ignore secondary action. */
+  .aip-result-cta {
+    margin-top: 8px;
+    padding: 20px;
+    border: 1px solid rgba(212,175,106,0.3);
+    border-radius: 14px;
+    background: linear-gradient(160deg, rgba(212,175,106,0.1), rgba(110,56,76,0.1));
+  }
+  .aip-result-headline {
+    margin: 0 0 14px;
+    color: #f1cf86;
+    font-family: 'Playfair Display', serif;
+    font-weight: 400;
+    font-style: italic;
+    font-size: 1.15rem;
+    text-align: center;
   }
   .aip-consent-check {
     display: flex;
     align-items: flex-start;
     gap: 10px;
+    margin-bottom: 16px;
     color: rgba(245,230,200,0.8);
     font-family: 'Cormorant Garamond', serif;
-    font-size: 0.88rem;
+    font-size: 0.86rem;
     line-height: 1.5;
     cursor: pointer;
   }
   .aip-consent-check input { margin-top: 3px; accent-color: #d4af6a; }
-  .aip-send-btn {
-    display: block;
-    width: 100%;
-    margin-top: 12px;
-    padding: 12px 18px;
-    border: 1px solid rgba(212,175,106,0.55);
-    border-radius: 2px;
-    background: transparent;
-    color: #f1d78e;
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 600;
-    font-size: 0.82rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .aip-send-btn:hover:not(:disabled) { background: rgba(212,175,106,0.12); border-color: rgba(232,197,121,0.85); }
-  .aip-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .aip-consent-message { margin: 10px 0 0; color: rgba(190,220,190,0.9); font-family: 'Cormorant Garamond', serif; font-size: 0.85rem; }
 
   @media (max-width: 767px) {
     .aip-backdrop { align-items: end; padding: 8px 8px max(8px, env(safe-area-inset-bottom)); }
@@ -3902,6 +3934,10 @@
   <a class="nav-logo" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;" aria-label="GiGi Beauty">
     <img src="public/images/logo/GiGiBeautySchmetterling.png" alt="GiGi Beauty">
   </a>
+
+  <button class="nav-ai-badge" type="button" id="nav-ai-badge">
+    <span class="nav-ai-badge-icon" aria-hidden="true">✦</span><span class="nav-ai-badge-label">AI Beauty Preview</span>
+  </button>
 
   <ul class="nav-links" id="nav-links">
     <li><a href="#section-gel-acryl-nails"        onclick="navTo('section-gel-acryl-nails');closeNav();return false;">Gel &amp; Acryl</a></li>
@@ -6757,9 +6793,7 @@
       <div class="svc-description">
         <h3>Über diese Behandlung</h3>
         <p data-service-text="gel-acryl-nails">Ob natürlich, klassisch oder auffällig: Wir gestalten Gel- und Acrylnägel passend zu deinem Stil. Dabei achten wir auf eine saubere Form, sorgfältige Verarbeitung und Materialien, an denen du lange Freude hast.</p>
-        <button class="btn-before-after" type="button" data-before-after="gel-acryl-nails" hidden>Vorher / Nachher ansehen</button>
-        <button class="btn-ai-preview" type="button" data-ai-preview="gel-acryl-nails">✦ Teste deinen eigenen Look</button>
-      </div>
+        <button class="btn-before-after" type="button" data-before-after="gel-acryl-nails" hidden>Vorher / Nachher ansehen</button>      </div>
       <div class="svc-prices">
         <h3>Preisliste</h3>
         <ul class="price-list" data-price-list="gel-acryl-nails">
@@ -6795,9 +6829,7 @@
       <div class="svc-description">
         <h3>Über diese Behandlung</h3>
         <p data-service-text="permanent-make-up">Permanent Make-up betont Augenbrauen, Lippen oder Lidlinien und erleichtert deine tägliche Routine. Vor der Behandlung besprechen wir Form, Farbe und gewünschte Wirkung in Ruhe mit dir.</p>
-        <button class="btn-before-after" type="button" data-before-after="permanent-make-up" hidden>Vorher / Nachher ansehen</button>
-        <button class="btn-ai-preview" type="button" data-ai-preview="permanent-make-up">✦ Teste deinen eigenen Look</button>
-      </div>
+        <button class="btn-before-after" type="button" data-before-after="permanent-make-up" hidden>Vorher / Nachher ansehen</button>      </div>
       <div class="svc-prices">
         <h3>Preisliste</h3>
         <ul class="price-list" data-price-list="permanent-make-up">
@@ -6834,9 +6866,7 @@
       <div class="svc-description">
         <h3>Über diese Behandlung</h3>
         <p data-service-text="kosmetische-pedicure">Bei der kosmetischen Pedicure pflegen wir Nägel und Haut gründlich und schonend. Du gehst mit gepflegten Füssen und einem angenehm leichten Gefühl nach Hause.</p>
-        <button class="btn-before-after" type="button" data-before-after="kosmetische-pedicure" hidden>Vorher / Nachher ansehen</button>
-        <button class="btn-ai-preview" type="button" data-ai-preview="kosmetische-pedicure">✦ Teste deinen eigenen Look</button>
-      </div>
+        <button class="btn-before-after" type="button" data-before-after="kosmetische-pedicure" hidden>Vorher / Nachher ansehen</button>      </div>
       <div class="svc-prices">
         <h3>Preisliste</h3>
         <ul class="price-list" data-price-list="kosmetische-pedicure">
@@ -6870,9 +6900,7 @@
       <div class="svc-description">
         <h3>Über diese Behandlung</h3>
         <p data-service-text="fillers">Mit Hyaluron-Fillern lassen sich Konturen sanft betonen und Volumen gezielt ausgleichen. In einem persönlichen Beratungsgespräch klären wir, welches Ergebnis zu deinen Wünschen und Gesichtszügen passt.</p>
-        <button class="btn-before-after" type="button" data-before-after="fillers" hidden>Vorher / Nachher ansehen</button>
-        <button class="btn-ai-preview" type="button" data-ai-preview="fillers">✦ Teste deinen eigenen Look</button>
-      </div>
+        <button class="btn-before-after" type="button" data-before-after="fillers" hidden>Vorher / Nachher ansehen</button>      </div>
       <div class="svc-prices">
         <h3>Preisliste</h3>
         <ul class="price-list" data-price-list="fillers">
@@ -6908,9 +6936,7 @@
       <div class="svc-description">
         <h3>Über diese Behandlung</h3>
         <p data-service-text="lashes">Ob dezent oder voller: Wir stimmen Länge, Schwung und Volumen der Wimpern auf deine Augen und deinen Alltag ab. So entsteht ein Ergebnis, das zu dir passt und sich angenehm trägt.</p>
-        <button class="btn-before-after" type="button" data-before-after="lashes" hidden>Vorher / Nachher ansehen</button>
-        <button class="btn-ai-preview" type="button" data-ai-preview="lashes">✦ Teste deinen eigenen Look</button>
-      </div>
+        <button class="btn-before-after" type="button" data-before-after="lashes" hidden>Vorher / Nachher ansehen</button>      </div>
       <div class="svc-prices">
         <h3>Preisliste</h3>
         <ul class="price-list" data-price-list="lashes">
@@ -6948,9 +6974,7 @@
       <div class="svc-description">
         <h3>Über diese Behandlung</h3>
         <p data-service-text="korean-cosmetics">Unsere Behandlungen mit koreanischer Kosmetik werden auf die Bedürfnisse deiner Haut abgestimmt. Je nach Hautbild stehen Feuchtigkeit, Reinigung, Ausstrahlung oder Pflege im Mittelpunkt.</p>
-        <button class="btn-before-after" type="button" data-before-after="korean-cosmetics" hidden>Vorher / Nachher ansehen</button>
-        <button class="btn-ai-preview" type="button" data-ai-preview="korean-cosmetics">✦ Teste deinen eigenen Look</button>
-      </div>
+        <button class="btn-before-after" type="button" data-before-after="korean-cosmetics" hidden>Vorher / Nachher ansehen</button>      </div>
       <div class="svc-prices">
         <h3>Preisliste</h3>
         <ul class="price-list" data-price-list="korean-cosmetics">
@@ -6986,9 +7010,7 @@
       <div class="svc-description">
         <h3>Über diese Behandlung</h3>
         <p data-service-text="natural-make-up">Für deinen Alltag, ein Event oder deine Hochzeit gestalten wir ein Make-up, das zu dir und zum Anlass passt. Farben und Texturen wählen wir gemeinsam und tragen sie so auf, dass du dich weiterhin wie du selbst fühlst.</p>
-        <button class="btn-before-after" type="button" data-before-after="natural-make-up" hidden>Vorher / Nachher ansehen</button>
-        <button class="btn-ai-preview" type="button" data-ai-preview="natural-make-up">✦ Teste deinen eigenen Look</button>
-      </div>
+        <button class="btn-before-after" type="button" data-before-after="natural-make-up" hidden>Vorher / Nachher ansehen</button>      </div>
       <div class="svc-prices">
         <h3>Preisliste</h3>
         <ul class="price-list" data-price-list="natural-make-up">
@@ -7086,6 +7108,7 @@
 
     </div>
     <p class="before-after-hint">Regler mit der Maus, dem Finger oder den Pfeiltasten verschieben.</p>
+    <button class="before-after-try-own" type="button" id="before-after-try-own">✦ Teste deinen eigenen Look</button>
   </section>
 </div>
 
@@ -7103,7 +7126,11 @@
 
     <div data-aip-panel="intro">
       <p class="aip-copy">Lade dein Foto hoch und entdecke, wie dein gewünschter Beauty-Look an dir aussehen könnte.</p>
-      <button class="aip-primary-btn" type="button" id="aip-start-upload">Foto auswählen</button>
+      <div class="aip-field" id="aip-treatment-field" hidden>
+        <label>Welche Behandlung möchtest du testen?</label>
+        <div class="aip-preset-grid" id="aip-treatment-grid"></div>
+      </div>
+      <button class="aip-primary-btn" type="button" id="aip-start-upload" disabled>Foto auswählen</button>
     </div>
 
     <div data-aip-panel="upload" hidden>
@@ -7146,17 +7173,14 @@
         </div>
       </div>
       <p class="aip-generating-copy" id="aip-generating-copy" hidden>Wir kreieren deinen persönlichen Look …<small>Deine natürlichen Merkmale bleiben erhalten.</small></p>
-      <div class="aip-result-actions" id="aip-result-actions" hidden>
-        <button class="aip-primary-btn" type="button" id="aip-book">Diesen Look buchen</button>
-        <button class="aip-secondary-btn" type="button" id="aip-retry">Anderen Look testen</button>
-      </div>
-      <div class="aip-consent" id="aip-consent" hidden>
+      <div class="aip-result-cta" id="aip-result-cta" hidden>
+        <p class="aip-result-headline">Dein Look ist bereit.</p>
         <label class="aip-consent-check">
           <input type="checkbox" id="aip-consent-checkbox">
-          <span>Ich bin einverstanden, dass mein Foto zusammen mit den gewählten Farben an Liliane übermittelt wird, damit sie die passenden Farbtöne beim Termin vorbereiten kann.</span>
+          <span>Mein Foto und meine Farbwahl werden an GiGi Beauty übermittelt, damit Liliane bei meinem Termin bestens vorbereitet ist.</span>
         </label>
-        <button class="aip-send-btn" type="button" id="aip-send-to-liliane" disabled>Foto &amp; Farben an Liliane senden</button>
-        <p class="aip-consent-message" id="aip-consent-message"></p>
+        <button class="aip-primary-btn" type="button" id="aip-book">Jetzt Termin buchen</button>
+        <button class="aip-secondary-btn" type="button" id="aip-retry">Anderen Look testen</button>
       </div>
     </div>
 
@@ -7427,6 +7451,27 @@
 </script>
 
 <script>
+  /* Additive-only: remembers which reference Vorher/Nachher example is
+     currently open, so the new "Teste deinen eigenen Look" link inside
+     that modal can hand the right treatment to the separate AI funnel.
+     Does not read or modify anything inside the script above. */
+  (() => {
+    let openSlug = null;
+    document.querySelectorAll('[data-before-after]').forEach(button => {
+      button.addEventListener('click', () => { openSlug = button.dataset.beforeAfter; });
+    });
+    const tryOwnButton = document.getElementById('before-after-try-own');
+    if (!tryOwnButton) return;
+    tryOwnButton.addEventListener('click', () => {
+      const backdrop = document.getElementById('before-after-backdrop');
+      backdrop.hidden = true;
+      document.body.classList.remove('treatment-modal-open');
+      if (window.openBeautyPreview) window.openBeautyPreview({ serviceType: openSlug });
+    });
+  })();
+</script>
+
+<script>
   /* ================================================================
      GiGi AI Beauty Preview -- fully separate from the script above.
      Does not read, write or listen to anything from beforeAfterBySlug,
@@ -7579,6 +7624,8 @@
     const closeButton = document.getElementById('aip-close');
     const serviceTag = document.getElementById('aip-service-tag');
     const startUploadBtn = document.getElementById('aip-start-upload');
+    const treatmentField = document.getElementById('aip-treatment-field');
+    const treatmentGrid = document.getElementById('aip-treatment-grid');
     const dropzone = document.getElementById('aip-dropzone');
     const dropzoneIcon = document.getElementById('aip-dropzone-icon');
     const dropzoneLabel = document.getElementById('aip-dropzone-label');
@@ -7596,14 +7643,11 @@
     const imageBefore = document.getElementById('aip-image-before');
     const imageAfter = document.getElementById('aip-image-after');
     const generatingCopy = document.getElementById('aip-generating-copy');
-    const resultActions = document.getElementById('aip-result-actions');
+    const resultCta = document.getElementById('aip-result-cta');
     const bookButton = document.getElementById('aip-book');
     const retryButton = document.getElementById('aip-retry');
     const errorRetryButton = document.getElementById('aip-error-retry');
-    const consentBlock = document.getElementById('aip-consent');
     const consentCheckbox = document.getElementById('aip-consent-checkbox');
-    const sendButton = document.getElementById('aip-send-to-liliane');
-    const consentMessage = document.getElementById('aip-consent-message');
 
     let currentSlug = null;
     let originalDataUrl = null;
@@ -7706,24 +7750,23 @@
     // because the customer agreed to it; before that, the funnel never
     // persists the photo anywhere (see the OpenAI edit call, which sends it
     // to the Edge Function only for ephemeral processing).
+    // Best-effort only: this must never block or delay the customer's
+    // booking journey. Runs solely because the consent checkbox on the
+    // result screen was ticked -- see the #aip-book handler below.
     async function sendPhotoAndColorsToLiliane() {
-      if (!consentCheckbox.checked || sendButton.disabled) return;
-      sendButton.disabled = true;
-      sendButton.textContent = 'Wird gesendet …';
-      consentMessage.textContent = '';
       try {
         const CONFIG = window.GIGI_SUPABASE || {};
-        if (!window.supabase || !CONFIG?.url || !CONFIG?.anonKey) throw new Error('not_configured');
+        if (!window.supabase || !CONFIG?.url || !CONFIG?.anonKey) return;
         const db = window.supabase.createClient(CONFIG.url, CONFIG.anonKey);
 
         const photoPath = `${crypto.randomUUID()}.jpg`;
         const photoBlob = await (await fetch(originalDataUrl)).blob();
         const { error: uploadError } = await db.storage.from('ai-preview-photos').upload(photoPath, photoBlob, { contentType: 'image/jpeg' });
-        if (uploadError) throw uploadError;
+        if (uploadError) return;
 
         const colors = {};
         Object.entries(selectedColors).forEach(([key, value]) => { colors[key] = value; });
-        const { error: insertError } = await db.from('ai_preview_requests').insert({
+        await db.from('ai_preview_requests').insert({
           service_type: currentSlug,
           customer_name: nameInput.value.trim() || null,
           preset_label: selectedPresetLabel || null,
@@ -7731,20 +7774,11 @@
           wish_note: wishTextarea.value.trim() || null,
           photo_path: photoPath
         });
-        if (insertError) throw insertError;
-
-        sendButton.textContent = 'Gesendet ✓';
-        consentMessage.textContent = 'Danke! Liliane hat dein Foto und deine Farbwahl erhalten.';
-        consentCheckbox.disabled = true;
       } catch {
-        sendButton.disabled = false;
-        sendButton.textContent = 'Foto & Farben an Liliane senden';
-        consentMessage.textContent = 'Das hat gerade nicht geklappt. Bitte nochmal versuchen.';
+        // Ignored deliberately -- see comment above.
       }
     }
 
-    consentCheckbox.addEventListener('change', () => { sendButton.disabled = !consentCheckbox.checked; });
-    sendButton.addEventListener('click', sendPhotoAndColorsToLiliane);
     let oscillating = false;
     let animToken = 0;
     let currentAbort = null;
@@ -7822,8 +7856,7 @@
       const panelFor = { intro: 'intro', upload: 'upload', ready: 'upload', generating: 'stage', revealing: 'stage', result: 'stage', error: 'error' };
       document.querySelectorAll('[data-aip-panel]').forEach(panel => { panel.hidden = panel.dataset.aipPanel !== panelFor[next]; });
       generatingCopy.hidden = next !== 'generating';
-      resultActions.hidden = next !== 'result';
-      consentBlock.hidden = next !== 'result';
+      resultCta.hidden = next !== 'result';
       slider.classList.toggle('is-live', next === 'result');
       slider.classList.toggle('is-locked', next !== 'result');
       imageBefore.classList.toggle('is-processing', next === 'generating');
@@ -7831,9 +7864,9 @@
 
     function resetConsent() {
       consentCheckbox.checked = false;
-      sendButton.disabled = true;
-      sendButton.textContent = 'Foto & Farben an Liliane senden';
-      consentMessage.textContent = '';
+      consentCheckbox.disabled = false;
+      bookButton.disabled = false;
+      bookButton.textContent = 'Jetzt Termin buchen';
     }
 
     function updateGenerateAvailability() {
@@ -7957,8 +7990,13 @@
     errorRetryButton.addEventListener('click', startGenerate);
     retryButton.addEventListener('click', () => setFunnelState('ready'));
 
-    bookButton.addEventListener('click', () => {
+    bookButton.addEventListener('click', async () => {
       if (!currentSlug) return;
+      bookButton.disabled = true;
+      if (consentCheckbox.checked) {
+        bookButton.textContent = 'Wird übermittelt …';
+        await sendPhotoAndColorsToLiliane();
+      }
       location.href = `pages/booking.html?service=${encodeURIComponent(currentSlug)}`;
     });
 
@@ -8000,7 +8038,6 @@
       if (preview) preview.remove();
       imageBefore.removeAttribute('src');
       imageAfter.removeAttribute('src');
-      consentCheckbox.disabled = false;
       resetConsent();
       setFunnelState('intro');
     }
@@ -8015,9 +8052,9 @@
     backdrop.addEventListener('click', event => { if (event.target === backdrop) closeAip(); });
     document.addEventListener('keydown', event => { if (event.key === 'Escape' && !backdrop.hidden) closeAip(); });
 
-    window.openBeautyPreview = function openBeautyPreview({ serviceType }) {
+    function configureForService(serviceType) {
       const meta = AIP_SERVICE_META[serviceType];
-      if (!meta) return;
+      if (!meta) return false;
       currentSlug = serviceType;
       serviceTag.textContent = meta.label;
       dropzoneLabel.textContent = meta.hint;
@@ -8028,10 +8065,43 @@
       privacyNote.textContent = meta.disclaimer
         ? 'Dein Foto wird ausschliesslich zur Erstellung deiner persönlichen KI-Vorschau verarbeitet und danach nicht dauerhaft gespeichert. KI-generierte Vorschau -- das tatsächliche Behandlungsergebnis kann abweichen.'
         : 'Dein Foto wird ausschliesslich zur Erstellung deiner persönlichen KI-Vorschau verarbeitet und danach nicht dauerhaft gespeichert.';
+      return true;
+    }
+
+    function renderTreatmentPicker() {
+      treatmentGrid.innerHTML = '';
+      Object.entries(AIP_SERVICE_META).forEach(([slug, meta]) => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'aip-preset-chip';
+        chip.textContent = meta.label;
+        chip.addEventListener('click', () => {
+          treatmentGrid.querySelectorAll('.aip-preset-chip').forEach(el => el.classList.remove('is-selected'));
+          chip.classList.add('is-selected');
+          configureForService(slug);
+          startUploadBtn.disabled = false;
+        });
+        treatmentGrid.appendChild(chip);
+      });
+    }
+
+    window.openBeautyPreview = function openBeautyPreview({ serviceType } = {}) {
+      if (serviceType && configureForService(serviceType)) {
+        treatmentField.hidden = true;
+        startUploadBtn.disabled = false;
+      } else {
+        currentSlug = null;
+        serviceTag.textContent = '';
+        treatmentField.hidden = false;
+        renderTreatmentPicker();
+        startUploadBtn.disabled = true;
+      }
       setFunnelState('intro');
       backdrop.hidden = false;
       document.body.classList.add('treatment-modal-open');
     };
+
+    document.getElementById('nav-ai-badge').addEventListener('click', () => window.openBeautyPreview({}));
 
     document.querySelectorAll('[data-ai-preview]').forEach(button => {
       button.addEventListener('click', () => window.openBeautyPreview({ serviceType: button.dataset.aiPreview }));
