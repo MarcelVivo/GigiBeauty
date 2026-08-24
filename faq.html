@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Häufige Fragen | GiGi Beauty</title>
+<meta name="description" content="Antworten auf häufige Fragen zu Terminen, Stornierung, Zahlung und Behandlungen bei GiGi Beauty in Bern.">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { font-size: 16px; scroll-behavior: smooth; }
+
+  body {
+    background: #f0ece4;
+    color: #2c1f0e;
+    font-family: 'Cormorant Garamond', 'Times New Roman', serif;
+    font-weight: 400;
+    line-height: 1.75;
+    overflow-x: hidden;
+  }
+
+  #imp-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(44,31,14,0.12);
+  }
+  #imp-logo {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.1rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: #2c1f0e;
+    text-decoration: none;
+  }
+  #imp-logo:hover { color: #b8903a; }
+
+  .imp-wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 3rem 2rem 5rem;
+  }
+
+  .imp-wrap h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    font-weight: 400;
+    color: #2c1f0e;
+    text-align: center;
+    letter-spacing: 0.01em;
+    margin-bottom: 0.6rem;
+  }
+
+  .imp-tagline {
+    text-align: center;
+    color: #5c4020;
+    font-size: 0.95rem;
+    margin-bottom: 3rem;
+  }
+
+  .faq-item {
+    border-bottom: 1px solid rgba(44,31,14,0.14);
+  }
+  .faq-item summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.3rem 0.2rem;
+    cursor: pointer;
+    list-style: none;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.15rem;
+    color: #2c1f0e;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after {
+    content: '+';
+    flex-shrink: 0;
+    font-family: Georgia, serif;
+    font-size: 1.4rem;
+    color: #b8903a;
+    transition: transform 0.2s ease;
+  }
+  .faq-item[open] summary::after { transform: rotate(45deg); }
+  .faq-item summary:hover { color: #b8903a; }
+  .faq-item p {
+    padding: 0 0.2rem 1.4rem;
+    max-width: 62ch;
+    color: #3d2b14;
+    font-size: 0.98rem;
+    line-height: 1.8;
+  }
+  .faq-item a { color: #3d2b14; border-bottom: 1px solid rgba(61,43,20,0.25); text-decoration: none; }
+  .faq-item a:hover { color: #b8903a; border-color: #b8903a; }
+
+  #imp-footer {
+    background: #e8e2d8;
+    color: #5c4020;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-align: center;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  #imp-footer a { color: #5c4020; text-decoration: none; }
+  #imp-footer a:hover { color: #b8903a; }
+  #imp-footer .sep { opacity: 0.4; }
+</style>
+</head>
+<body>
+
+<header id="imp-header">
+  <a href="index.html" id="imp-logo">GiGi Beauty</a>
+</header>
+
+<main class="imp-wrap">
+
+  <h1>Häufige Fragen</h1>
+  <p class="imp-tagline">Alles Wichtige zu Terminen, Stornierung und Behandlungen auf einen Blick.</p>
+
+  <details class="faq-item" open>
+    <summary>Wie buche ich einen Termin?</summary>
+    <p>Direkt online über die Startseite: Behandlung auswählen, gewünschte Position wählen und einen freien Termin im Kalender aussuchen. Für die Buchung brauchst du ein persönliches Konto, das du beim ersten Mal in wenigen Schritten anlegst.</p>
+  </details>
+
+  <details class="faq-item">
+    <summary>Kann ich einen Termin kostenlos stornieren?</summary>
+    <p>Ja, bis spätestens 12 Stunden vor dem vereinbarten Beginn. Bei einer späteren Stornierung oder wenn du ohne Abmeldung nicht erscheinst, wird der bei der Buchung ausgewiesene Behandlungspreis in Rechnung gestellt. Details dazu findest du in den <a href="agb.html">AGB</a>.</p>
+  </details>
+
+  <details class="faq-item">
+    <summary>Wo sehe ich meine gebuchten und vergangenen Termine?</summary>
+    <p>Unter „Mein Konto" auf der Buchungsseite (nach der Anmeldung sichtbar) findest du sowohl anstehende als auch vergangene Termine. Anstehende Termine kannst du dort bis 12 Stunden vorher auch direkt stornieren.</p>
+  </details>
+
+  <details class="faq-item">
+    <summary>Welche Zahlungsmittel werden akzeptiert?</summary>
+    <p>Barzahlung und Kreditkarte. Bei Fragen zu weiteren Möglichkeiten melde dich gerne direkt bei uns.</p>
+  </details>
+
+  <details class="faq-item">
+    <summary>Muss ich Allergien oder gesundheitliche Einschränkungen angeben?</summary>
+    <p>Ja, bitte teile Allergien, Schwangerschaften oder laufende Behandlungen, die für deine gewählte Behandlung relevant sein können, vor Beginn vollständig mit. So kann die Behandlung sicher und passend auf dich abgestimmt werden.</p>
+  </details>
+
+  <details class="faq-item">
+    <summary>Wie finde ich das Studio?</summary>
+    <p>GiGi Beauty befindet sich an der Bierhübeliweg 27, 3012 Bern. Eine Karte mit Routenplaner findest du in der Fusszeile dieser Website.</p>
+  </details>
+
+  <details class="faq-item">
+    <summary>Kann ich einen Gutschein kaufen?</summary>
+    <p>Ein Online-Kauf ist aktuell noch nicht möglich. Melde dich für einen Gutschein gerne direkt telefonisch oder per E-Mail bei uns.</p>
+  </details>
+
+  <details class="faq-item">
+    <summary>Wie kann ich GiGi Beauty bewerten?</summary>
+    <p>Wir freuen uns immer über eine Bewertung auf Google — direkt über <a href="https://share.google/fqi3emL8ITxyLjpff" target="_blank" rel="noopener">diesen Link</a>, oder nach der Anmeldung bequem über „Mein Konto".</p>
+  </details>
+
+</main>
+
+<footer id="imp-footer">
+  <span>© Alle Rechte vorbehalten</span>
+  <span class="sep">|</span>
+  <a href="impressum.html">Impressum</a>
+  <span class="sep">|</span>
+  <a href="datenschutz.html">Datenschutz</a>
+  <span class="sep">|</span>
+  <a href="agb.html">AGB</a>
+</footer>
+
+</body>
+</html>
