@@ -63,6 +63,9 @@ button { cursor: pointer; }
 
 .opening-hours-grid { display: grid; gap: .5rem; }
 .opening-hours-row { display: flex; align-items: center; gap: 1rem; padding: .55rem .2rem; border-bottom: 1px solid var(--dash-line); }
+
+.testimonial-row { padding: 1rem; margin-bottom: .8rem; border: 1px solid var(--dash-line); border-radius: 12px; background: var(--dash-card); }
+.testimonial-row .form-grid { display: grid; grid-template-columns: 1.4fr .8fr 1.2fr auto; gap: .7rem; align-items: end; margin-bottom: .6rem; }
 .opening-hours-row:last-child { border-bottom: 0; }
 .opening-hours-day { display: flex; align-items: center; gap: .5rem; width: 150px; flex-shrink: 0; font-size: .85rem; }
 .opening-hours-row input[type="time"] { padding: .45rem .5rem; border: 1px solid var(--dash-line); border-radius: 7px; color: var(--dash-ink); background: white; }

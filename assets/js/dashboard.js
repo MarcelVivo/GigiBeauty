@@ -3,7 +3,7 @@
   const config = window.GIGI_SUPABASE || {};
   const configured = /^https:\/\/.+\.supabase\.co$/.test(config.url || '') && !String(config.anonKey || '').startsWith('YOUR-');
   const db = configured && window.supabase ? window.supabase.createClient(config.url, config.anonKey) : null;
-  const state = { user: null, profile: null, settings: null, services: [], profiles: [], customers: [], appointments: [], blocks: [], invoices: [], campaigns: [], payments: [], expenses: [], inventory: [], serviceInventory: [], waitlist: [], tasks: [], communications: [], automations: [], marketingEvents: [], packages: [], giftCards: [], auditLog: [], servicePriceItems: [], siteContentBlocks: [], week: startOfWeek(new Date()), customerFilter: '', customerSegment: 'all', analyticsMonths: 12 };
+  const state = { user: null, profile: null, settings: null, services: [], profiles: [], customers: [], appointments: [], blocks: [], invoices: [], campaigns: [], payments: [], expenses: [], inventory: [], serviceInventory: [], waitlist: [], tasks: [], communications: [], automations: [], marketingEvents: [], packages: [], giftCards: [], auditLog: [], servicePriceItems: [], siteContentBlocks: [], testimonials: [], week: startOfWeek(new Date()), customerFilter: '', customerSegment: 'all', analyticsMonths: 12 };
   const $ = id => document.getElementById(id);
   const panelMeta = {
     overview: ['Guten Tag, Liliane', 'Das Wichtigste auf einen Blick.'],
@@ -113,7 +113,8 @@
           db.from('gift_cards').select('*').order('created_at', { ascending: false }),
           db.from('audit_log').select('*').order('changed_at', { ascending: false }).limit(50),
           db.from('service_price_items').select('*').order('sort_order'),
-          db.from('site_content_blocks').select('*').order('sort_order')
+          db.from('site_content_blocks').select('*').order('sort_order'),
+          db.from('testimonials').select('*').order('sort_order')
         ]),
         new Promise((_, reject) => setTimeout(() => reject(new Error('Dashboard data timeout')), 20000))
       ]);
@@ -125,7 +126,7 @@
     if (failed) return toast(`Daten konnten nicht geladen werden: ${failed.error.message}`);
     state.services = results[0].data || [];
     state.settings = results[1].data || null;
-    [state.profiles, state.customers, state.appointments, state.blocks, state.invoices, state.campaigns, state.payments, state.expenses, state.inventory, state.serviceInventory, state.waitlist, state.tasks, state.communications, state.automations, state.marketingEvents, state.packages, state.giftCards, state.auditLog, state.servicePriceItems, state.siteContentBlocks] = results.slice(2).map(result => result.data || []);
+    [state.profiles, state.customers, state.appointments, state.blocks, state.invoices, state.campaigns, state.payments, state.expenses, state.inventory, state.serviceInventory, state.waitlist, state.tasks, state.communications, state.automations, state.marketingEvents, state.packages, state.giftCards, state.auditLog, state.servicePriceItems, state.siteContentBlocks, state.testimonials] = results.slice(2).map(result => result.data || []);
     fillServiceSelect();
     renderAll();
   }
@@ -885,6 +886,7 @@
     attachPriceItemDragHandlers(container);
 
     renderContentBlocks();
+    renderTestimonials();
   }
 
   let draggedPriceItemId = null;
@@ -983,6 +985,59 @@
     const { error: updateError } = await db.from('site_content_blocks').update({ content: previous.old_data.content }).eq('id', blockId);
     if (updateError) return toast(`Fehler: ${updateError.message}`);
     toast('Vorherige Version wiederhergestellt.'); await loadAll();
+  }
+
+  function renderTestimonials() {
+    const container = $('testimonials-list');
+    if (!container) return;
+    const items = [...state.testimonials].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    container.innerHTML = items.map(item => `<div class="testimonial-row" data-testimonial="${item.id}">
+        <div class="form-grid">
+          <div class="field"><label>Name</label><input class="table-input table-input-wide" type="text" value="${esc(item.customer_name)}" data-field="customer_name"></div>
+          <div class="field"><label>Sterne</label><select data-field="rating">${[5, 4, 3, 2, 1].map(n => `<option value="${n}" ${item.rating === n ? 'selected' : ''}>${n} Sterne</option>`).join('')}</select></div>
+          <div class="field"><label>Behandlung (optional)</label><input class="table-input table-input-wide" type="text" value="${esc(item.service_name || '')}" data-field="service_name"></div>
+          <div class="field"><label><input type="checkbox" data-field="active" ${item.active ? 'checked' : ''}> Sichtbar auf der Website</label></div>
+        </div>
+        <div class="field"><label>Zitat</label><textarea class="table-input table-input-wide" rows="2" data-field="quote">${esc(item.quote)}</textarea></div>
+        <div class="content-desc-actions" style="display:flex;gap:8px;margin:6px 0 16px">
+          <button class="secondary" type="button" data-save-testimonial="${item.id}">Speichern</button>
+          <button class="link-button" type="button" data-delete-testimonial="${item.id}">Entfernen</button>
+        </div>
+      </div>`).join('') || '<div class="empty">Noch keine Bewertungen hinterlegt.</div>';
+
+    container.querySelectorAll('[data-save-testimonial]').forEach(button => button.onclick = () => saveTestimonial(button.dataset.saveTestimonial));
+    container.querySelectorAll('[data-delete-testimonial]').forEach(button => button.onclick = () => deleteTestimonial(button.dataset.deleteTestimonial));
+  }
+
+  async function saveTestimonial(id) {
+    const row = document.querySelector(`[data-testimonial="${id}"]`);
+    const customer_name = row.querySelector('[data-field="customer_name"]').value.trim();
+    const quote = row.querySelector('[data-field="quote"]').value.trim();
+    const service_name = row.querySelector('[data-field="service_name"]').value.trim();
+    const rating = Number(row.querySelector('[data-field="rating"]').value);
+    const active = row.querySelector('[data-field="active"]').checked;
+    if (!customer_name || !quote) return toast('Bitte Name und Zitat angeben.');
+    const { error } = await db.from('testimonials').update({ customer_name, quote, service_name: service_name || null, rating, active }).eq('id', id);
+    if (error) return toast(`Fehler: ${error.message}`);
+    toast('Bewertung gespeichert.'); await loadAll();
+  }
+
+  async function deleteTestimonial(id) {
+    if (!confirm('Diese Bewertung endgültig löschen?')) return;
+    const { error } = await db.from('testimonials').delete().eq('id', id);
+    if (error) return toast(`Fehler: ${error.message}`);
+    toast('Bewertung gelöscht.'); await loadAll();
+  }
+
+  async function addTestimonial() {
+    const name = prompt('Name der Kundin:');
+    if (!name || !name.trim()) return;
+    const quote = prompt('Zitat der Bewertung:');
+    if (!quote || !quote.trim()) return;
+    const nextOrder = state.testimonials.length ? Math.max(...state.testimonials.map(item => item.sort_order || 0)) + 1 : 1;
+    const { error } = await db.from('testimonials').insert({ customer_name: name.trim(), quote: quote.trim(), rating: 5, sort_order: nextOrder });
+    if (error) return toast(`Fehler: ${error.message}`);
+    toast('Bewertung hinzugefügt.'); await loadAll();
   }
 
   async function saveServiceDescription(serviceId) {
@@ -1529,6 +1584,7 @@
   $('new-campaign').onclick = () => { $('campaign-message').textContent = ''; openModal('campaign-modal'); };
   $('save-opening-hours').onclick = saveOpeningHours;
   $('save-contact').onclick = saveContact;
+  $('add-testimonial').onclick = addTestimonial;
   $('week-prev').onclick = () => { state.week = addDays(state.week, -7); renderCalendar(); };
   $('week-next').onclick = () => { state.week = addDays(state.week, 7); renderCalendar(); };
   $('week-today').onclick = () => { state.week = startOfWeek(new Date()); renderCalendar(); };

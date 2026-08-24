@@ -6924,6 +6924,19 @@
 
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
+     KUNDENSTIMMEN -- gefüllt live aus der Datenbank; bleibt verborgen, bis
+     mindestens eine sichtbare Bewertung im Dashboard hinterlegt ist.
+════════════════════════════════════════════════════════════════════════════ -->
+<section id="testimonials-section" hidden>
+  <div class="testimonials-inner">
+    <span class="testimonials-kicker">— Kundenstimmen</span>
+    <h2 class="testimonials-title">Was Kundinnen sagen</h2>
+    <div class="testimonials-grid" id="testimonials-grid"></div>
+    <a class="testimonials-cta" href="https://share.google/fqi3emL8ITxyLjpff" target="_blank" rel="noopener">Bewerte GiGi Beauty auf Google →</a>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
      FOOTER
 ════════════════════════════════════════════════════════════════════════════ -->
 <footer id="main-footer">
@@ -6992,6 +7005,85 @@
 </footer>
 
 <style>
+#testimonials-section {
+  position: relative;
+  z-index: 10;
+  padding: 90px 24px 100px;
+  background: radial-gradient(circle at 50% 0%, #2c1f1a, #140b08 70%);
+  text-align: center;
+  overflow: hidden;
+}
+.testimonials-inner { max-width: 1100px; margin: 0 auto; }
+.testimonials-kicker {
+  display: block;
+  margin-bottom: 0.8rem;
+  color: rgba(212, 175, 106, 0.72);
+  font: 600 0.72rem 'Cormorant Garamond', serif;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+.testimonials-title {
+  margin: 0 0 3rem;
+  color: #e8c579;
+  font-family: 'Playfair Display', serif;
+  font-weight: 400;
+  font-style: italic;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.8rem;
+  margin-bottom: 3rem;
+  text-align: left;
+}
+.testimonial-card {
+  padding: 1.8rem;
+  border: 1px solid rgba(232, 197, 121, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.025);
+}
+.testimonial-stars { color: #e8c579; letter-spacing: 0.15em; margin-bottom: 1rem; font-size: 0.95rem; }
+.testimonial-quote {
+  margin: 0 0 1.2rem;
+  color: rgba(255, 243, 220, 0.86);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.15rem;
+  font-style: italic;
+  line-height: 1.6;
+}
+.testimonial-quote::before { content: '\201C'; }
+.testimonial-quote::after { content: '\201D'; }
+.testimonial-name { color: #e8c579; font-family: 'Playfair Display', serif; font-size: 0.95rem; }
+.testimonial-service {
+  display: block;
+  margin-top: 0.2rem;
+  color: rgba(255, 243, 220, 0.5);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.testimonials-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 34px;
+  border: 1px solid rgba(212, 175, 106, 0.5);
+  border-radius: 2px;
+  color: #e8c579;
+  font: 600 0.78rem 'Cormorant Garamond', serif;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+.testimonials-cta:hover { background: rgba(212, 175, 106, 0.1); border-color: #e8c579; }
+
+@media (max-width: 600px) {
+  #testimonials-section { padding: 64px 18px 72px; }
+  .testimonials-title { font-size: 1.7rem; margin-bottom: 2rem; }
+}
+
 #main-footer {
   position: relative;
   z-index: 10;
@@ -8219,18 +8311,38 @@
     return String(value || '').replace(/[^0-9]/g, '');
   }
 
+  function escapeHtmlTestimonial(value) {
+    return String(value ?? '').replace(/[&<>'"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]; });
+  }
+
   Promise.all([
     db.from('services').select('slug, page_description'),
     db.from('service_price_items')
       .select('name, price_chf, price_label, detail_copy, duration_minutes, sort_order, active, services(slug, duration_minutes)')
       .eq('active', true)
       .order('sort_order'),
-    db.from('business_settings').select('public_phone, public_email, address_line1, address_line2, opening_hours').maybeSingle()
+    db.from('business_settings').select('public_phone, public_email, address_line1, address_line2, opening_hours').maybeSingle(),
+    db.from('testimonials').select('customer_name, rating, quote, service_name, sort_order').eq('active', true).order('sort_order')
   ]).then(function (results) {
     var services = results[0].data || [];
     var priceItems = results[1].data || [];
     var settings = results[2].data;
+    var testimonials = results[3].data || [];
     var lang = window.__gigiLang;
+
+    if (testimonials.length) {
+      var grid = document.getElementById('testimonials-grid');
+      grid.innerHTML = testimonials.map(function (item) {
+        var stars = '★'.repeat(Math.max(1, Math.min(5, item.rating))) + '☆'.repeat(5 - Math.max(1, Math.min(5, item.rating)));
+        return '<div class="testimonial-card">' +
+          '<div class="testimonial-stars">' + stars + '</div>' +
+          '<p class="testimonial-quote">' + escapeHtmlTestimonial(item.quote) + '</p>' +
+          '<span class="testimonial-name">' + escapeHtmlTestimonial(item.customer_name) + '</span>' +
+          (item.service_name ? '<span class="testimonial-service">' + escapeHtmlTestimonial(item.service_name) + '</span>' : '') +
+          '</div>';
+      }).join('');
+      document.getElementById('testimonials-section').hidden = false;
+    }
 
     if (settings) {
       if (settings.address_line1) document.querySelectorAll('[data-footer-address1]').forEach(function (el) { el.textContent = settings.address_line1; });
