@@ -7673,11 +7673,11 @@
     if(fh[1]) fh[1].textContent = t.fHours;
     if(fh[2]) fh[2].textContent = t.fFollow;
 
-    var hrs=qa('.footer-hours span');
-    if(hrs[0]) hrs[0].textContent = t.fMonFri;
-    if(hrs[2]) hrs[2].textContent = t.fSat;
-    if(hrs[4]) hrs[4].textContent = t.fSun;
-    if(hrs[5]) hrs[5].textContent = t.fClosed;
+    // Öffnungszeiten werden seit der Dashboard-Anbindung dynamisch aus der
+    // Datenbank aufgebaut (variable Zeilenzahl, z. B. wenn ein Tag abweicht)
+    // -- das feste Positions-Overwrite von früher (immer 3 Zeilen) passt
+    // dazu nicht mehr und hat Beschriftungen verschoben. Der Bereich bleibt
+    // bewusst auf Deutsch, bis er sprachbewusst neu aufgebaut wird.
 
     // Phone label (preserve the link child)
     var phoneP=q('.footer-col--standort .footer-gap');
