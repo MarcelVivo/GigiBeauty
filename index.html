@@ -2540,8 +2540,22 @@
     0%, 100% { opacity: 0.65; text-shadow: none; }
     50% { opacity: 1; text-shadow: 0 0 8px rgba(232,197,121,0.85); }
   }
-  @media (max-width: 640px) {
-    .nav-ai-badge { top: 11px; left: 68px; padding: 7px 10px; gap: 0; }
+  /* Mobile: the top bar is already tight (logo + hamburger + lang), so the
+     badge moves to a floating pill bottom-right instead of risking overlap
+     with the logo -- a well-worn, safe mobile pattern, and arguably reads
+     as even more special/exclusive there. */
+  @media (max-width: 767px) {
+    .nav-ai-badge {
+      top: auto;
+      left: auto;
+      bottom: max(18px, env(safe-area-inset-bottom));
+      right: 16px;
+      padding: 11px 18px;
+      box-shadow: 0 8px 26px rgba(0,0,0,0.5);
+    }
+  }
+  @media (max-width: 380px) {
+    .nav-ai-badge { padding: 11px 13px; gap: 0; }
     .nav-ai-badge-label { display: none; }
   }
   @media (prefers-reduced-motion: reduce) {
