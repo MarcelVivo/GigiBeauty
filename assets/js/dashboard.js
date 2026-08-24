@@ -3,13 +3,14 @@
   const config = window.GIGI_SUPABASE || {};
   const configured = /^https:\/\/.+\.supabase\.co$/.test(config.url || '') && !String(config.anonKey || '').startsWith('YOUR-');
   const db = configured && window.supabase ? window.supabase.createClient(config.url, config.anonKey) : null;
-  const state = { user: null, profile: null, settings: null, services: [], profiles: [], customers: [], appointments: [], blocks: [], invoices: [], campaigns: [], payments: [], expenses: [], inventory: [], serviceInventory: [], waitlist: [], tasks: [], communications: [], automations: [], marketingEvents: [], packages: [], giftCards: [], auditLog: [], servicePriceItems: [], siteContentBlocks: [], testimonials: [], week: startOfWeek(new Date()), customerFilter: '', customerSegment: 'all', analyticsMonths: 12 };
+  const state = { user: null, profile: null, settings: null, services: [], profiles: [], customers: [], appointments: [], blocks: [], invoices: [], campaigns: [], payments: [], expenses: [], inventory: [], serviceInventory: [], waitlist: [], tasks: [], communications: [], automations: [], marketingEvents: [], packages: [], giftCards: [], auditLog: [], servicePriceItems: [], siteContentBlocks: [], testimonials: [], customerMedia: [], week: startOfWeek(new Date()), customerFilter: '', customerSegment: 'all', analyticsMonths: 12 };
   const $ = id => document.getElementById(id);
   const panelMeta = {
     overview: ['Guten Tag, Liliane', 'Das Wichtigste auf einen Blick.'],
     calendar: ['Terminkalender', 'Termine eintragen, verschieben und Zeiten sperren.'],
     tasks: ['Smart CRM', 'Die wichtigsten nächsten Schritte, automatisch priorisiert.'],
     customers: ['Kunden', 'Kontaktdaten, Historie und Marketing-Einwilligungen.'],
+    messages: ['Nachrichten', 'Fotos & Wünsche, die Kundinnen über ihr Konto geschickt haben.'],
     waitlist: ['Warteliste', 'Freie Zeitfenster schneller mit passenden Kundinnen besetzen.'],
     invoices: ['Finanzen', 'Einnahmen, Ausgaben, Rechnungen und Profitabilität.'],
     inventory: ['Lager', 'Bestände, Materialkosten und Nachbestellungen.'],
@@ -114,7 +115,8 @@
           db.from('audit_log').select('*').order('changed_at', { ascending: false }).limit(50),
           db.from('service_price_items').select('*').order('sort_order'),
           db.from('site_content_blocks').select('*').order('sort_order'),
-          db.from('testimonials').select('*').order('sort_order')
+          db.from('testimonials').select('*').order('sort_order'),
+          db.from('customer_media').select('*, customers(full_name)').eq('category', 'chat').order('created_at', { ascending: false })
         ]),
         new Promise((_, reject) => setTimeout(() => reject(new Error('Dashboard data timeout')), 20000))
       ]);
@@ -126,12 +128,27 @@
     if (failed) return toast(`Daten konnten nicht geladen werden: ${failed.error.message}`);
     state.services = results[0].data || [];
     state.settings = results[1].data || null;
-    [state.profiles, state.customers, state.appointments, state.blocks, state.invoices, state.campaigns, state.payments, state.expenses, state.inventory, state.serviceInventory, state.waitlist, state.tasks, state.communications, state.automations, state.marketingEvents, state.packages, state.giftCards, state.auditLog, state.servicePriceItems, state.siteContentBlocks, state.testimonials] = results.slice(2).map(result => result.data || []);
+    [state.profiles, state.customers, state.appointments, state.blocks, state.invoices, state.campaigns, state.payments, state.expenses, state.inventory, state.serviceInventory, state.waitlist, state.tasks, state.communications, state.automations, state.marketingEvents, state.packages, state.giftCards, state.auditLog, state.servicePriceItems, state.siteContentBlocks, state.testimonials, state.customerMedia] = results.slice(2).map(result => result.data || []);
     fillServiceSelect();
     renderAll();
   }
 
-  function renderAll() { renderOverview(); renderCalendar(); renderTasks(); renderCustomers(); renderWaitlist(); renderInvoices(); renderInventory(); renderCampaigns(); renderContent(); renderSettings(); }
+  function renderAll() { renderOverview(); renderCalendar(); renderTasks(); renderCustomers(); renderMessages(); renderWaitlist(); renderInvoices(); renderInventory(); renderCampaigns(); renderContent(); renderSettings(); }
+
+  function renderMessages() {
+    const unread = state.customerMedia.filter(item => item.sender === 'customer' && !item.admin_read_at);
+    const badge = $('messages-badge');
+    badge.hidden = !unread.length;
+    badge.textContent = unread.length > 99 ? '99+' : String(unread.length);
+
+    $('messages-table').innerHTML = state.customerMedia.length ? state.customerMedia.map(item => {
+      const isUnread = item.sender === 'customer' && !item.admin_read_at;
+      const preview = `${item.message ? esc(item.message) : ''}${item.photo_path ? ' 📎' : ''}` || '–';
+      const who = item.sender === 'customer' ? esc(item.customers?.full_name || 'Unbekannt') : `${esc(item.customers?.full_name || 'Unbekannt')} <span class="muted">(Antwort von Liliane)</span>`;
+      return `<tr class="${isUnread ? 'is-unread' : ''}"><td>${esc(fmt(item.created_at, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }))}</td><td>${who}</td><td>${preview}</td><td>${isUnread ? '<span class="segment segment-new">Neu</span>' : (item.sender === 'customer' ? '<span class="muted">Gelesen</span>' : '')}</td><td><button class="link-button" type="button" data-open-customer-chat="${item.customer_id}">Öffnen</button></td></tr>`;
+    }).join('') : '<tr><td colspan="5" class="empty">Noch keine Nachrichten von Kundinnen.</td></tr>';
+    document.querySelectorAll('[data-open-customer-chat]').forEach(button => button.onclick = () => { openCustomer(button.dataset.openCustomerChat); showPanel('customers'); });
+  }
 
   function appointmentRevenue(appointment) {
     return appointment.status === 'completed' && !appointment.is_private ? Number(appointment.amount_chf ?? appointment.services?.price_chf ?? 0) : 0;
@@ -1377,7 +1394,18 @@
     $('customer-chat-message').textContent = '';
     $('customer-chat-filename').textContent = '';
     loadCustomerChat(customer.id);
+    markCustomerMessagesRead(customer.id);
     openModal('customer-modal');
+  }
+
+  async function markCustomerMessagesRead(customerId) {
+    const unread = state.customerMedia.filter(item => item.customer_id === customerId && item.sender === 'customer' && !item.admin_read_at);
+    if (!unread.length) return;
+    const now = new Date().toISOString();
+    const { error } = await db.from('customer_media').update({ admin_read_at: now }).in('id', unread.map(item => item.id));
+    if (error) return;
+    unread.forEach(item => { item.admin_read_at = now; });
+    renderMessages();
   }
 
   async function signedCustomerPhotoUrl(path) {

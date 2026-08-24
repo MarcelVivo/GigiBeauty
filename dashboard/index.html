@@ -30,6 +30,7 @@
         <button class="nav-item" data-panel="calendar"><span>□</span><span>Kalender</span></button>
         <button class="nav-item" data-panel="tasks"><span>✓</span><span>Smart CRM</span></button>
         <button class="nav-item" data-panel="customers"><span>♙</span><span>Kunden</span></button>
+        <button class="nav-item" data-panel="messages"><span>✉</span><span>Nachrichten</span><span class="nav-badge" id="messages-badge" hidden>0</span></button>
         <button class="nav-item" data-panel="waitlist"><span>⌛</span><span>Warteliste</span></button>
         <button class="nav-item" data-panel="invoices"><span>₣</span><span>Finanzen</span></button>
         <button class="nav-item" data-panel="inventory"><span>◇</span><span>Lager</span></button>
@@ -100,6 +101,11 @@
       <section class="view-panel" data-view-panel="customers" hidden>
         <div class="toolbar"><div class="toolbar-group"><input class="search" id="customer-search" type="search" placeholder="Name, E-Mail oder Telefon"><select class="filter-select" id="customer-segment"><option value="all">Alle Segmente</option><option value="vip">VIP</option><option value="loyal">Stammkundinnen</option><option value="repeat">Wiederkehrend</option><option value="new">Neu</option><option value="lead">Kontakte</option><option value="missing_email">E-Mail fehlt</option><option value="at_risk">Reaktivierung</option></select><span class="muted" id="customer-count"></span></div><div><input id="customer-import-file" type="file" accept=".csv,text/csv" hidden><button class="secondary" id="customer-import" type="button">CSV importieren</button></div></div>
         <div class="table-wrap customer-table-wrap"><table class="customer-table"><thead><tr><th>Kundin</th><th>Segment</th><th>Umsatz</th><th>Termin</th><th>Kontakt</th></tr></thead><tbody id="customer-table"></tbody></table></div>
+      </section>
+
+      <section class="view-panel" data-view-panel="messages" hidden>
+        <div class="toolbar"><div><strong>Kundennachrichten</strong><p class="muted">Fotos &amp; Wünsche, die Kundinnen über ihr Konto geschickt haben.</p></div></div>
+        <div class="table-wrap"><table><thead><tr><th>Zeit</th><th>Kundin</th><th>Nachricht</th><th>Status</th><th></th></tr></thead><tbody id="messages-table"></tbody></table></div>
       </section>
 
       <section class="view-panel" data-view-panel="waitlist" hidden>
