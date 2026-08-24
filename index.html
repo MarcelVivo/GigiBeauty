@@ -742,9 +742,6 @@
     background: rgba(212,175,106,0.07);
   }
 
-  /* Hide mobile-only CTA on desktop (it lives in the hamburger menu) */
-  .nav-links .mobile-cta { display: none; }
-
   .nav-cta-btn {
     display: inline-block;
     font-family: 'Cormorant Garamond', serif;
@@ -783,6 +780,11 @@
   /* Extra gap before the About button, tighter gap before Termin buchen */
   .nav-links .nav-about-li { margin-left: 1.8rem; }
   .nav-cta-btn             { margin-left: -10px; }
+
+  /* "Über GiGi Beauty" lives as the external .nav-cta-btn on desktop; this
+     duplicate keeps it reachable from the mobile hamburger menu, where the
+     external button is hidden. */
+  @media (min-width: 961px) { .nav-about-li-mobile { display: none; } }
 
   #lang-btn {
     display: inline-flex;
@@ -852,14 +854,6 @@
       padding: 13px 32px;
       font-size: 0.88rem;
       border-radius: 0;
-    }
-    /* Termin buchen as last item in mobile menu */
-    .nav-links .mobile-cta a {
-      color: #d4af6a;
-      border-top: 1px solid rgba(212,175,106,0.15);
-      margin-top: 8px;
-      font-weight: 600;
-      letter-spacing: 0.22em;
     }
     #top-nav { padding: 0 20px; }
     /* Reset desktop-only spacing adjustments */
@@ -1872,16 +1866,6 @@
       background: transparent;
       color: rgba(245, 230, 200, 0.84);
     }
-    .nav-links .mobile-cta { border-top: 0; }
-    .nav-links .mobile-cta a {
-      margin-top: 10px;
-      padding: 14px;
-      text-align: center;
-      color: #211711;
-      background: linear-gradient(135deg, #c8a06a, #dfbc72 52%, #b8903a);
-      border: 0;
-    }
-
     /* Hero: smaller cards, clearer depth hierarchy and stable browser chrome. */
     #logo { top: 82px; padding-inline: 64px; }
     #logo img { width: clamp(138px, 39vw, 168px); }
@@ -2491,7 +2475,7 @@
      enamel medal remains crisp while the fabric moves almost imperceptibly. */
   #championship-badge {
     position: fixed;
-    top: 62px;
+    top: 48px;
     right: clamp(24px, 6vw, 96px);
     z-index: 18;
     display: flex;
@@ -2732,7 +2716,7 @@
 
   @media (max-width: 767px) {
     #championship-badge {
-      top: 64px;
+      top: 53px;
       right: 10px;
       width: 92px;
       height: 122px;
@@ -2769,7 +2753,7 @@
   }
 
   @media (max-width: 360px) {
-    #championship-badge { top: 64px; right: 6px; width: 82px; height: 110px; }
+    #championship-badge { top: 54px; right: 6px; width: 82px; height: 110px; }
     .championship-standard-content { height: 110px; padding-top: 6px; }
     .championship-ribbons { top: 45px; width: 51px; height: 51px; }
     .championship-ribbons::before,
@@ -3214,11 +3198,11 @@
     <li><a href="#section-lashes"                  onclick="navTo('section-lashes');closeNav();return false;">Lashes</a></li>
     <li><a href="#section-korean-cosmetics"        onclick="navTo('section-korean-cosmetics');closeNav();return false;">Korean</a></li>
     <li><a href="#section-natural-make-up"         onclick="navTo('section-natural-make-up');closeNav();return false;">Natural Make Up</a></li>
-    <li class="nav-about-li"><a href="ueber-liliane.html" class="nav-about-btn">Über GiGi Beauty</a></li>
-    <li class="mobile-cta"><a href="#section-booking" onclick="navTo('section-booking');closeNav();return false;">Termin buchen</a></li>
+    <li class="nav-about-li"><a href="#section-booking" class="nav-about-btn" onclick="navTo('section-booking');closeNav();return false;">Termin buchen</a></li>
+    <li class="nav-about-li-mobile"><a href="ueber-liliane.html" class="nav-about-btn">Über GiGi Beauty</a></li>
   </ul>
 
-  <a class="nav-cta-btn" href="#section-booking" onclick="navTo('section-booking');return false;">Termin buchen</a>
+  <a class="nav-cta-btn" href="ueber-liliane.html">Über GiGi Beauty</a>
 
   <button id="lang-btn" aria-label="Sprache wechseln">PT</button>
 
@@ -3265,8 +3249,9 @@
 
 <script>
   /* Keep the championship standard in the quiet right-hand part of the hero.
-     It follows the booking control on desktop and the menu control on compact
-     navigation, while a viewport clamp prevents any horizontal overflow. */
+     It follows the "Über GiGi Beauty" nav button on desktop and the menu
+     control on compact navigation, while a viewport clamp prevents any
+     horizontal overflow. */
   (function attachChampionshipStandard() {
     const standard = document.getElementById('championship-badge');
     const desktopAnchor = document.querySelector('.nav-cta-btn');
@@ -7150,10 +7135,10 @@
     var qa = function(s) { return document.querySelectorAll(s); };
 
     // ── Nav ──────────────────────────────────────────────────────────────────
-    var nl = qa('#nav-links li:not(.mobile-cta) a');
-    ['navGel','navPmu','navPedicure','navFillers','navLashes','navKorean','navNatural','navLiliane']
+    var nl = qa('#nav-links li a');
+    ['navGel','navPmu','navPedicure','navFillers','navLashes','navKorean','navNatural','navBook']
       .forEach(function(k,i){ if(nl[i]) nl[i].textContent = t[k]; });
-    qa('.nav-cta-btn, .mobile-cta a').forEach(function(el){ el.textContent = t.navBook; });
+    qa('.nav-cta-btn, .nav-about-li-mobile a').forEach(function(el){ el.textContent = t.navLiliane; });
 
     // ── Hero ─────────────────────────────────────────────────────────────────
     var ha=q('#cta a');  if(ha) ha.textContent = t.heroCta;
