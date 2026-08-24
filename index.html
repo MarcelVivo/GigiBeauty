@@ -2502,17 +2502,17 @@
   }
 
   /* ── GiGi AI Beauty Preview -- exclusive nav entry point ───────────────
-     Floats over the navbar next to the logo, same fixed-overlay technique
-     as #championship-badge below, so it never disturbs the nav-links flex
-     row (that row has fragile positional i18n code keyed to child index). */
+     A normal in-flow nav item between the logo and the links/lang/hamburger
+     cluster -- deliberately NOT position:fixed. #top-nav has a
+     backdrop-filter, which creates a new containing block for fixed
+     descendants (their offsets resolve against the 62px nav box, not the
+     viewport) -- that's what broke earlier floating attempts. As a normal
+     flex child it just takes its place in the row, no such issue applies. */
   .nav-ai-badge {
-    position: fixed;
-    top: 74px;
-    left: clamp(24px, 4vw, 40px);
-    z-index: 202;
     display: inline-flex;
     align-items: center;
     gap: 7px;
+    flex-shrink: 0;
     padding: 8px 16px;
     border-radius: 999px;
     background: linear-gradient(135deg, rgba(200,160,106,0.22), rgba(184,144,58,0.14));
@@ -2540,22 +2540,8 @@
     0%, 100% { opacity: 0.65; text-shadow: none; }
     50% { opacity: 1; text-shadow: 0 0 8px rgba(232,197,121,0.85); }
   }
-  /* Mobile: the top bar is already tight (logo + hamburger + lang), so the
-     badge moves to a floating pill bottom-right instead of risking overlap
-     with the logo -- a well-worn, safe mobile pattern, and arguably reads
-     as even more special/exclusive there. */
-  @media (max-width: 767px) {
-    .nav-ai-badge {
-      top: auto;
-      left: auto;
-      bottom: max(18px, env(safe-area-inset-bottom));
-      right: 16px;
-      padding: 11px 18px;
-      box-shadow: 0 8px 26px rgba(0,0,0,0.5);
-    }
-  }
   @media (max-width: 380px) {
-    .nav-ai-badge { padding: 10px 14px; gap: 6px; font-size: 0.64rem; letter-spacing: 0.08em; }
+    .nav-ai-badge { padding: 7px 11px; gap: 5px; font-size: 0.6rem; letter-spacing: 0.07em; }
   }
   @media (prefers-reduced-motion: reduce) {
     .nav-ai-badge-icon { animation: none; }
@@ -3948,6 +3934,10 @@
     <img src="public/images/logo/GiGiBeautySchmetterling.png" alt="GiGi Beauty">
   </a>
 
+  <button class="nav-ai-badge" type="button" id="nav-ai-badge">
+    <span class="nav-ai-badge-icon" aria-hidden="true">✦</span><span class="nav-ai-badge-label">AI Beauty Preview</span>
+  </button>
+
   <ul class="nav-links" id="nav-links">
     <li><a href="#section-gel-acryl-nails"        onclick="navTo('section-gel-acryl-nails');closeNav();return false;">Gel &amp; Acryl</a></li>
     <li><a href="#section-permanent-make-up"       onclick="navTo('section-permanent-make-up');closeNav();return false;">Permanent Make Up</a></li>
@@ -3968,15 +3958,6 @@
     <span></span><span></span><span></span>
   </button>
 </nav>
-
-<!-- Deliberately OUTSIDE #top-nav: that nav has backdrop-filter, which
-     turns position:fixed descendants into elements positioned relative to
-     the nav box itself (62px tall) instead of the real viewport -- exactly
-     what broke this badge's placement on mobile. As a body-level sibling,
-     "fixed" means what it says. -->
-<button class="nav-ai-badge" type="button" id="nav-ai-badge">
-  <span class="nav-ai-badge-icon" aria-hidden="true">✦</span><span class="nav-ai-badge-label">AI Beauty Preview</span>
-</button>
 
 <div id="canvas-container"></div>
 
