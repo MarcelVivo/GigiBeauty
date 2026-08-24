@@ -1363,6 +1363,38 @@
   }
   .btn-before-after:hover::after { transform: translateX(4px); }
 
+  /* "Teste deinen eigenen Look" -- separate CTA into the new AI preview
+     funnel (#aip-backdrop). Deliberately its own, slightly warmer style so
+     it reads as a distinct, special action next to the plain reference
+     Vorher/Nachher button, without becoming a loud SaaS-style button. */
+  .btn-ai-preview {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 12px;
+    margin-left: 10px;
+    padding: 11px 22px;
+    border: 1px solid rgba(212,175,106,0.55);
+    border-radius: 2px;
+    background: linear-gradient(135deg, rgba(200,160,106,0.16), rgba(184,144,58,0.10));
+    color: #f1d78e;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .btn-ai-preview:hover {
+    border-color: rgba(232,197,121,0.9);
+    background: linear-gradient(135deg, rgba(212,175,106,0.28), rgba(184,144,58,0.18));
+    color: #fff3dc;
+  }
+  @media (max-width: 767px) {
+    .btn-ai-preview { margin-left: 0; }
+  }
+
   /* Price list */
   .price-list {
     list-style: none;
@@ -3363,6 +3395,290 @@
 
   @media (prefers-reduced-motion: reduce) {
     .before-after-modal { transition: none; animation: none; }
+  }
+
+  /* ============================================================
+     GiGi AI Beauty Preview -- a separate funnel/modal from the
+     7 reference Vorher/Nachher sliders above. Nothing here is
+     shared with #before-after-backdrop / .ba-* / beforeAfterBySlug;
+     it only reuses the same visual language (colours, type).
+     ============================================================ */
+  .aip-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 5100;
+    display: grid;
+    place-items: center;
+    padding: 22px;
+    background: rgba(10, 5, 4, 0.82);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+  .aip-backdrop[hidden] { display: none; }
+
+  .aip-modal {
+    position: relative;
+    width: min(100%, 620px);
+    max-height: calc(100dvh - 44px);
+    overflow: auto;
+    padding: clamp(24px, 4vw, 40px);
+    border: 1px solid rgba(232, 197, 121, 0.30);
+    border-radius: 20px;
+    color: rgba(255, 243, 220, 0.94);
+    background-color: #1b110d;
+    background-image: radial-gradient(circle at 92% 4%, rgba(212, 175, 106, 0.13), transparent 18rem);
+    box-shadow: 0 34px 100px rgba(0, 0, 0, 0.58), inset 0 1px 0 rgba(255, 239, 205, 0.06);
+    animation: treatmentModalIn 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .aip-close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    z-index: 2;
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    padding: 0;
+    border: 1px solid rgba(232, 197, 121, 0.24);
+    border-radius: 50%;
+    color: #e8c579;
+    background: rgba(27, 17, 13, 0.7);
+    cursor: pointer;
+    font-size: 1.45rem;
+    line-height: 1;
+  }
+  .aip-close:hover, .aip-close:focus-visible { border-color: rgba(232, 197, 121, 0.68); background: rgba(232, 197, 121, 0.09); outline: none; }
+
+  .aip-kicker {
+    display: block;
+    margin: 0 56px 6px 0;
+    color: rgba(232, 197, 121, 0.72);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+  }
+
+  .aip-modal h2 {
+    margin: 0 56px 18px 0;
+    color: #f1cf86;
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.4rem, 3vw, 1.8rem);
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+
+  .aip-service-tag {
+    display: inline-block;
+    margin-bottom: 20px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    background: rgba(232, 197, 121, 0.12);
+    border: 1px solid rgba(232, 197, 121, 0.3);
+    color: #e8c579;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+  }
+
+  .aip-copy {
+    margin: 0 0 22px;
+    color: rgba(245,230,200,0.82);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.02rem;
+    line-height: 1.7;
+  }
+
+  .aip-primary-btn {
+    display: inline-block;
+    width: 100%;
+    background: linear-gradient(135deg, #c8a06a 0%, #d4af6a 50%, #b8903a 100%);
+    color: #1a0a0a;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 0.92rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 15px 20px;
+    border-radius: 2px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 24px rgba(212,175,106,0.24);
+  }
+  .aip-primary-btn:hover:not(:disabled) { background: linear-gradient(135deg, #d4af6a 0%, #e8c87a 50%, #c8a04a 100%); box-shadow: 0 8px 34px rgba(212,175,106,0.4); }
+  .aip-primary-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+  .aip-secondary-btn {
+    display: block;
+    width: 100%;
+    margin-top: 14px;
+    padding: 10px;
+    border: 0;
+    background: none;
+    color: rgba(255, 238, 207, 0.65);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.86rem;
+    letter-spacing: 0.06em;
+    text-decoration: underline;
+    text-align: center;
+    cursor: pointer;
+  }
+  .aip-secondary-btn:hover { color: #f1cf86; }
+
+  .aip-dropzone {
+    display: grid;
+    place-items: center;
+    gap: 8px;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    margin-bottom: 18px;
+    border: 1.5px dashed rgba(212,175,106,0.4);
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    color: rgba(255, 238, 207, 0.55);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.95rem;
+    text-align: center;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    transition: border-color 0.2s ease;
+  }
+  .aip-dropzone:hover { border-color: rgba(212,175,106,0.75); }
+  .aip-dropzone-icon { font-size: 1.8rem; color: rgba(232,197,121,0.75); }
+  .aip-dropzone img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .aip-dropzone input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+
+  .aip-field { margin-bottom: 8px; }
+  .aip-field label {
+    display: block;
+    margin-bottom: 8px;
+    color: rgba(232, 197, 121, 0.72);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .aip-textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid rgba(212,175,106,0.3);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    color: #f5e6c8;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 78px;
+  }
+  .aip-textarea:focus { outline: none; border-color: rgba(212,175,106,0.7); }
+
+  .aip-privacy-note {
+    margin: 14px 0 20px;
+    color: rgba(255, 238, 207, 0.48);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.78rem;
+    line-height: 1.55;
+  }
+
+  .aip-error-copy { margin: 0 0 18px; color: rgba(232, 150, 140, 0.92); font-family: 'Cormorant Garamond', serif; font-size: 0.98rem; line-height: 1.6; }
+
+  /* Personal AI before/after slider -- structurally similar clip-path
+     technique to .ba-image but a fully separate instance/class set. */
+  .aip-slider {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    margin-bottom: 18px;
+    overflow: hidden;
+    border-radius: 12px;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .aip-slider.is-locked { cursor: default; }
+  .aip-slider.is-live { cursor: ew-resize; }
+
+  .aip-image { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; background: #100a08; }
+  .aip-image--before { z-index: 2; clip-path: inset(0 50% 0 0); }
+  .aip-image--after { z-index: 1; }
+
+  .aip-tag {
+    position: absolute;
+    top: 14px;
+    z-index: 3;
+    padding: 5px 12px;
+    border-radius: 999px;
+    color: #1a0a0a;
+    background: rgba(232, 197, 121, 0.88);
+    font: 700 0.62rem 'Cormorant Garamond', serif;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+  .aip-tag--before { left: 14px; }
+  .aip-tag--after { right: 14px; }
+
+  .aip-handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    z-index: 4;
+    width: 2px;
+    background: rgba(212, 175, 106, 0.92);
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .aip-grip {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(232, 197, 121, 0.94);
+    color: #1a0a0a;
+    font-size: 1rem;
+    font-weight: 700;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  }
+
+  .aip-generating-copy {
+    margin: 0 0 18px;
+    color: rgba(255, 238, 207, 0.7);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.98rem;
+    text-align: center;
+    line-height: 1.6;
+  }
+  .aip-generating-copy small { display: block; margin-top: 4px; color: rgba(255, 238, 207, 0.42); font-size: 0.78rem; }
+
+  .aip-result-actions { display: grid; gap: 10px; margin-top: 6px; }
+
+  @media (max-width: 767px) {
+    .aip-backdrop { align-items: end; padding: 8px 8px max(8px, env(safe-area-inset-bottom)); }
+    .aip-modal { width: 100%; max-height: calc(100dvh - 16px); padding: 26px 18px 22px; border-radius: 20px 20px 12px 12px; animation-name: treatmentSheetIn; }
+    .aip-modal h2 { margin-right: 44px; font-size: 1.35rem; }
+    .aip-close { top: 14px; right: 14px; width: 40px; height: 40px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aip-modal { transition: none; animation: none; }
   }
 </style>
 </head>
@@ -6273,6 +6589,7 @@
         <h3>Über diese Behandlung</h3>
         <p data-service-text="gel-acryl-nails">Ob natürlich, klassisch oder auffällig: Wir gestalten Gel- und Acrylnägel passend zu deinem Stil. Dabei achten wir auf eine saubere Form, sorgfältige Verarbeitung und Materialien, an denen du lange Freude hast.</p>
         <button class="btn-before-after" type="button" data-before-after="gel-acryl-nails" hidden>Vorher / Nachher ansehen</button>
+        <button class="btn-ai-preview" type="button" data-ai-preview="gel-acryl-nails">✦ Teste deinen eigenen Look</button>
       </div>
       <div class="svc-prices">
         <h3>Preisliste</h3>
@@ -6310,6 +6627,7 @@
         <h3>Über diese Behandlung</h3>
         <p data-service-text="permanent-make-up">Permanent Make-up betont Augenbrauen, Lippen oder Lidlinien und erleichtert deine tägliche Routine. Vor der Behandlung besprechen wir Form, Farbe und gewünschte Wirkung in Ruhe mit dir.</p>
         <button class="btn-before-after" type="button" data-before-after="permanent-make-up" hidden>Vorher / Nachher ansehen</button>
+        <button class="btn-ai-preview" type="button" data-ai-preview="permanent-make-up">✦ Teste deinen eigenen Look</button>
       </div>
       <div class="svc-prices">
         <h3>Preisliste</h3>
@@ -6348,6 +6666,7 @@
         <h3>Über diese Behandlung</h3>
         <p data-service-text="kosmetische-pedicure">Bei der kosmetischen Pedicure pflegen wir Nägel und Haut gründlich und schonend. Du gehst mit gepflegten Füssen und einem angenehm leichten Gefühl nach Hause.</p>
         <button class="btn-before-after" type="button" data-before-after="kosmetische-pedicure" hidden>Vorher / Nachher ansehen</button>
+        <button class="btn-ai-preview" type="button" data-ai-preview="kosmetische-pedicure">✦ Teste deinen eigenen Look</button>
       </div>
       <div class="svc-prices">
         <h3>Preisliste</h3>
@@ -6383,6 +6702,7 @@
         <h3>Über diese Behandlung</h3>
         <p data-service-text="fillers">Mit Hyaluron-Fillern lassen sich Konturen sanft betonen und Volumen gezielt ausgleichen. In einem persönlichen Beratungsgespräch klären wir, welches Ergebnis zu deinen Wünschen und Gesichtszügen passt.</p>
         <button class="btn-before-after" type="button" data-before-after="fillers" hidden>Vorher / Nachher ansehen</button>
+        <button class="btn-ai-preview" type="button" data-ai-preview="fillers">✦ Teste deinen eigenen Look</button>
       </div>
       <div class="svc-prices">
         <h3>Preisliste</h3>
@@ -6420,6 +6740,7 @@
         <h3>Über diese Behandlung</h3>
         <p data-service-text="lashes">Ob dezent oder voller: Wir stimmen Länge, Schwung und Volumen der Wimpern auf deine Augen und deinen Alltag ab. So entsteht ein Ergebnis, das zu dir passt und sich angenehm trägt.</p>
         <button class="btn-before-after" type="button" data-before-after="lashes" hidden>Vorher / Nachher ansehen</button>
+        <button class="btn-ai-preview" type="button" data-ai-preview="lashes">✦ Teste deinen eigenen Look</button>
       </div>
       <div class="svc-prices">
         <h3>Preisliste</h3>
@@ -6459,6 +6780,7 @@
         <h3>Über diese Behandlung</h3>
         <p data-service-text="korean-cosmetics">Unsere Behandlungen mit koreanischer Kosmetik werden auf die Bedürfnisse deiner Haut abgestimmt. Je nach Hautbild stehen Feuchtigkeit, Reinigung, Ausstrahlung oder Pflege im Mittelpunkt.</p>
         <button class="btn-before-after" type="button" data-before-after="korean-cosmetics" hidden>Vorher / Nachher ansehen</button>
+        <button class="btn-ai-preview" type="button" data-ai-preview="korean-cosmetics">✦ Teste deinen eigenen Look</button>
       </div>
       <div class="svc-prices">
         <h3>Preisliste</h3>
@@ -6496,6 +6818,7 @@
         <h3>Über diese Behandlung</h3>
         <p data-service-text="natural-make-up">Für deinen Alltag, ein Event oder deine Hochzeit gestalten wir ein Make-up, das zu dir und zum Anlass passt. Farben und Texturen wählen wir gemeinsam und tragen sie so auf, dass du dich weiterhin wie du selbst fühlst.</p>
         <button class="btn-before-after" type="button" data-before-after="natural-make-up" hidden>Vorher / Nachher ansehen</button>
+        <button class="btn-ai-preview" type="button" data-ai-preview="natural-make-up">✦ Teste deinen eigenen Look</button>
       </div>
       <div class="svc-prices">
         <h3>Preisliste</h3>
@@ -6594,6 +6917,61 @@
 
     </div>
     <p class="before-after-hint">Regler mit der Maus, dem Finger oder den Pfeiltasten verschieben.</p>
+  </section>
+</div>
+
+<!-- ================================================================
+     GiGi AI Beauty Preview -- separate funnel/modal, own slider.
+     Not connected to #before-after-backdrop in any way (see comment
+     in <style> above). Opened via openBeautyPreview({ serviceType }).
+     ================================================================ -->
+<div class="aip-backdrop" id="aip-backdrop" hidden>
+  <section class="aip-modal" role="dialog" aria-modal="true" aria-labelledby="aip-title">
+    <button class="aip-close" id="aip-close" type="button" aria-label="Schliessen">×</button>
+    <span class="aip-kicker">GiGi AI Beauty Preview</span>
+    <h2 id="aip-title">Dein Look. Deine Idee.</h2>
+    <span class="aip-service-tag" id="aip-service-tag"></span>
+
+    <div data-aip-panel="intro">
+      <p class="aip-copy">Lade dein Foto hoch und entdecke, wie dein gewünschter Beauty-Look an dir aussehen könnte.</p>
+      <button class="aip-primary-btn" type="button" id="aip-start-upload">Foto auswählen</button>
+    </div>
+
+    <div data-aip-panel="upload" hidden>
+      <label class="aip-dropzone" id="aip-dropzone">
+        <span class="aip-dropzone-icon" id="aip-dropzone-icon" aria-hidden="true">📷</span>
+        <span id="aip-dropzone-label">Foto auswählen (JPG, PNG oder WEBP)</span>
+        <input type="file" id="aip-file-input" accept="image/jpeg,image/jpg,image/png,image/webp">
+      </label>
+      <div class="aip-field">
+        <label for="aip-wish">Wie soll dein Look aussehen?</label>
+        <textarea class="aip-textarea" id="aip-wish" rows="3"></textarea>
+      </div>
+      <p class="aip-privacy-note">Dein Foto wird ausschliesslich zur Erstellung deiner persönlichen KI-Vorschau verarbeitet und danach nicht dauerhaft gespeichert.</p>
+      <button class="aip-primary-btn" type="button" id="aip-generate" disabled>Meinen Look erstellen</button>
+    </div>
+
+    <div data-aip-panel="stage" hidden>
+      <div class="aip-slider is-locked" id="aip-slider" role="slider" tabindex="0" aria-label="Vorher/Nachher-Vergleich deines persönlichen Looks" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+        <img class="aip-image aip-image--after" id="aip-image-after" src="" alt="Dein KI-Look">
+        <img class="aip-image aip-image--before" id="aip-image-before" src="" alt="Dein Originalfoto">
+        <span class="aip-tag aip-tag--before">Vorher</span>
+        <span class="aip-tag aip-tag--after">Nachher</span>
+        <div class="aip-handle" id="aip-handle">
+          <span class="aip-grip" aria-hidden="true">↔</span>
+        </div>
+      </div>
+      <p class="aip-generating-copy" id="aip-generating-copy" hidden>Wir kreieren deinen persönlichen Look …<small>Deine natürlichen Merkmale bleiben erhalten.</small></p>
+      <div class="aip-result-actions" id="aip-result-actions" hidden>
+        <button class="aip-primary-btn" type="button" id="aip-book">Diesen Look buchen</button>
+        <button class="aip-secondary-btn" type="button" id="aip-retry">Anderen Look testen</button>
+      </div>
+    </div>
+
+    <div data-aip-panel="error" hidden>
+      <p class="aip-error-copy">Dein Look konnte gerade nicht erstellt werden.<br>Bitte versuche es noch einmal.</p>
+      <button class="aip-primary-btn" type="button" id="aip-error-retry">Erneut versuchen</button>
+    </div>
   </section>
 </div>
 
@@ -6852,6 +7230,284 @@
     backdrop.addEventListener('click', event => { if (event.target === backdrop) closeBeforeAfter(); });
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape' && !backdrop.hidden) closeBeforeAfter();
+    });
+  })();
+</script>
+
+<script>
+  /* ================================================================
+     GiGi AI Beauty Preview -- fully separate from the script above.
+     Does not read, write or listen to anything from beforeAfterBySlug,
+     #before-after-backdrop, .ba-*, openBeforeAfter/closeBeforeAfter.
+     ================================================================ */
+  (() => {
+    const AIP_SERVICE_META = {
+      'gel-acryl-nails': { label: 'Gel & Acryl Nails', hint: 'Foto deiner Hand auswählen (JPG, PNG oder WEBP)', placeholder: 'z. B. Mandelform, milchiges Rosa und feine goldene French Tips' },
+      'permanent-make-up': { label: 'Permanent Make-up', hint: 'Foto deines Gesichts auswählen (JPG, PNG oder WEBP)', placeholder: 'z. B. natürlich wirkende Ombré-Augenbrauen in warmem Braun' },
+      'kosmetische-pedicure': { label: 'Kosmetische Pedicure', hint: 'Foto deiner Füsse auswählen (JPG, PNG oder WEBP)', placeholder: 'z. B. klassisches Rot mit glänzendem Finish' },
+      'fillers': { label: 'Fillers', hint: 'Foto deines Gesichts auswählen (JPG, PNG oder WEBP)', placeholder: 'z. B. dezent mehr Volumen auf den Lippen', disclaimer: true },
+      'lashes': { label: 'Lashes', hint: 'Foto deines Gesichts auswählen (JPG, PNG oder WEBP)', placeholder: 'z. B. natürlich, etwas länger und dichter, aber nicht zu stark' },
+      'korean-cosmetics': { label: 'Korean Cosmetics', hint: 'Foto deines Gesichts auswählen (JPG, PNG oder WEBP)', placeholder: 'z. B. gesunder Glass-Skin-Glow und ebenmässiger Teint' },
+      'natural-make-up': { label: 'Natural Make Up', hint: 'Foto deines Gesichts auswählen (JPG, PNG oder WEBP)', placeholder: 'z. B. natürlicher Glow, dezenter Eyeliner und Nude-Lippen' }
+    };
+    const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const MAX_RAW_BYTES = 15 * 1024 * 1024;
+    const AIP_REVEAL_PCT = 14;
+
+    const backdrop = document.getElementById('aip-backdrop');
+    if (!backdrop) return;
+    const closeButton = document.getElementById('aip-close');
+    const serviceTag = document.getElementById('aip-service-tag');
+    const startUploadBtn = document.getElementById('aip-start-upload');
+    const dropzone = document.getElementById('aip-dropzone');
+    const dropzoneIcon = document.getElementById('aip-dropzone-icon');
+    const dropzoneLabel = document.getElementById('aip-dropzone-label');
+    const fileInput = document.getElementById('aip-file-input');
+    const wishTextarea = document.getElementById('aip-wish');
+    const generateBtn = document.getElementById('aip-generate');
+    const slider = document.getElementById('aip-slider');
+    const handle = document.getElementById('aip-handle');
+    const imageBefore = document.getElementById('aip-image-before');
+    const imageAfter = document.getElementById('aip-image-after');
+    const generatingCopy = document.getElementById('aip-generating-copy');
+    const resultActions = document.getElementById('aip-result-actions');
+    const bookButton = document.getElementById('aip-book');
+    const retryButton = document.getElementById('aip-retry');
+    const errorRetryButton = document.getElementById('aip-error-retry');
+
+    let currentSlug = null;
+    let originalDataUrl = null;
+    let busy = false;
+    let oscillating = false;
+    let animToken = 0;
+    let currentAbort = null;
+    let currentPct = 50;
+
+    function setAipSlider(pct) {
+      pct = Math.max(0, Math.min(100, pct));
+      currentPct = pct;
+      imageBefore.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+      handle.style.left = pct + '%';
+      slider.setAttribute('aria-valuenow', Math.round(pct));
+    }
+
+    function easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+
+    function tweenAipPct(toPct, duration) {
+      const token = ++animToken;
+      const fromPct = currentPct;
+      return new Promise(resolve => {
+        const start = performance.now();
+        function frame(now) {
+          if (token !== animToken) return resolve();
+          const t = Math.min(1, (now - start) / duration);
+          setAipSlider(fromPct + (toPct - fromPct) * easeInOutCubic(t));
+          if (t < 1) requestAnimationFrame(frame);
+          else resolve();
+        }
+        requestAnimationFrame(frame);
+      });
+    }
+
+    async function runOscillation() {
+      oscillating = true;
+      const waypoints = [43, 57, 46, 55, 44, 56];
+      let i = 0;
+      while (oscillating) {
+        await tweenAipPct(waypoints[i % waypoints.length], 3200 + Math.random() * 700);
+        i++;
+      }
+    }
+    function stopOscillation() { oscillating = false; }
+
+    function setFunnelState(next) {
+      const panelFor = { intro: 'intro', upload: 'upload', ready: 'upload', generating: 'stage', revealing: 'stage', result: 'stage', error: 'error' };
+      document.querySelectorAll('[data-aip-panel]').forEach(panel => { panel.hidden = panel.dataset.aipPanel !== panelFor[next]; });
+      generatingCopy.hidden = next !== 'generating';
+      resultActions.hidden = next !== 'result';
+      slider.classList.toggle('is-live', next === 'result');
+      slider.classList.toggle('is-locked', next !== 'result');
+    }
+
+    function updateGenerateAvailability() {
+      generateBtn.disabled = !originalDataUrl || busy;
+    }
+
+    function resizeImageToDataUrl(file, maxDim, quality) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          let { width, height } = img;
+          if (width > maxDim || height > maxDim) {
+            const scale = maxDim / Math.max(width, height);
+            width = Math.round(width * scale);
+            height = Math.round(height * scale);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Bild konnte nicht gelesen werden.')); };
+        img.src = url;
+      });
+    }
+
+    function preloadImage(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error('Bild konnte nicht geladen werden.'));
+        img.src = src;
+      });
+    }
+
+    async function handleFile(file) {
+      if (!file) return;
+      if (!ALLOWED_TYPES.includes(file.type)) { alert('Bitte ein Foto im Format JPG, PNG oder WEBP auswählen.'); return; }
+      if (file.size > MAX_RAW_BYTES) { alert('Das Foto ist zu gross. Bitte ein Foto unter 15 MB auswählen.'); return; }
+      try {
+        originalDataUrl = await resizeImageToDataUrl(file, 1024, 0.85);
+      } catch {
+        alert('Dieses Foto konnte nicht gelesen werden. Bitte ein anderes Foto versuchen.');
+        return;
+      }
+      dropzoneIcon.hidden = true;
+      dropzoneLabel.hidden = true;
+      const existingPreview = dropzone.querySelector('img');
+      if (existingPreview) existingPreview.remove();
+      const previewImg = document.createElement('img');
+      previewImg.src = originalDataUrl;
+      previewImg.alt = 'Dein hochgeladenes Foto';
+      dropzone.appendChild(previewImg);
+      setFunnelState('ready');
+      updateGenerateAvailability();
+    }
+
+    fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
+    startUploadBtn.addEventListener('click', () => setFunnelState('upload'));
+
+    async function startGenerate() {
+      if (busy || !originalDataUrl) return;
+      busy = true;
+      updateGenerateAvailability();
+      currentAbort = new AbortController();
+      const timeout = setTimeout(() => currentAbort.abort(), 45000);
+
+      imageAfter.removeAttribute('src');
+      imageBefore.src = originalDataUrl;
+      setAipSlider(50);
+      setFunnelState('generating');
+      runOscillation();
+
+      try {
+        const CONFIG = window.GIGI_SUPABASE || {};
+        const response = await fetch(`${CONFIG.url}/functions/v1/beauty-ai-preview`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${CONFIG.anonKey}`, apikey: CONFIG.anonKey },
+          body: JSON.stringify({ serviceType: currentSlug, userRequest: wishTextarea.value.trim().slice(0, 300), image: originalDataUrl }),
+          signal: currentAbort.signal
+        });
+        const payload = await response.json().catch(() => null);
+        if (!response.ok || !payload?.generatedImage) throw new Error(payload?.error || 'generation_failed');
+
+        await preloadImage(payload.generatedImage);
+        stopOscillation();
+        imageAfter.src = payload.generatedImage;
+        setFunnelState('revealing');
+        await tweenAipPct(AIP_REVEAL_PCT, 1400);
+        setFunnelState('result');
+      } catch (error) {
+        stopOscillation();
+        setFunnelState('error');
+      } finally {
+        clearTimeout(timeout);
+        currentAbort = null;
+        busy = false;
+        updateGenerateAvailability();
+      }
+    }
+
+    generateBtn.addEventListener('click', startGenerate);
+    errorRetryButton.addEventListener('click', startGenerate);
+    retryButton.addEventListener('click', () => setFunnelState('ready'));
+
+    bookButton.addEventListener('click', () => {
+      if (!currentSlug) return;
+      location.href = `pages/booking.html?service=${encodeURIComponent(currentSlug)}`;
+    });
+
+    let dragging = false;
+    function pctFromEvent(event) {
+      const rect = slider.getBoundingClientRect();
+      const x = (event.touches ? event.touches[0].clientX : event.clientX) - rect.left;
+      return (x / rect.width) * 100;
+    }
+    slider.addEventListener('pointerdown', event => {
+      if (!slider.classList.contains('is-live')) return;
+      dragging = true;
+      slider.setPointerCapture(event.pointerId);
+      ++animToken;
+      setAipSlider(pctFromEvent(event));
+    });
+    slider.addEventListener('pointermove', event => { if (dragging) setAipSlider(pctFromEvent(event)); });
+    slider.addEventListener('pointerup', () => { dragging = false; });
+    slider.addEventListener('pointercancel', () => { dragging = false; });
+    slider.addEventListener('keydown', event => {
+      if (!slider.classList.contains('is-live')) return;
+      if (event.key === 'ArrowLeft') { ++animToken; setAipSlider(currentPct - 5); event.preventDefault(); }
+      if (event.key === 'ArrowRight') { ++animToken; setAipSlider(currentPct + 5); event.preventDefault(); }
+    });
+
+    function resetFunnel() {
+      stopOscillation();
+      ++animToken;
+      if (currentAbort) currentAbort.abort();
+      busy = false;
+      originalDataUrl = null;
+      fileInput.value = '';
+      wishTextarea.value = '';
+      dropzoneIcon.hidden = false;
+      dropzoneLabel.hidden = false;
+      const preview = dropzone.querySelector('img');
+      if (preview) preview.remove();
+      imageBefore.removeAttribute('src');
+      imageAfter.removeAttribute('src');
+      setFunnelState('intro');
+    }
+
+    function closeAip() {
+      backdrop.hidden = true;
+      document.body.classList.remove('treatment-modal-open');
+      resetFunnel();
+    }
+
+    closeButton.addEventListener('click', closeAip);
+    backdrop.addEventListener('click', event => { if (event.target === backdrop) closeAip(); });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape' && !backdrop.hidden) closeAip(); });
+
+    window.openBeautyPreview = function openBeautyPreview({ serviceType }) {
+      const meta = AIP_SERVICE_META[serviceType];
+      if (!meta) return;
+      currentSlug = serviceType;
+      serviceTag.textContent = meta.label;
+      dropzoneLabel.textContent = meta.hint;
+      wishTextarea.placeholder = meta.placeholder;
+      wishTextarea.value = '';
+      const privacyNote = document.querySelector('[data-aip-panel="upload"] .aip-privacy-note');
+      privacyNote.textContent = meta.disclaimer
+        ? 'Dein Foto wird ausschliesslich zur Erstellung deiner persönlichen KI-Vorschau verarbeitet und danach nicht dauerhaft gespeichert. KI-generierte Vorschau -- das tatsächliche Behandlungsergebnis kann abweichen.'
+        : 'Dein Foto wird ausschliesslich zur Erstellung deiner persönlichen KI-Vorschau verarbeitet und danach nicht dauerhaft gespeichert.';
+      setFunnelState('intro');
+      backdrop.hidden = false;
+      document.body.classList.add('treatment-modal-open');
+    };
+
+    document.querySelectorAll('[data-ai-preview]').forEach(button => {
+      button.addEventListener('click', () => window.openBeautyPreview({ serviceType: button.dataset.aiPreview }));
     });
   })();
 </script>
