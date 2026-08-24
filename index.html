@@ -1857,14 +1857,21 @@
       box-shadow: 0 22px 46px rgba(0, 0, 0, 0.42);
     }
     .nav-links li + li { border-top: 1px solid rgba(212, 175, 106, 0.07); }
-    .nav-links a,
-    .nav-links .nav-about-btn {
+    .nav-links a {
       padding: 12px 14px;
       font-size: 0.84rem;
       line-height: 1.25;
       letter-spacing: 0.13em;
       background: transparent;
       color: rgba(245, 230, 200, 0.84);
+    }
+    /* Keep the gold-button look (dark text) for the CTA-styled entries --
+       the rule above is for the plain treatment links only. */
+    .nav-links .nav-about-btn {
+      padding: 12px 14px;
+      font-size: 0.84rem;
+      line-height: 1.25;
+      letter-spacing: 0.13em;
     }
     /* Hero: smaller cards, clearer depth hierarchy and stable browser chrome. */
     #logo { top: 82px; padding-inline: 64px; }
@@ -2082,8 +2089,7 @@
   /* ── High-contrast luxury pass ─────────────────────────────────────────
      Preserve the deep espresso background while lifting typography and
      animated butterflies onto clearly separated luminance planes. */
-  .nav-links a,
-  .nav-links .nav-about-btn {
+  .nav-links a {
     color: rgba(255, 240, 216, 0.92);
   }
 
@@ -2477,7 +2483,7 @@
     position: fixed;
     top: 48px;
     right: clamp(24px, 6vw, 96px);
-    z-index: 18;
+    z-index: 201;
     display: flex;
     width: 140px;
     height: 180px;
