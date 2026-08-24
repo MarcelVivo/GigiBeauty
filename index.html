@@ -3948,10 +3948,6 @@
     <img src="public/images/logo/GiGiBeautySchmetterling.png" alt="GiGi Beauty">
   </a>
 
-  <button class="nav-ai-badge" type="button" id="nav-ai-badge">
-    <span class="nav-ai-badge-icon" aria-hidden="true">✦</span><span class="nav-ai-badge-label">AI Beauty Preview</span>
-  </button>
-
   <ul class="nav-links" id="nav-links">
     <li><a href="#section-gel-acryl-nails"        onclick="navTo('section-gel-acryl-nails');closeNav();return false;">Gel &amp; Acryl</a></li>
     <li><a href="#section-permanent-make-up"       onclick="navTo('section-permanent-make-up');closeNav();return false;">Permanent Make Up</a></li>
@@ -3972,6 +3968,15 @@
     <span></span><span></span><span></span>
   </button>
 </nav>
+
+<!-- Deliberately OUTSIDE #top-nav: that nav has backdrop-filter, which
+     turns position:fixed descendants into elements positioned relative to
+     the nav box itself (62px tall) instead of the real viewport -- exactly
+     what broke this badge's placement on mobile. As a body-level sibling,
+     "fixed" means what it says. -->
+<button class="nav-ai-badge" type="button" id="nav-ai-badge">
+  <span class="nav-ai-badge-icon" aria-hidden="true">✦</span><span class="nav-ai-badge-label">AI Beauty Preview</span>
+</button>
 
 <div id="canvas-container"></div>
 
