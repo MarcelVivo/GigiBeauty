@@ -11,7 +11,7 @@ const db = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: f
 
 type OutboxItem = {
   id: string;
-  kind: 'confirmation' | 'reminder' | 'cancellation' | 'rescheduled' | 'invoice' | 'campaign' | 'aftercare' | 'review' | 'rebooking' | 'winback' | 'birthday' | 'waitlist' | 'registration_invite';
+  kind: 'confirmation' | 'reminder' | 'cancellation' | 'rescheduled' | 'invoice' | 'campaign' | 'aftercare' | 'review' | 'rebooking' | 'winback' | 'birthday' | 'waitlist' | 'registration_invite' | 'newsletter_welcome';
   recipient_email: string;
   recipient_name: string | null;
   subject: string;
