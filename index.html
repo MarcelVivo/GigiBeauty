@@ -6991,16 +6991,20 @@
       </div>
     </div>
 
-    <div class="footer-col footer-col--newsletter">
-      <h3 class="footer-heading">Newsletter</h3>
-      <p>Neuigkeiten und Angebote direkt per E-Mail.</p>
+  </div>
+
+  <div class="footer-newsletter-bar">
+    <div class="footer-newsletter-inner">
+      <div class="footer-newsletter-copy">
+        <h3 class="footer-heading">Newsletter</h3>
+        <p>Neuigkeiten und Angebote direkt per E-Mail.</p>
+      </div>
       <form class="footer-newsletter-form" id="newsletter-form">
         <input type="email" id="newsletter-email" placeholder="E-Mail-Adresse" required autocomplete="email">
         <button type="submit">Anmelden</button>
       </form>
-      <p class="footer-newsletter-message" id="newsletter-message"></p>
     </div>
-
+    <p class="footer-newsletter-message" id="newsletter-message"></p>
   </div>
 
   <div class="footer-bar">
@@ -7110,28 +7114,46 @@
 
 .footer-inner {
   display: grid;
-  grid-template-columns: 1.3fr 1fr 0.85fr 1.1fr;
-  gap: 2.4rem;
-  max-width: 1200px;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 3rem;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 3.5rem 2rem 3rem;
 }
 
-.footer-col--newsletter p { font-size: 0.88rem; margin-bottom: 0.9rem; }
-.footer-newsletter-form { display: flex; gap: 0.5rem; }
+.footer-newsletter-bar {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem 2.6rem;
+}
+.footer-newsletter-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+  padding: 1.6rem 2rem;
+  border: 1px solid rgba(44,31,14,0.14);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.4);
+}
+.footer-newsletter-copy .footer-heading { margin-bottom: 0.3rem; padding-bottom: 0; border-bottom: 0; }
+.footer-newsletter-copy p { font-size: 0.9rem; color: #3d2b14; }
+.footer-newsletter-form { display: flex; gap: 0.6rem; flex: 0 1 380px; }
 .footer-newsletter-form input {
   flex: 1;
   min-width: 0;
-  padding: 0.6rem 0.7rem;
+  padding: 0.65rem 0.8rem;
   border: 1px solid rgba(44,31,14,0.2);
   border-radius: 4px;
   background: #fff;
   color: #2c1f0e;
   font-family: 'Cormorant Garamond', serif;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
 }
 .footer-newsletter-form button {
-  padding: 0.6rem 1rem;
+  flex-shrink: 0;
+  padding: 0.65rem 1.3rem;
   border: 0;
   border-radius: 4px;
   background: linear-gradient(135deg, #c8a06a 0%, #d4af6a 50%, #b8903a 100%);
@@ -7144,7 +7166,7 @@
   transition: opacity 0.2s;
 }
 .footer-newsletter-form button:hover { opacity: 0.85; }
-.footer-newsletter-message { margin-top: 0.6rem; font-size: 0.82rem; min-height: 1.2em; }
+.footer-newsletter-message { margin-top: 0.6rem; font-size: 0.82rem; min-height: 1.2em; text-align: right; }
 .footer-newsletter-message.is-error { color: #a03f3f; }
 .footer-newsletter-message.is-success { color: #3f7360; }
 
@@ -7197,8 +7219,8 @@
   column-gap: 1.5rem;
   row-gap: 0.1rem;
 }
-.footer-hours span:nth-child(odd) { color: #3d2b14; }
-.footer-hours span:nth-child(even) { color: #5c4020; }
+.footer-hours span:nth-child(odd) { color: #3d2b14; white-space: nowrap; }
+.footer-hours span:nth-child(even) { color: #5c4020; white-space: nowrap; }
 
 .footer-icons {
   display: flex;
@@ -7252,6 +7274,10 @@
     padding: 2.5rem 1.5rem 2rem;
   }
   .footer-heading { margin-bottom: 0.8rem; }
+  .footer-newsletter-bar { padding: 0 1.5rem 2rem; }
+  .footer-newsletter-inner { flex-direction: column; align-items: stretch; padding: 1.4rem 1.3rem; }
+  .footer-newsletter-form { flex-basis: auto; }
+  .footer-newsletter-message { text-align: left; }
 }
 </style>
 
