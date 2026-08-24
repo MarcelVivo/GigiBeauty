@@ -3307,6 +3307,22 @@
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
   }
 
+  /* Sits on the slider line at the bottom, moves with the handle. Colour
+     runs from pale/desaturated (100% Vorher) to fully vibrant gold (100%
+     Nachher), updated live in JS so it tracks the handle exactly. */
+  .ba-butterfly {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    z-index: 5;
+    width: 15%;
+    max-width: 68px;
+    min-width: 38px;
+    transform: translateX(-50%);
+    pointer-events: none;
+    filter: saturate(0.12) brightness(0.72);
+  }
+
   .before-after-hint {
     margin: 14px 0 0;
     color: rgba(255, 238, 207, 0.6);
@@ -6540,6 +6556,8 @@
       <span class="ba-tag ba-tag--before">Vorher</span>
       <span class="ba-tag ba-tag--after">Nachher</span>
       <div class="ba-handle" id="ba-handle"><span class="ba-handle-grip">❮❯</span></div>
+      <img class="ba-butterfly" id="ba-butterfly" src="public/images/Butterfly/SchmetterlingNeu.png" alt="">
+
     </div>
     <p class="before-after-hint">Regler mit der Maus, dem Finger oder den Pfeiltasten verschieben.</p>
   </section>
@@ -6721,6 +6739,7 @@
     const backdrop = document.getElementById('before-after-backdrop');
     const slider = document.getElementById('before-after-slider');
     const handle = document.getElementById('ba-handle');
+    const butterfly = document.getElementById('ba-butterfly');
     const closeButton = document.getElementById('before-after-close');
     const beforeImg = document.getElementById('ba-image-before');
     const afterImg = document.getElementById('ba-image-after');
@@ -6731,6 +6750,12 @@
       beforeImg.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
       handle.style.left = pct + '%';
       slider.setAttribute('aria-valuenow', Math.round(pct));
+
+      // Butterfly rides the handle and fades from pale (100% Vorher) to
+      // fully vibrant, glowing gold (100% Nachher), continuously.
+      const t = pct / 100;
+      butterfly.style.left = pct + '%';
+      butterfly.style.filter = `saturate(${(0.12 + t * 1.38).toFixed(2)}) brightness(${(0.72 + t * 0.42).toFixed(2)}) drop-shadow(0 0 ${(t * 9).toFixed(1)}px rgba(232,197,121,${(t * 0.75).toFixed(2)}))`;
     }
 
     function pctFromEvent(event) {
