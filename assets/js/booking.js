@@ -430,32 +430,89 @@
 
   const APPOINTMENT_STATUS_LABEL = { booked: 'Gebucht', completed: 'Abgeschlossen', cancelled: 'Storniert', no_show: 'Nicht erschienen' };
 
+  function appointmentCountdown(startsAt) {
+    const start = new Date(startsAt);
+    const now = new Date();
+    const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const days = Math.round((startDay - nowDay) / 86400000);
+    if (days <= 0) return 'Heute';
+    if (days === 1) return 'Morgen';
+    return `Noch ${days} Tage`;
+  }
+
+  function wireAccountBookingButtons(scope) {
+    scope.querySelectorAll('[data-book-service], [data-book-generic]').forEach(button => button.addEventListener('click', () => {
+      closeModal(els.accountModal);
+      if (button.dataset.bookService) selectServiceBySlug(button.dataset.bookService, 'smooth');
+      els.serviceGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }));
+  }
+
+  function renderAccountHero(upcoming, lastCompleted) {
+    const hero = document.getElementById('account-hero');
+    if (upcoming.length) {
+      const next = upcoming[0];
+      const canCancel = new Date(next.starts_at).getTime() - Date.now() >= 12 * 60 * 60 * 1000;
+      const extra = upcoming.slice(1).map(item => `<div class="account-appointment"><div><strong>${escapeHtml(item.services?.name || 'Behandlung')}</strong><span>${formatDate(new Date(item.starts_at), { weekday: 'long', day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' })} Uhr</span></div></div>`).join('');
+      hero.innerHTML = `<div class="account-hero-card">
+        <span class="account-hero-eyebrow">Deine nächste Behandlung</span>
+        <h4 class="account-hero-service">${escapeHtml(next.services?.name || 'Behandlung')}</h4>
+        <p class="account-hero-when">${formatDate(new Date(next.starts_at), { weekday: 'long', day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' })} Uhr</p>
+        <span class="account-hero-badge">${appointmentCountdown(next.starts_at)}</span>
+        ${canCancel ? `<button class="account-hero-cancel" type="button" data-cancel-own="${next.id}">Termin stornieren</button>` : '<p class="account-hero-when">Bitte kurzfristige Änderungen direkt mit Liliane besprechen.</p>'}
+        ${extra ? `<div class="account-hero-extra">${extra}</div>` : ''}
+      </div>`;
+      hero.querySelectorAll('[data-cancel-own]').forEach(button => button.addEventListener('click', () => cancelOwnAppointment(button.dataset.cancelOwn)));
+    } else if (lastCompleted) {
+      const name = escapeHtml(lastCompleted.services?.name || 'Behandlung');
+      const slug = escapeHtml(lastCompleted.services?.slug || '');
+      hero.innerHTML = `<div class="account-invite">
+        <span class="account-invite-eyebrow">Zeit für dich</span>
+        <h4>Bereit für deine nächste ${name}-Behandlung?</h4>
+        <p>Gönn dir wieder eine kleine Auszeit bei GiGi Beauty — wir freuen uns schon auf dich.</p>
+        <button class="btn" type="button" data-book-service="${slug}">Jetzt ${name} buchen</button>
+        <button class="account-invite-secondary" type="button" data-book-generic>Oder eine andere Behandlung entdecken</button>
+      </div>`;
+      wireAccountBookingButtons(hero);
+    } else {
+      hero.innerHTML = `<div class="account-invite">
+        <span class="account-invite-eyebrow">Deine erste Auszeit</span>
+        <h4>Bereit für deine erste Behandlung?</h4>
+        <p>Wähle deine Wunschbehandlung und sichere dir deinen Termin bei GiGi Beauty.</p>
+        <button class="btn" type="button" data-book-generic>Behandlung entdecken</button>
+      </div>`;
+      wireAccountBookingButtons(hero);
+    }
+  }
+
   async function openAccount() {
-    const upcomingList = document.getElementById('account-upcoming');
+    const hero = document.getElementById('account-hero');
     const pastList = document.getElementById('account-past');
-    upcomingList.innerHTML = '<div class="calendar-loading" style="min-height:120px">Termine werden geladen.</div>';
+    const countBadge = document.getElementById('account-count-badge');
+    hero.innerHTML = '<div class="calendar-loading" style="min-height:120px">Termine werden geladen.</div>';
     pastList.innerHTML = '';
+    countBadge.textContent = '';
+    document.getElementById('account-greeting-name').textContent = (state.profile?.full_name || '').split(' ')[0] || '';
     openModal(els.accountModal);
 
     const newsletter = document.getElementById('account-newsletter');
     newsletter.checked = Boolean(state.profile?.marketing_consent);
     document.getElementById('account-newsletter-message').textContent = '';
 
-    const { data, error } = await db.from('appointments').select('id, starts_at, status, services(name)').eq('is_private', false).order('starts_at', { ascending: false });
-    if (error) { upcomingList.innerHTML = `<div class="account-empty">${escapeHtml(error.message)}</div>`; return; }
+    const { data, error } = await db.from('appointments').select('id, starts_at, status, services(name, slug)').eq('is_private', false).order('starts_at', { ascending: false });
+    if (error) { hero.innerHTML = `<div class="account-empty">${escapeHtml(error.message)}</div>`; return; }
     const now = Date.now();
     const upcoming = (data || []).filter(item => item.status === 'booked' && new Date(item.starts_at).getTime() >= now).sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
     const past = (data || []).filter(item => item.status !== 'booked' || new Date(item.starts_at).getTime() < now);
+    const completedPast = past.filter(item => item.status === 'completed').sort((a, b) => new Date(b.starts_at) - new Date(a.starts_at));
 
-    upcomingList.innerHTML = upcoming.length ? upcoming.map(item => {
-      const canCancel = new Date(item.starts_at).getTime() - now >= 12 * 60 * 60 * 1000;
-      return `<div class="account-appointment"><div><strong>${escapeHtml(item.services?.name || 'Behandlung')}</strong><span>${formatDate(new Date(item.starts_at), { weekday: 'long', day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' })} Uhr</span></div>${canCancel ? `<button class="small-button" type="button" data-cancel-own="${item.id}">Stornieren</button>` : '<span>Bitte direkt kontaktieren</span>'}</div>`;
-    }).join('') : '<div class="account-empty">Du hast keine kommenden Termine.</div>';
-    upcomingList.querySelectorAll('[data-cancel-own]').forEach(button => button.addEventListener('click', () => cancelOwnAppointment(button.dataset.cancelOwn)));
+    renderAccountHero(upcoming, completedPast[0] || null);
+    if (completedPast.length) countBadge.innerHTML = `<strong>${completedPast.length}</strong> Behandlung${completedPast.length === 1 ? '' : 'en'} genossen`;
 
     pastList.innerHTML = past.length ? past.map(item => {
       return `<div class="account-appointment"><div><strong>${escapeHtml(item.services?.name || 'Behandlung')}</strong><span>${formatDate(new Date(item.starts_at), { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span></div><span>${escapeHtml(APPOINTMENT_STATUS_LABEL[item.status] || item.status)}</span></div>`;
-    }).join('') : '<div class="account-empty">Noch keine vergangenen Termine.</div>';
+    }).join('') : '<div class="account-empty">Noch keine vergangenen Termine — deine Reise beginnt mit deiner ersten Behandlung.</div>';
 
     loadCustomerMedia();
   }

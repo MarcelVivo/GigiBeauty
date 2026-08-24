@@ -263,11 +263,49 @@
 .account-appointment strong { display: block; color: var(--gold-light); }
 .account-appointment span { color: var(--text-muted); font-size: .83rem; }
 .account-empty { padding: 2rem 0; color: var(--text-muted); text-align: center; }
-.account-modal { width: min(100%, 600px); }
+.account-modal { width: min(100%, 620px); }
 .account-subhead { margin: 1.6rem 0 .3rem; color: var(--gold); font-size: 1rem; }
 .account-subhead:first-of-type { margin-top: 1.2rem; }
 .account-hint { margin: 0 0 .8rem; color: var(--text-muted); font-size: .82rem; }
-#account-upcoming, #account-past { display: grid; gap: .6rem; }
+#account-past { display: grid; gap: .6rem; }
+
+.account-welcome { text-align: center; margin-bottom: 1.5rem; }
+.account-welcome .section-kicker { display: block; margin-bottom: .5rem; }
+.account-greeting { font-family: var(--font-serif); font-weight: 400; font-size: clamp(1.5rem, 4vw, 1.95rem); color: var(--gold-light); margin: 0; }
+.account-greeting-name { color: var(--gold); }
+.account-greeting-name:not(:empty)::before { content: ', '; color: var(--gold-light); }
+
+.account-divider { position: relative; height: 1px; margin: 1.8rem 0; background: linear-gradient(90deg, transparent, var(--line) 22%, var(--line) 78%, transparent); }
+.account-divider::after { content: '✦'; position: absolute; left: 50%; top: 0; transform: translate(-50%, -50%); padding: 0 .7rem; background: #2b1f1a; color: var(--gold); font-size: .6rem; }
+
+.account-hero-card, .account-invite {
+  padding: 1.7rem 1.8rem;
+  border-radius: 16px;
+  text-align: center;
+  background: linear-gradient(160deg, rgba(212,175,106,.16), rgba(110,56,76,.18));
+  border: 1px solid rgba(212,175,106,.35);
+  box-shadow: 0 22px 55px rgba(0,0,0,.28);
+}
+.account-hero-eyebrow, .account-invite-eyebrow { display: block; color: var(--gold); font: 600 .68rem/1 var(--font-body); letter-spacing: .24em; text-transform: uppercase; margin-bottom: .7rem; }
+.account-hero-service, .account-invite h4 { font-family: var(--font-serif); font-weight: 400; font-size: clamp(1.35rem, 3.4vw, 1.7rem); color: var(--gold-light); margin: 0 0 .35rem; }
+.account-hero-when { color: var(--text-muted); font-size: .95rem; }
+.account-hero-badge { display: inline-block; margin-top: 1rem; padding: .38rem .85rem; border-radius: 999px; background: var(--gold); color: #261b16; font: 700 .72rem/1 var(--font-body); letter-spacing: .04em; }
+.account-hero-cancel { display: block; margin: 1.1rem auto 0; padding: 0; border: 0; background: none; color: var(--text-muted); font-size: .78rem; text-decoration: underline; cursor: pointer; }
+.account-hero-cancel:hover { color: var(--gold-light); }
+.account-hero-extra { margin-top: 1rem; display: grid; gap: .5rem; text-align: left; }
+
+.account-invite p { color: var(--text-muted); font-size: .93rem; margin: 0 auto 1.4rem; max-width: 32rem; line-height: 1.55; }
+.account-invite .btn { width: auto; padding-inline: 1.9rem; }
+.account-invite-secondary { display: block; margin: 1rem auto 0; padding: 0; border: 0; background: none; color: var(--text-muted); font-size: .78rem; text-decoration: underline; cursor: pointer; }
+.account-invite-secondary:hover { color: var(--gold-light); }
+
+.account-subhead-row { display: flex; align-items: baseline; justify-content: space-between; gap: .6rem; }
+.account-subhead-row .account-subhead { margin: 1.6rem 0 .3rem; }
+.account-count-badge { color: var(--text-muted); font-size: .78rem; white-space: nowrap; }
+.account-count-badge strong { color: var(--gold); font-weight: 700; }
+
+.account-footer-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.8rem; align-items: start; }
+.account-footer-row .account-subhead:first-of-type { margin-top: 0; }
 
 .account-chat {
   display: grid;
@@ -321,6 +359,8 @@
     display: block;
     -webkit-text-size-adjust: 100%;
   }
+  .account-footer-row { grid-template-columns: 1fr; gap: 1.5rem; }
+  .account-hero-card, .account-invite { padding: 1.4rem; }
   .booking-page button,
   .booking-page a { touch-action: manipulation; }
   .booking-page #site-footer { display: block; }

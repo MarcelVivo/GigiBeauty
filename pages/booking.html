@@ -136,14 +136,23 @@
   <div class="modal-backdrop" id="account-modal" hidden>
     <section class="modal account-modal" role="dialog" aria-modal="true" aria-labelledby="account-title">
       <button class="modal-close" type="button" data-close-modal aria-label="Schliessen">×</button>
-      <h2 id="account-title">Mein Konto</h2>
 
-      <h3 class="account-subhead">Anstehende Termine</h3>
-      <p class="account-hint">Bis 12 Stunden vor Beginn kannst du einen Termin direkt stornieren.</p>
-      <div class="slot-list" id="account-upcoming"></div>
+      <div class="account-welcome">
+        <span class="section-kicker">Willkommen zurück</span>
+        <h2 id="account-title" class="account-greeting">Schön, dich zu sehen<span class="account-greeting-name" id="account-greeting-name"></span></h2>
+      </div>
 
-      <h3 class="account-subhead">Vergangene Termine</h3>
+      <div class="account-hero" id="account-hero"></div>
+
+      <div class="account-divider"></div>
+
+      <div class="account-subhead-row">
+        <h3 class="account-subhead">Deine Reise bei GiGi Beauty</h3>
+        <span class="account-count-badge" id="account-count-badge"></span>
+      </div>
       <div class="slot-list" id="account-past"></div>
+
+      <div class="account-divider"></div>
 
       <h3 class="account-subhead">Fotos &amp; Wünsche</h3>
       <p class="account-hint">Ein Foto gesehen, das dir gefällt? Schick es Liliane zusammen mit deinem Wunsch.</p>
@@ -165,14 +174,21 @@
       <p class="account-hint">Von Liliane nach deinen Behandlungen festgehalten.</p>
       <div class="account-gallery" id="account-gallery"></div>
 
-      <h3 class="account-subhead">Newsletter</h3>
-      <label class="checkbox"><input id="account-newsletter" type="checkbox"> Ich möchte Neuigkeiten und Angebote von GiGi Beauty per E-Mail erhalten.</label>
-      <button class="small-button" type="button" id="account-newsletter-save" style="margin-top:.6rem">Speichern</button>
-      <span class="form-message" id="account-newsletter-message"></span>
+      <div class="account-divider"></div>
 
-      <h3 class="account-subhead">Wie war dein Besuch?</h3>
-      <p class="account-hint">Wir freuen uns über deine Bewertung auf Google.</p>
-      <a class="btn btn-outline" href="https://share.google/fqi3emL8ITxyLjpff" target="_blank" rel="noopener">GiGi Beauty bewerten</a>
+      <div class="account-footer-row">
+        <div class="account-footer-block">
+          <h3 class="account-subhead">Wie war dein Besuch?</h3>
+          <p class="account-hint">Wir freuen uns über deine Bewertung auf Google.</p>
+          <a class="btn btn-outline" href="https://share.google/fqi3emL8ITxyLjpff" target="_blank" rel="noopener">GiGi Beauty bewerten</a>
+        </div>
+        <div class="account-footer-block">
+          <h3 class="account-subhead">Newsletter</h3>
+          <label class="checkbox"><input id="account-newsletter" type="checkbox"> Ich möchte Neuigkeiten und Angebote von GiGi Beauty per E-Mail erhalten.</label>
+          <button class="small-button" type="button" id="account-newsletter-save" style="margin-top:.6rem">Speichern</button>
+          <span class="form-message" id="account-newsletter-message"></span>
+        </div>
+      </div>
     </section>
   </div>
 
