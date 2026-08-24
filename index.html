@@ -5314,7 +5314,12 @@
     // ── Butterfly card (image only, no label inside)
     const a = document.createElement('a');
     a.className = 'service-card';
-    a.href = `pages/services/${svc.slug}.html`;
+    // The click handler below (via _doCardTap) already intercepts real
+    // clicks and scrolls to the matching in-page section -- this href is
+    // only a fallback (new-tab/middle-click/no-JS/crawlers), so it must
+    // point somewhere real rather than the old, no-longer-matching
+    // per-service subpages.
+    a.href = `#section-${svc.slug}`;
     a.dataset.service = svc.slug;
     a.dataset.butterflyFile = svc.butterflyFile;
 
