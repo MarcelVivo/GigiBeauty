@@ -3635,6 +3635,17 @@
     text-shadow: 0 1px 3px rgba(0,0,0,0.6);
   }
 
+  .aip-color-area { margin-bottom: 14px; }
+  .aip-color-area label { margin-bottom: 8px; }
+
+  /* Custom swatch: opens the browser's native full-spectrum colour picker.
+     Shows a small rainbow conic gradient until a colour has been chosen,
+     then behaves exactly like any other swatch (fills with --swatch-colour). */
+  .aip-color-swatch--custom { --swatch-colour: conic-gradient(from 0deg, #ff004c, #ffe000, #33ff00, #00e5ff, #4d5bff, #ff00e5, #ff004c); }
+  .aip-color-swatch--custom::after { background: var(--swatch-colour); }
+  .aip-color-swatch--custom.has-custom-colour::after { background: var(--swatch-colour); }
+  .aip-color-swatch--custom input[type="color"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; padding: 0; }
+
   .aip-privacy-note {
     margin: 14px 0 20px;
     color: rgba(255, 238, 207, 0.48);
@@ -6999,13 +7010,14 @@
         <label>Wähle einen Stil</label>
         <div class="aip-preset-grid" id="aip-preset-grid"></div>
       </div>
-      <div class="aip-field" id="aip-color-field" hidden>
-        <label>Farbton</label>
-        <div class="aip-color-row" id="aip-color-row"></div>
-      </div>
+      <div id="aip-color-areas"></div>
       <div class="aip-field">
         <label for="aip-wish" id="aip-wish-label">Weitere Wünsche (optional)</label>
         <textarea class="aip-textarea" id="aip-wish" rows="2"></textarea>
+      </div>
+      <div class="aip-field">
+        <label for="aip-name">Dein Name (optional)</label>
+        <input type="text" class="aip-textarea" id="aip-name" placeholder="Damit Liliane deine Farbwahl beim Termin zuordnen kann" autocomplete="name">
       </div>
       <p class="aip-privacy-note">Dein Foto wird ausschliesslich zur Erstellung deiner persönlichen KI-Vorschau verarbeitet und danach nicht dauerhaft gespeichert.</p>
       <button class="aip-primary-btn" type="button" id="aip-generate" disabled>Meinen Look erstellen</button>
@@ -7322,13 +7334,22 @@
           { label: 'Bold Ombré', text: 'Eckige Form, Ombré-Verlauf, mattes Finish' },
           { label: 'Glamour Gold', text: 'Stiletto-Form mit feinen goldenen Akzenten' }
         ],
-        colors: [
-          { label: 'Milchiges Rosa', hex: '#f3d9d6' },
-          { label: 'Nude', hex: '#e3c1a5' },
-          { label: 'Klassisches Rot', hex: '#b3202c' },
-          { label: 'Schwarz', hex: '#1a1a1a' },
-          { label: 'Beere', hex: '#7a2848' },
-          { label: 'Pastellblau', hex: '#b7d3e0' }
+        colorAreas: [
+          { key: 'nagelfarbe', label: 'Nagelfarbe', swatches: [
+            { label: 'Milchiges Rosa', hex: '#f3d9d6' },
+            { label: 'Nude', hex: '#e3c1a5' },
+            { label: 'Klassisches Rot', hex: '#b3202c' },
+            { label: 'Schwarz', hex: '#1a1a1a' },
+            { label: 'Beere', hex: '#7a2848' },
+            { label: 'Pastellblau', hex: '#b7d3e0' },
+            { label: 'Weiss', hex: '#f7f3ee' }
+          ] },
+          { key: 'akzent', label: 'Akzent / Nail Art', swatches: [
+            { label: 'Gold', hex: '#c9a24b' },
+            { label: 'Silber', hex: '#c7c9cc' },
+            { label: 'Weiss', hex: '#ffffff' },
+            { label: 'Schwarz', hex: '#1a1a1a' }
+          ] }
         ]
       },
       'permanent-make-up': {
@@ -7338,10 +7359,18 @@
           { label: 'Aquarell Lippen', text: 'Zarte Aquarell-Lippenpigmentierung' },
           { label: 'Eyeliner', text: 'Feiner Eyeliner entlang des oberen Wimpernkranzes, dezent' }
         ],
-        colors: [
-          { label: 'Warmes Braun', hex: '#8b5a2b' },
-          { label: 'Aschbraun', hex: '#6e5a4a' },
-          { label: 'Nude-Rosé', hex: '#d9a9a0' }
+        colorAreas: [
+          { key: 'augenbrauen', label: 'Augenbrauen-Ton', swatches: [
+            { label: 'Warmes Braun', hex: '#8b5a2b' },
+            { label: 'Aschbraun', hex: '#6e5a4a' },
+            { label: 'Dunkelbraun', hex: '#4a3222' },
+            { label: 'Taupe', hex: '#9c8570' }
+          ] },
+          { key: 'lippen', label: 'Lippen-Ton', swatches: [
+            { label: 'Nude-Rosé', hex: '#d9a9a0' },
+            { label: 'Rosé', hex: '#c98b7a' },
+            { label: 'Warmes Rot', hex: '#a8433a' }
+          ] }
         ]
       },
       'kosmetische-pedicure': {
@@ -7351,11 +7380,14 @@
           { label: 'Nude Elegance', text: 'Nude-Ton, mattes Finish' },
           { label: 'Glitzer-Akzent', text: 'Nude-Grundton mit feinem Glitzer-Akzent' }
         ],
-        colors: [
-          { label: 'Klassisches Rot', hex: '#b3202c' },
-          { label: 'Nude', hex: '#e3c1a5' },
-          { label: 'Pastellrosa', hex: '#f3c9d1' },
-          { label: 'Schwarz', hex: '#1a1a1a' }
+        colorAreas: [
+          { key: 'nagellack', label: 'Nagellackfarbe', swatches: [
+            { label: 'Klassisches Rot', hex: '#b3202c' },
+            { label: 'Nude', hex: '#e3c1a5' },
+            { label: 'Pastellrosa', hex: '#f3c9d1' },
+            { label: 'Schwarz', hex: '#1a1a1a' },
+            { label: 'Koralle', hex: '#e2725b' }
+          ] }
         ]
       },
       fillers: {
@@ -7385,11 +7417,32 @@
           { label: 'Abend-Look', text: 'Betonte Augen, definierter Lidstrich' },
           { label: 'Bräutlich', text: 'Zarter, langanhaltender Braut-Look' }
         ],
-        colors: [
-          { label: 'Nude', hex: '#c98b7a' },
-          { label: 'Rosé', hex: '#d98a95' },
-          { label: 'Klassisches Rot', hex: '#b3202c' },
-          { label: 'Beere', hex: '#7a2848' }
+        colorAreas: [
+          { key: 'lidschatten', label: 'Lidschatten', swatches: [
+            { label: 'Champagner', hex: '#e8d4b8' },
+            { label: 'Roségold', hex: '#d4a373' },
+            { label: 'Taupe', hex: '#9c8570' },
+            { label: 'Bronze', hex: '#8b5e34' },
+            { label: 'Pflaume', hex: '#6b3f5c' },
+            { label: 'Rauchgrau', hex: '#6e6a66' }
+          ] },
+          { key: 'rouge', label: 'Rouge', swatches: [
+            { label: 'Pfirsich', hex: '#e8a992' },
+            { label: 'Rosé', hex: '#dd8fa0' },
+            { label: 'Koralle', hex: '#e2725b' },
+            { label: 'Warmes Braun', hex: '#b97a56' }
+          ] },
+          { key: 'lippen', label: 'Lippen', swatches: [
+            { label: 'Nude', hex: '#c98b7a' },
+            { label: 'Rosé', hex: '#d98a95' },
+            { label: 'Klassisches Rot', hex: '#b3202c' },
+            { label: 'Beere', hex: '#7a2848' }
+          ] },
+          { key: 'eyeliner', label: 'Eyeliner', swatches: [
+            { label: 'Schwarz', hex: '#1a1a1a' },
+            { label: 'Braun', hex: '#4a3222' },
+            { label: 'Dunkelgrau', hex: '#3a3835' }
+          ] }
         ]
       }
     };
@@ -7407,10 +7460,10 @@
     const dropzoneLabel = document.getElementById('aip-dropzone-label');
     const fileInput = document.getElementById('aip-file-input');
     const wishTextarea = document.getElementById('aip-wish');
+    const nameInput = document.getElementById('aip-name');
     const presetField = document.getElementById('aip-preset-field');
     const presetGrid = document.getElementById('aip-preset-grid');
-    const colorField = document.getElementById('aip-color-field');
-    const colorRow = document.getElementById('aip-color-row');
+    const colorAreasContainer = document.getElementById('aip-color-areas');
     const generateBtn = document.getElementById('aip-generate');
     const slider = document.getElementById('aip-slider');
     const handle = document.getElementById('aip-handle');
@@ -7424,14 +7477,17 @@
 
     let currentSlug = null;
     let originalDataUrl = null;
+    let selectedPresetLabel = '';
     let selectedPresetText = '';
-    let selectedColorLabel = '';
+    // Keyed by colour-area key -- e.g. { lippen: { areaLabel: 'Lippen', label: 'Rosé', hex: '#d98a95' } }
+    let selectedColors = {};
     let busy = false;
 
     function renderGuidedOptions(slug) {
       const options = AIP_GUIDED_OPTIONS[slug] || {};
+      selectedPresetLabel = '';
       selectedPresetText = '';
-      selectedColorLabel = '';
+      selectedColors = {};
 
       presetGrid.innerHTML = '';
       presetField.hidden = !options.presets?.length;
@@ -7443,35 +7499,94 @@
         chip.addEventListener('click', () => {
           const alreadySelected = chip.classList.contains('is-selected');
           presetGrid.querySelectorAll('.aip-preset-chip').forEach(el => el.classList.remove('is-selected'));
+          selectedPresetLabel = alreadySelected ? '' : preset.label;
           selectedPresetText = alreadySelected ? '' : preset.text;
           if (!alreadySelected) chip.classList.add('is-selected');
         });
         presetGrid.appendChild(chip);
       });
 
-      colorRow.innerHTML = '';
-      colorField.hidden = !options.colors?.length;
-      (options.colors || []).forEach(color => {
-        const swatch = document.createElement('button');
-        swatch.type = 'button';
-        swatch.className = 'aip-color-swatch';
-        swatch.style.setProperty('--swatch-colour', color.hex);
-        swatch.setAttribute('aria-label', color.label);
-        swatch.title = color.label;
-        swatch.addEventListener('click', () => {
-          const alreadySelected = swatch.classList.contains('is-selected');
-          colorRow.querySelectorAll('.aip-color-swatch').forEach(el => el.classList.remove('is-selected'));
-          selectedColorLabel = alreadySelected ? '' : color.label;
-          if (!alreadySelected) swatch.classList.add('is-selected');
+      colorAreasContainer.innerHTML = '';
+      (options.colorAreas || []).forEach(area => {
+        const wrap = document.createElement('div');
+        wrap.className = 'aip-field aip-color-area';
+        const label = document.createElement('label');
+        label.textContent = area.label;
+        wrap.appendChild(label);
+        const row = document.createElement('div');
+        row.className = 'aip-color-row';
+
+        function selectSwatch(el, colorLabel, hex) {
+          row.querySelectorAll('.aip-color-swatch').forEach(node => node.classList.remove('is-selected'));
+          const alreadySelected = selectedColors[area.key]?.hex === hex;
+          if (alreadySelected) {
+            delete selectedColors[area.key];
+          } else {
+            selectedColors[area.key] = { areaLabel: area.label, label: colorLabel, hex };
+            el.classList.add('is-selected');
+          }
+        }
+
+        (area.swatches || []).forEach(color => {
+          const swatch = document.createElement('button');
+          swatch.type = 'button';
+          swatch.className = 'aip-color-swatch';
+          swatch.style.setProperty('--swatch-colour', color.hex);
+          swatch.setAttribute('aria-label', color.label);
+          swatch.title = color.label;
+          swatch.addEventListener('click', () => selectSwatch(swatch, color.label, color.hex));
+          row.appendChild(swatch);
         });
-        colorRow.appendChild(swatch);
+
+        // Custom picker -- full colour spectrum via the native browser
+        // colour picker, styled as one more swatch in the same row. Its own
+        // hex becomes the swatch fill once chosen.
+        const customLabel = document.createElement('label');
+        customLabel.className = 'aip-color-swatch aip-color-swatch--custom';
+        customLabel.title = 'Eigener Farbton';
+        customLabel.setAttribute('aria-label', 'Eigener Farbton wählen');
+        const customInput = document.createElement('input');
+        customInput.type = 'color';
+        customInput.addEventListener('input', () => {
+          customLabel.style.setProperty('--swatch-colour', customInput.value);
+          customLabel.classList.add('has-custom-colour');
+          selectSwatch(customLabel, `Eigener Ton ${customInput.value}`, customInput.value);
+        });
+        customLabel.appendChild(customInput);
+        row.appendChild(customLabel);
+
+        wrap.appendChild(row);
+        colorAreasContainer.appendChild(wrap);
       });
     }
 
     function composedUserRequest() {
-      return [selectedPresetText, selectedColorLabel ? `Farbton: ${selectedColorLabel}` : '', wishTextarea.value.trim()]
+      const colourNotes = Object.values(selectedColors).map(c => `${c.areaLabel}: ${c.label} (${c.hex})`);
+      return [selectedPresetText, ...colourNotes, wishTextarea.value.trim()]
         .filter(Boolean)
         .join('. ');
+    }
+
+    // Fire-and-forget: stores the chosen preset/colours (not the photo) so
+    // Liliane can look up exactly which shades a customer picked and use
+    // them when mixing products for the real treatment.
+    function saveAiPreviewRequest(CONFIG) {
+      try {
+        if (!window.supabase || !CONFIG?.url || !CONFIG?.anonKey) return;
+        const db = window.supabase.createClient(CONFIG.url, CONFIG.anonKey);
+        const colors = {};
+        Object.entries(selectedColors).forEach(([key, value]) => { colors[key] = value; });
+        db.from('ai_preview_requests').insert({
+          service_type: currentSlug,
+          customer_name: nameInput.value.trim() || null,
+          preset_label: selectedPresetLabel || null,
+          colors: Object.keys(colors).length ? colors : null,
+          wish_note: wishTextarea.value.trim() || null
+        }).then(() => {});
+      } catch {
+        // Never let this block the customer's result -- it's a nice-to-have
+        // record for Liliane, not part of the funnel itself.
+      }
     }
     let oscillating = false;
     let animToken = 0;
@@ -7612,6 +7727,7 @@
         await preloadImage(payload.generatedImage);
         stopOscillation();
         imageAfter.src = payload.generatedImage;
+        saveAiPreviewRequest(CONFIG);
         setFunnelState('revealing');
         await tweenAipPct(AIP_REVEAL_PCT, 1400);
         setFunnelState('result');
@@ -7665,6 +7781,7 @@
       originalDataUrl = null;
       fileInput.value = '';
       wishTextarea.value = '';
+      nameInput.value = '';
       dropzoneIcon.hidden = false;
       dropzoneLabel.hidden = false;
       const preview = dropzone.querySelector('img');
