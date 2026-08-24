@@ -7919,7 +7919,7 @@
           // reuses the same photo as the "result" so the butterfly/sparkle/
           // reveal animation can be checked without a real, billed OpenAI
           // call. Never used unless that query param is explicitly present.
-          await new Promise(resolve => setTimeout(resolve, 3200));
+          await new Promise(resolve => setTimeout(resolve, 16000));
           generatedImage = originalDataUrl;
         } else {
           const CONFIG = window.GIGI_SUPABASE || {};
