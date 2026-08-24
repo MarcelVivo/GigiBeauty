@@ -3298,29 +3298,50 @@
     place-items: center;
     width: 44px;
     height: 44px;
+    overflow: hidden;
     border: 1px solid rgba(232, 197, 121, 0.7);
     border-radius: 50%;
     transform: translate(-50%, -50%);
     background: linear-gradient(135deg, #c8a06a 0%, #d4af6a 50%, #b8903a 100%);
-    color: #1a0a0a;
-    font: 700 1rem/1 Georgia, serif;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
   }
 
-  /* Sits on the slider line at the bottom, moves with the handle. Colour
-     runs from pale/desaturated (100% Vorher) to fully vibrant gold (100%
-     Nachher), updated live in JS so it tracks the handle exactly. */
-  .ba-butterfly {
+  /* Butterfly replaces the plain arrow glyph inside the round handle coin.
+     The gold coin ring and the butterfly's own gold veins stay constant;
+     only the pastel wing fill fades from pale (100% Vorher) to fully
+     vibrant and glowing (100% Nachher), updated live in JS. */
+  .ba-wing {
+    position: relative;
+    width: 30px;
+    height: 30px;
+  }
+
+  .ba-wing-fill,
+  .ba-wing-veins {
     position: absolute;
-    bottom: 8px;
-    left: 50%;
-    z-index: 5;
-    width: 15%;
-    max-width: 68px;
-    min-width: 38px;
-    transform: translateX(-50%);
-    pointer-events: none;
-    filter: saturate(0.12) brightness(0.72);
+    inset: 0;
+    display: block;
+    -webkit-mask: url('public/images/Butterfly/SchmetterlingNeu-mask.png') center / 100% 100% no-repeat;
+    mask: url('public/images/Butterfly/SchmetterlingNeu-mask.png') center / 100% 100% no-repeat;
+  }
+
+  .ba-wing-fill {
+    z-index: 1;
+    background: linear-gradient(135deg, #fadde8 0%, #cfe8f7 30%, #bdeee6 55%, #fdf0b0 78%, #ffd9bd 100%);
+  }
+
+  .ba-wing-veins {
+    z-index: 2;
+    background: url('public/images/Butterfly/SchmetterlingNeu-veins.svg') center / 100% 100% no-repeat;
+    opacity: 0.95;
+  }
+
+  .ba-wing img {
+    position: relative;
+    z-index: 3;
+    display: block;
+    width: 100%;
+    height: auto;
   }
 
   .before-after-hint {
@@ -6555,8 +6576,15 @@
       <img class="ba-image ba-image--before" id="ba-image-before" src="" alt="Vorher">
       <span class="ba-tag ba-tag--before">Vorher</span>
       <span class="ba-tag ba-tag--after">Nachher</span>
-      <div class="ba-handle" id="ba-handle"><span class="ba-handle-grip">❮❯</span></div>
-      <img class="ba-butterfly" id="ba-butterfly" src="public/images/Butterfly/SchmetterlingNeu.png" alt="">
+      <div class="ba-handle" id="ba-handle">
+        <span class="ba-handle-grip">
+          <span class="ba-wing">
+            <span class="ba-wing-fill" id="ba-wing-fill" aria-hidden="true"></span>
+            <span class="ba-wing-veins" aria-hidden="true"></span>
+            <img src="public/images/Butterfly/SchmetterlingNeu.png" alt="">
+          </span>
+        </span>
+      </div>
 
     </div>
     <p class="before-after-hint">Regler mit der Maus, dem Finger oder den Pfeiltasten verschieben.</p>
@@ -6739,7 +6767,7 @@
     const backdrop = document.getElementById('before-after-backdrop');
     const slider = document.getElementById('before-after-slider');
     const handle = document.getElementById('ba-handle');
-    const butterfly = document.getElementById('ba-butterfly');
+    const wingFill = document.getElementById('ba-wing-fill');
     const closeButton = document.getElementById('before-after-close');
     const beforeImg = document.getElementById('ba-image-before');
     const afterImg = document.getElementById('ba-image-after');
@@ -6751,11 +6779,12 @@
       handle.style.left = pct + '%';
       slider.setAttribute('aria-valuenow', Math.round(pct));
 
-      // Butterfly rides the handle and fades from pale (100% Vorher) to
-      // fully vibrant, glowing gold (100% Nachher), continuously.
-      const t = pct / 100;
-      butterfly.style.left = pct + '%';
-      butterfly.style.filter = `saturate(${(0.12 + t * 1.38).toFixed(2)}) brightness(${(0.72 + t * 0.42).toFixed(2)}) drop-shadow(0 0 ${(t * 9).toFixed(1)}px rgba(232,197,121,${(t * 0.75).toFixed(2)}))`;
+      // At pct=100 the Vorher photo shows fully, at pct=0 the Nachher photo
+      // shows fully -- so vibrancy (t) has to rise as pct falls, not rise
+      // with it, or the butterfly ends up glowing on the wrong side.
+      const t = 1 - pct / 100;
+      wingFill.style.opacity = (0.32 + t * 0.63).toFixed(2);
+      wingFill.style.filter = `saturate(${(0.12 + t * 1.35).toFixed(2)}) brightness(${(0.78 + t * 0.32).toFixed(2)}) drop-shadow(0 0 ${(t * 5).toFixed(1)}px rgba(232,197,121,${(t * 0.7).toFixed(2)}))`;
     }
 
     function pctFromEvent(event) {
