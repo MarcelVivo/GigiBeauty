@@ -41,6 +41,7 @@
     hours: defaultHours,
     user: null,
     profile: null,
+    customerId: null,
     selectedSlot: null,
     authMode: 'login'
   };
@@ -343,9 +344,12 @@
   async function setUser(user) {
     state.user = user;
     state.profile = null;
+    state.customerId = null;
     if (user) {
       const { data } = await db.from('profiles').select('*').eq('id', user.id).maybeSingle();
       state.profile = data;
+      const { data: customerRow } = await db.from('customers').select('id').eq('profile_id', user.id).maybeSingle();
+      state.customerId = customerRow?.id || null;
       els.authCopy.innerHTML = `Angemeldet als<strong>${escapeHtml(data?.full_name || user.email)}</strong>`;
       els.authButton.textContent = 'Abmelden';
       document.getElementById('my-appointments').hidden = false;
@@ -451,6 +455,90 @@
     pastList.innerHTML = past.length ? past.map(item => {
       return `<div class="account-appointment"><div><strong>${escapeHtml(item.services?.name || 'Behandlung')}</strong><span>${formatDate(new Date(item.starts_at), { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span></div><span>${escapeHtml(APPOINTMENT_STATUS_LABEL[item.status] || item.status)}</span></div>`;
     }).join('') : '<div class="account-empty">Noch keine vergangenen Termine.</div>';
+
+    loadCustomerMedia();
+  }
+
+  async function signedPhotoUrl(path) {
+    const { data } = await db.storage.from('customer-photos').createSignedUrl(path, 3600);
+    return data?.signedUrl || '';
+  }
+
+  async function loadCustomerMedia() {
+    const chatEl = document.getElementById('account-chat');
+    const galleryEl = document.getElementById('account-gallery');
+    if (!state.customerId) { chatEl.innerHTML = ''; galleryEl.innerHTML = ''; return; }
+    chatEl.innerHTML = '<div class="account-chat-empty">Wird geladen ...</div>';
+    galleryEl.innerHTML = '';
+
+    const { data, error } = await db.from('customer_media').select('*').eq('customer_id', state.customerId).order('created_at');
+    if (error) { chatEl.innerHTML = `<div class="account-chat-empty">${escapeHtml(error.message)}</div>`; return; }
+    const rows = data || [];
+    const chatRows = rows.filter(row => row.category === 'chat');
+    const resultRows = rows.filter(row => row.category === 'result');
+
+    chatEl.innerHTML = chatRows.length ? '' : '<div class="account-chat-empty">Noch keine Nachrichten. Schreib Liliane deinen Wunsch!</div>';
+    for (const row of chatRows) {
+      const bubble = document.createElement('div');
+      bubble.className = `account-chat-bubble is-${row.sender}`;
+      let html = row.message ? `<p>${escapeHtml(row.message)}</p>` : '';
+      if (row.photo_path) {
+        const url = await signedPhotoUrl(row.photo_path);
+        if (url) html += `<img src="${url}" alt="" loading="lazy">`;
+      }
+      html += `<time>${formatDate(new Date(row.created_at), { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</time>`;
+      bubble.innerHTML = html;
+      chatEl.appendChild(bubble);
+    }
+    chatEl.scrollTop = chatEl.scrollHeight;
+
+    if (!resultRows.length) {
+      galleryEl.innerHTML = '<div class="account-chat-empty">Noch keine Behandlungsfotos hinterlegt.</div>';
+    } else {
+      for (const row of resultRows) {
+        if (!row.photo_path) continue;
+        const url = await signedPhotoUrl(row.photo_path);
+        if (!url) continue;
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = row.message || '';
+        img.loading = 'lazy';
+        img.title = row.message || formatDate(new Date(row.created_at), { day: '2-digit', month: '2-digit', year: 'numeric' });
+        galleryEl.appendChild(img);
+      }
+    }
+  }
+
+  async function sendChatMessage(event) {
+    event.preventDefault();
+    if (!state.customerId) return;
+    const message = document.getElementById('account-chat-message');
+    const text = document.getElementById('account-chat-text').value.trim();
+    const fileInput = document.getElementById('account-chat-photo');
+    const file = fileInput.files[0];
+    if (!text && !file) { message.textContent = 'Bitte einen Text oder ein Foto angeben.'; return; }
+    message.textContent = 'Wird gesendet ...';
+
+    let photo_path = null;
+    if (file) {
+      photo_path = `${state.customerId}/${crypto.randomUUID()}-${file.name}`;
+      const { error: uploadError } = await db.storage.from('customer-photos').upload(photo_path, file);
+      if (uploadError) { message.textContent = uploadError.message; return; }
+    }
+
+    const { error } = await db.from('customer_media').insert({
+      customer_id: state.customerId,
+      category: 'chat',
+      sender: 'customer',
+      message: text || null,
+      photo_path
+    });
+    if (error) { message.textContent = error.message; return; }
+
+    message.textContent = '';
+    document.getElementById('account-chat-form').reset();
+    document.getElementById('account-chat-filename').textContent = '';
+    loadCustomerMedia();
   }
 
   async function saveNewsletterConsent() {
@@ -500,6 +588,10 @@
   });
   document.getElementById('my-appointments').addEventListener('click', openAccount);
   document.getElementById('account-newsletter-save').addEventListener('click', saveNewsletterConsent);
+  document.getElementById('account-chat-form').addEventListener('submit', sendChatMessage);
+  document.getElementById('account-chat-photo').addEventListener('change', function () {
+    document.getElementById('account-chat-filename').textContent = this.files[0]?.name || '';
+  });
 
   loadData().then(() => {
     if (new URLSearchParams(location.search).get('register') === '1' && !state.user) {

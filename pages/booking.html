@@ -144,6 +144,26 @@
       <h3 class="account-subhead">Vergangene Termine</h3>
       <div class="slot-list" id="account-past"></div>
 
+      <h3 class="account-subhead">Fotos &amp; Wünsche</h3>
+      <p class="account-hint">Ein Foto gesehen, das dir gefällt? Schick es Liliane zusammen mit deinem Wunsch.</p>
+      <div class="account-chat" id="account-chat"></div>
+      <form class="account-chat-form" id="account-chat-form">
+        <textarea id="account-chat-text" rows="2" placeholder="z. B. Hallo Liliane, diese Nägel möchte ich beim nächsten Mal ..."></textarea>
+        <div class="account-chat-actions">
+          <label class="account-chat-attach">
+            <input type="file" id="account-chat-photo" accept="image/*">
+            <span>📎 Foto anhängen</span>
+          </label>
+          <button class="small-button" type="submit">Senden</button>
+        </div>
+        <span class="account-chat-filename" id="account-chat-filename"></span>
+      </form>
+      <div class="form-message" id="account-chat-message"></div>
+
+      <h3 class="account-subhead">Meine Behandlungsfotos</h3>
+      <p class="account-hint">Von Liliane nach deinen Behandlungen festgehalten.</p>
+      <div class="account-gallery" id="account-gallery"></div>
+
       <h3 class="account-subhead">Newsletter</h3>
       <label class="checkbox"><input id="account-newsletter" type="checkbox"> Ich möchte Neuigkeiten und Angebote von GiGi Beauty per E-Mail erhalten.</label>
       <button class="small-button" type="button" id="account-newsletter-save" style="margin-top:.6rem">Speichern</button>

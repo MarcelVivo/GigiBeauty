@@ -1373,7 +1373,72 @@
     $('customer-merge-suggestions').innerHTML = matches.length ? `<strong>Mögliche Doppelprofile gefunden</strong><p>Die Telefonnummer ist identisch. Bitte nur zusammenführen, wenn es wirklich dieselbe Person ist.</p>${matches.map(item => `<div><span>${esc(item.full_name)} · ${esc(item.email || 'ohne E-Mail')}</span><button class="secondary small" type="button" data-merge-customer="${item.id}">Zusammenführen</button></div>`).join('')}` : '';
     document.querySelectorAll('[data-merge-customer]').forEach(button => button.onclick = () => mergeCustomerProfiles(customer.id, button.dataset.mergeCustomer));
     $('customer-message').textContent = '';
+    $('customer-chat-text').value = '';
+    $('customer-chat-message').textContent = '';
+    $('customer-chat-filename').textContent = '';
+    loadCustomerChat(customer.id);
     openModal('customer-modal');
+  }
+
+  async function signedCustomerPhotoUrl(path) {
+    const { data } = await db.storage.from('customer-photos').createSignedUrl(path, 3600);
+    return data?.signedUrl || '';
+  }
+
+  async function loadCustomerChat(customerId) {
+    const chatEl = $('customer-chat');
+    chatEl.innerHTML = '<div class="customer-chat-empty">Wird geladen ...</div>';
+    const { data, error } = await db.from('customer_media').select('*').eq('customer_id', customerId).order('created_at');
+    if (error) { chatEl.innerHTML = `<div class="customer-chat-empty">${esc(error.message)}</div>`; return; }
+    const rows = data || [];
+    if (!rows.length) { chatEl.innerHTML = '<div class="customer-chat-empty">Noch keine Fotos oder Nachrichten.</div>'; return; }
+    chatEl.innerHTML = '';
+    for (const row of rows) {
+      const bubble = document.createElement('div');
+      bubble.className = `customer-chat-bubble is-${row.category === 'result' ? 'result' : row.sender}`;
+      let html = row.message ? `<p>${esc(row.message)}</p>` : '';
+      if (row.photo_path) {
+        const url = await signedCustomerPhotoUrl(row.photo_path);
+        if (url) html += `<img src="${url}" alt="" loading="lazy">`;
+      }
+      html += `<time>${esc(fmt(row.created_at, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }))}${row.category === 'result' ? ' · Behandlungsfoto' : ''}</time>`;
+      bubble.innerHTML = html;
+      chatEl.appendChild(bubble);
+    }
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+
+  async function sendCustomerChat() {
+    const customerId = $('customer-id').value;
+    if (!customerId) return;
+    const message = $('customer-chat-message');
+    const text = $('customer-chat-text').value.trim();
+    const category = $('customer-chat-category').value;
+    const file = $('customer-chat-photo').files[0];
+    if (!text && !file) { message.textContent = 'Bitte einen Text oder ein Foto angeben.'; return; }
+    message.textContent = 'Wird gesendet ...';
+
+    let photo_path = null;
+    if (file) {
+      photo_path = `${customerId}/${crypto.randomUUID()}-${file.name}`;
+      const { error: uploadError } = await db.storage.from('customer-photos').upload(photo_path, file);
+      if (uploadError) { message.textContent = uploadError.message; return; }
+    }
+
+    const { error } = await db.from('customer_media').insert({
+      customer_id: customerId,
+      category,
+      sender: 'admin',
+      message: text || null,
+      photo_path
+    });
+    if (error) { message.textContent = error.message; return; }
+
+    message.textContent = '';
+    $('customer-chat-text').value = '';
+    $('customer-chat-photo').value = '';
+    $('customer-chat-filename').textContent = '';
+    loadCustomerChat(customerId);
   }
 
   async function saveCustomer(event) {
@@ -1610,6 +1675,8 @@
   $('payment-method').onchange = fillPaymentBenefits;
   $('customer-rebook-message').onclick = queueCustomerRebooking;
   $('customer-log-contact').onclick = openContactLog;
+  $('customer-chat-send').onclick = sendCustomerChat;
+  $('customer-chat-photo').onchange = function () { $('customer-chat-filename').textContent = this.files[0]?.name || ''; };
   $('customer-search').oninput = event => { state.customerFilter = event.target.value; renderCustomers(); };
   $('customer-segment').onchange = event => { state.customerSegment = event.target.value; renderCustomers(); };
   $('analytics-period').onchange = event => { state.analyticsMonths = Number(event.target.value) || 12; renderOverview(); };
