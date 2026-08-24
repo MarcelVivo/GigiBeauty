@@ -116,6 +116,7 @@ Deno.serve(async (request) => {
   form.append('model', 'gpt-image-1');
   form.append('prompt', prompt);
   form.append('size', 'auto');
+  form.append('quality', 'medium');
   form.append('image', new Blob([bytes], { type: mime }), `photo.${mime.split('/')[1]}`);
 
   let openaiResponse: Response;
