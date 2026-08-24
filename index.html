@@ -7402,7 +7402,7 @@
     { sectionId: 'section-natural-make-up' }
   ].map(function (plan, i) {
     plan.pastel = botanicalPastelSequence[i % botanicalPastelSequence.length];
-    plan.scale = 0.36 + Math.random() * 0.34;     // ~0.36 – 0.70, small and varied
+    plan.overreach = 1.4 + Math.random() * 0.4;   // butterfly height vs. title height, ~1.4x – 1.8x
     plan.tilt = Math.random() * 24 - 12;          // ~-12deg – 12deg
     plan.flip = Math.random() < 0.5 ? -1 : 1;     // head facing left or right
     plan.yJitter = Math.random() * 10 - 5;        // ~-5px – 5px
@@ -7437,7 +7437,7 @@
       marker.className = 'botanical-service-butterfly';
       marker.style.left = '0px';
       marker.style.top = '0px';
-      marker.style.setProperty('--butterfly-size', plan.scale.toFixed(3));
+      marker.style.setProperty('--butterfly-size', '1');
       marker.style.setProperty('--butterfly-turn', plan.tilt + 'deg');
       marker.style.setProperty('--butterfly-flip', plan.flip);
       marker.style.setProperty('--butterfly-pastel', plan.pastel);
@@ -7461,18 +7461,27 @@
       marker.appendChild(butterfly);
       botanicalMarkerLayer.appendChild(marker);
 
-      /* Measure the actually rendered size (scale transform included) so the
-         butterfly always clears the title text — never on top of it. */
+      /* Scale each butterfly relative to the actually rendered height of its
+         title so it always stands taller than the big letter next to it,
+         never the other way round. */
+      var naturalRect = marker.getBoundingClientRect();
+      var targetHeight = titleRect.height * plan.overreach;
+      var finalScale = naturalRect.height > 0 ? targetHeight / naturalRect.height : 1;
+      marker.style.setProperty('--butterfly-size', finalScale.toFixed(3));
+
+      /* Re-measure now that the final size is applied. */
       var markerRect = marker.getBoundingClientRect();
       var halfWidth = markerRect.width / 2;
       var minGap = isMobile ? 18 : 34;
       var extraGap = Math.random() * (isMobile ? 14 : 26);
       var markerX = titleRect.left - railRect.left - halfWidth - minGap - extraGap;
       markerX = Math.max(12, markerX);
-      var markerY = titleRect.top - railRect.top + plan.yJitter;
-      if (plan.sectionId === 'section-gel-acryl-nails') {
-        markerY -= markerRect.height;
-      }
+
+      /* Anchor the butterfly's bottom edge to the title's vertical middle,
+         so the extra height (it's taller than the title) rises above the
+         letter instead of just floating level with its top. */
+      var titleMidY = titleRect.top - railRect.top + titleRect.height / 2;
+      var markerY = titleMidY - markerRect.height / 2 + plan.yJitter;
 
       marker.style.left = markerX.toFixed(2) + 'px';
       marker.style.top = markerY.toFixed(2) + 'px';
