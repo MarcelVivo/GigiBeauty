@@ -246,6 +246,10 @@
   width: 100%; padding: .85rem 1rem; color: var(--gold-light); background: rgba(255,255,255,.045); border: 1px solid var(--line); border-radius: 8px; font: 400 1rem var(--font-body); outline: none;
 }
 .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--gold); }
+.password-field { position: relative; }
+.password-field input { padding-right: 2.6rem; }
+.password-toggle { position: absolute; top: 50%; right: .5rem; transform: translateY(-50%); border: 0; background: none; cursor: pointer; font-size: 1rem; line-height: 1; padding: .3rem; color: var(--gold); opacity: .55; }
+.password-toggle:hover, .password-toggle.is-active { opacity: 1; }
 .checkbox { display: flex; align-items: flex-start; gap: .7rem; color: var(--text-muted); font-size: .85rem; }
 .checkbox input { margin-top: .35rem; accent-color: var(--gold); }
 .form-message { min-height: 1.4rem; color: #e8b7ad; font-size: .85rem; }

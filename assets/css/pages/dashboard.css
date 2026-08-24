@@ -276,6 +276,11 @@ tbody tr:last-child td { border-bottom: 0; }
 .field.full { grid-column: 1 / -1; }
 .field label { display: block; margin-bottom: .35rem; color: var(--dash-muted); font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
 .field input, .field textarea, .field select { width: 100%; padding: .78rem .85rem; border: 1px solid var(--dash-line); border-radius: 8px; color: var(--dash-ink); background: white; }
+.password-field { position: relative; }
+.password-field input { padding-right: 2.6rem; }
+.password-toggle { position: absolute; top: 50%; right: .5rem; transform: translateY(-50%); border: 0; background: none; cursor: pointer; font-size: 1rem; line-height: 1; padding: .3rem; opacity: .5; }
+.password-toggle:hover, .password-toggle.is-active { opacity: 1; }
+.login-card .password-toggle { color: #ddb977; }
 .modal-actions { display: flex; justify-content: space-between; gap: .7rem; margin-top: 1.25rem; }
 .right-actions { display: flex; gap: .7rem; margin-left: auto; }
 .form-message { min-height: 1.2rem; margin-top: .8rem; color: #9a3232; font-size: .8rem; }
