@@ -6991,6 +6991,16 @@
       </div>
     </div>
 
+    <div class="footer-col footer-col--newsletter">
+      <h3 class="footer-heading">Newsletter</h3>
+      <p>Neuigkeiten und Angebote direkt per E-Mail.</p>
+      <form class="footer-newsletter-form" id="newsletter-form">
+        <input type="email" id="newsletter-email" placeholder="E-Mail-Adresse" required autocomplete="email">
+        <button type="submit">Anmelden</button>
+      </form>
+      <p class="footer-newsletter-message" id="newsletter-message"></p>
+    </div>
+
   </div>
 
   <div class="footer-bar">
@@ -7100,12 +7110,43 @@
 
 .footer-inner {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 3rem;
-  max-width: 1100px;
+  grid-template-columns: 1.3fr 1fr 0.85fr 1.1fr;
+  gap: 2.4rem;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 3.5rem 2rem 3rem;
 }
+
+.footer-col--newsletter p { font-size: 0.88rem; margin-bottom: 0.9rem; }
+.footer-newsletter-form { display: flex; gap: 0.5rem; }
+.footer-newsletter-form input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid rgba(44,31,14,0.2);
+  border-radius: 4px;
+  background: #fff;
+  color: #2c1f0e;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.9rem;
+}
+.footer-newsletter-form button {
+  padding: 0.6rem 1rem;
+  border: 0;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #c8a06a 0%, #d4af6a 50%, #b8903a 100%);
+  color: #1a0a0a;
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.footer-newsletter-form button:hover { opacity: 0.85; }
+.footer-newsletter-message { margin-top: 0.6rem; font-size: 0.82rem; min-height: 1.2em; }
+.footer-newsletter-message.is-error { color: #a03f3f; }
+.footer-newsletter-message.is-success { color: #3f7360; }
 
 .footer-heading {
   font-family: 'Playfair Display', Georgia, serif;
@@ -8253,6 +8294,27 @@
   var configured = CONFIG.url && CONFIG.anonKey;
   if (!configured || !window.supabase) return;
   var db = window.supabase.createClient(CONFIG.url, CONFIG.anonKey);
+
+  var newsletterForm = document.getElementById('newsletter-form');
+  if (newsletterForm) {
+    newsletterForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+      var message = document.getElementById('newsletter-message');
+      var email = document.getElementById('newsletter-email').value.trim();
+      message.className = 'footer-newsletter-message';
+      message.textContent = 'Einen Moment.';
+      db.rpc('subscribe_newsletter', { requested_email: email }).then(function (result) {
+        if (result.error) {
+          message.className = 'footer-newsletter-message is-error';
+          message.textContent = result.error.message;
+          return;
+        }
+        message.className = 'footer-newsletter-message is-success';
+        message.textContent = 'Danke, du bist angemeldet!';
+        newsletterForm.reset();
+      });
+    });
+  }
 
   function renderPriceItem(item) {
     var li = document.createElement('li');
