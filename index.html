@@ -7560,6 +7560,10 @@
     const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     const MAX_RAW_BYTES = 15 * 1024 * 1024;
     const AIP_REVEAL_PCT = 14;
+    // Visual-only test mode: add ?aip_demo=1 to the page URL to preview the
+    // whole generating/sparkle/reveal animation for free, without calling
+    // OpenAI. Never active otherwise.
+    const AIP_DEMO_MODE = new URLSearchParams(location.search).get('aip_demo') === '1';
 
     const backdrop = document.getElementById('aip-backdrop');
     if (!backdrop) return;
@@ -7893,20 +7897,31 @@
       runOscillation();
 
       try {
-        const CONFIG = window.GIGI_SUPABASE || {};
-        const response = await fetch(`${CONFIG.url}/functions/v1/beauty-ai-preview`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${CONFIG.anonKey}`, apikey: CONFIG.anonKey },
-          body: JSON.stringify({ serviceType: currentSlug, userRequest: composedUserRequest().slice(0, 300), image: originalDataUrl }),
-          signal: currentAbort.signal
-        });
-        const payload = await response.json().catch(() => null);
-        if (!response.ok || !payload?.generatedImage) throw new Error(payload?.error || 'generation_failed');
+        let generatedImage;
+        if (AIP_DEMO_MODE) {
+          // Visual-only test path (?aip_demo=1) -- simulates the wait and
+          // reuses the same photo as the "result" so the butterfly/sparkle/
+          // reveal animation can be checked without a real, billed OpenAI
+          // call. Never used unless that query param is explicitly present.
+          await new Promise(resolve => setTimeout(resolve, 3200));
+          generatedImage = originalDataUrl;
+        } else {
+          const CONFIG = window.GIGI_SUPABASE || {};
+          const response = await fetch(`${CONFIG.url}/functions/v1/beauty-ai-preview`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${CONFIG.anonKey}`, apikey: CONFIG.anonKey },
+            body: JSON.stringify({ serviceType: currentSlug, userRequest: composedUserRequest().slice(0, 300), image: originalDataUrl }),
+            signal: currentAbort.signal
+          });
+          const payload = await response.json().catch(() => null);
+          if (!response.ok || !payload?.generatedImage) throw new Error(payload?.error || 'generation_failed');
+          generatedImage = payload.generatedImage;
+        }
 
-        await preloadImage(payload.generatedImage);
+        await preloadImage(generatedImage);
         stopOscillation();
         stopSparkles();
-        imageAfter.src = payload.generatedImage;
+        imageAfter.src = generatedImage;
         setFunnelState('revealing');
         await tweenAipPct(AIP_REVEAL_PCT, 1400);
         setFunnelState('result');
