@@ -152,6 +152,13 @@
 
   #gc-dot {
     position: fixed;
+    /* Explicit 0/0, not auto: with both left/top auto, a fixed element
+       falls back to its "static position" -- i.e. wherever it would land
+       in normal document flow, which for a div appended near the end of
+       this very long <body> is thousands of pixels down the page. Pinning
+       top/left here once means transform (written every frame in JS) is
+       the ONLY thing moving it, anchored correctly to the viewport. */
+    top: 0; left: 0;
     width: 11px; height: 11px;
     background: radial-gradient(circle, #fff5c0 0%, #f0c040 45%, #d4af6a 100%);
     border-radius: 50%;
