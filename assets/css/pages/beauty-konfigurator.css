@@ -278,7 +278,8 @@ body.treatment-modal-open {
     position: relative;
     width: 100%;
     aspect-ratio: 4 / 5;
-    margin-bottom: 18px;
+    max-height: min(50vh, 480px);
+    margin: 0 auto 18px;
     overflow: hidden;
     border-radius: 12px;
     touch-action: none;

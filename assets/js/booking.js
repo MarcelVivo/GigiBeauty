@@ -585,7 +585,7 @@
       let html = row.message ? `<p>${escapeHtml(row.message)}</p>` : '';
       if (row.photo_path) {
         const url = await signedPhotoUrl(row.photo_path);
-        if (url) html += `<img src="${url}" alt="" loading="lazy">`;
+        if (url) html += `<a href="${escapeHtml(url)}" target="_blank" rel="noopener"><img src="${escapeHtml(url)}" alt="" loading="lazy"></a>`;
       }
       html += `<time>${formatDate(new Date(row.created_at), { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</time>`;
       bubble.innerHTML = html;

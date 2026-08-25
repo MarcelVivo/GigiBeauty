@@ -106,7 +106,7 @@
 
       <section class="view-panel" data-view-panel="messages" hidden>
         <div class="toolbar"><div><strong>Kundennachrichten</strong><p class="muted">Fotos &amp; Wünsche, die Kundinnen über ihr Konto geschickt haben.</p></div></div>
-        <div class="table-wrap"><table><thead><tr><th>Zeit</th><th>Kundin</th><th>Nachricht</th><th>Status</th><th></th></tr></thead><tbody id="messages-table"></tbody></table></div>
+        <div class="table-wrap messages-table-wrap"><table class="messages-table"><thead><tr><th>Zeit</th><th>Kundin</th><th>Nachricht</th><th>Status</th><th></th></tr></thead><tbody id="messages-table"></tbody></table></div>
       </section>
 
       <section class="view-panel" data-view-panel="ai-preview" hidden>
@@ -225,7 +225,9 @@
   </form></div>
 
   <div class="modal-backdrop" id="customer-modal" hidden><form class="modal" id="customer-form">
-    <button class="modal-close" type="button" data-close>×</button><h2>Kundenprofil</h2><input type="hidden" id="customer-id">
+    <div class="modal-header"><h2>Kundenprofil</h2><button class="modal-close" type="button" data-close>×</button></div>
+    <input type="hidden" id="customer-id">
+    <div class="modal-scroll">
     <div class="customer-insights" id="customer-insights"></div>
     <div class="merge-suggestions" id="customer-merge-suggestions" hidden></div>
     <div class="registration-box" id="customer-registration">
@@ -247,8 +249,9 @@
       <div class="field full"><label><input id="customer-do-not-contact" type="checkbox"> Keine Kontaktaufnahme, auch bei vorhandener Einwilligung</label></div>
       <div class="field full"><label for="customer-notes">CRM-Notizen</label><textarea id="customer-notes" rows="5" placeholder="Vorlieben, Beratung und wichtige Hinweise"></textarea></div>
     </div>
-    <div class="customer-history" id="customer-history"></div>
-    <div class="customer-history" id="customer-communications"></div>
+
+    <details class="customer-section"><summary>Terminverlauf</summary><div id="customer-history"></div></details>
+    <details class="customer-section"><summary>Kommunikation</summary><div id="customer-communications"></div></details>
 
     <div class="subsection-head"><div><h2>Fotos &amp; Nachrichten</h2><p class="muted">Chat mit der Kundin inkl. Referenz- und Behandlungsfotos.</p></div></div>
     <div class="customer-chat" id="customer-chat"></div>
@@ -264,6 +267,7 @@
       </div>
       <span class="customer-chat-filename" id="customer-chat-filename"></span>
       <span class="form-message" id="customer-chat-message"></span>
+    </div>
     </div>
 
     <div class="form-message" id="customer-message"></div>

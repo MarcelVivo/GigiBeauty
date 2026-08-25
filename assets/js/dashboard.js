@@ -215,7 +215,7 @@
       const who = item.sender === 'customer' ? esc(item.customers?.full_name || 'Unbekannt') : `${esc(item.customers?.full_name || 'Unbekannt')} <span class="muted">(Antwort von Liliane)</span>`;
       return `<tr class="${isUnread ? 'is-unread' : ''}"><td>${esc(fmt(item.created_at, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }))}</td><td>${who}</td><td>${preview}</td><td>${isUnread ? '<span class="segment segment-new">Neu</span>' : (item.sender === 'customer' ? '<span class="muted">Gelesen</span>' : '')}</td><td><button class="link-button" type="button" data-open-customer-chat="${item.customer_id}">Öffnen</button></td></tr>`;
     }).join('') : '<tr><td colspan="5" class="empty">Noch keine Nachrichten von Kundinnen.</td></tr>';
-    document.querySelectorAll('[data-open-customer-chat]').forEach(button => button.onclick = () => { openCustomer(button.dataset.openCustomerChat); showPanel('customers'); });
+    document.querySelectorAll('[data-open-customer-chat]').forEach(button => button.onclick = () => { openCustomer(button.dataset.openCustomerChat, { focusChat: true }); showPanel('customers'); });
   }
 
   function appointmentRevenue(appointment) {
@@ -1411,7 +1411,7 @@
     toast(`${data} E-Mails wurden für den Versand eingeplant.`); await loadAll();
   }
 
-  function openCustomer(id) {
+  function openCustomer(id, { focusChat = false } = {}) {
     const customer = state.customers.find(item => item.id === id);
     if (!customer) return;
     const stats = customerStats(customer);
@@ -1449,9 +1449,9 @@
     $('customer-registration-actions').innerHTML = registrationActionButtons(customer);
     bindRegistrationActions($('customer-registration-actions'));
     const history = [...stats.items].sort((a, b) => new Date(b.starts_at) - new Date(a.starts_at)).slice(0, 8);
-    $('customer-history').innerHTML = `<h3>Terminverlauf</h3>${stats.legacyBookings ? `<p class="muted">${stats.legacyBookings} historische Buchungen aus dem Kundenimport. Dafür liegen keine einzelnen Termin- oder Preisdaten vor.</p>` : ''}${history.length ? `<div class="history-list">${history.map(appointment => `<div class="history-item"><span>${esc(fmt(appointment.starts_at, { day: '2-digit', month: '2-digit', year: 'numeric' }))} · ${esc(appointment.services?.name || 'Behandlung')}</span><strong>${esc(labelStatus(appointment.status))}${appointment.status === 'completed' ? ` · ${esc(money(appointment.amount_chf ?? appointment.services?.price_chf ?? 0))}` : ''}</strong></div>`).join('')}</div>` : '<p class="muted">Noch keine einzelnen Termine im neuen Kalender erfasst.</p>'}`;
+    $('customer-history').innerHTML = `${stats.legacyBookings ? `<p class="muted">${stats.legacyBookings} historische Buchungen aus dem Kundenimport. Dafür liegen keine einzelnen Termin- oder Preisdaten vor.</p>` : ''}${history.length ? `<div class="history-list">${history.map(appointment => `<div class="history-item"><span>${esc(fmt(appointment.starts_at, { day: '2-digit', month: '2-digit', year: 'numeric' }))} · ${esc(appointment.services?.name || 'Behandlung')}</span><strong>${esc(labelStatus(appointment.status))}${appointment.status === 'completed' ? ` · ${esc(money(appointment.amount_chf ?? appointment.services?.price_chf ?? 0))}` : ''}</strong></div>`).join('')}</div>` : '<p class="muted">Noch keine einzelnen Termine im neuen Kalender erfasst.</p>'}`;
     const communications = state.communications.filter(item => item.customer_id === customer.id).slice(0, 8);
-    $('customer-communications').innerHTML = `<h3>Kommunikation</h3>${communications.length ? `<div class="communication-list">${communications.map(item => `<div class="communication-item"><span class="communication-channel">${esc(({ email: 'E-Mail', phone: 'Telefon', sms: 'SMS', whatsapp: 'WhatsApp', in_person: 'Persönlich', system: 'System' })[item.channel] || item.channel)}</span><span><strong>${esc(item.subject || item.communication_type)}</strong><small>${esc(fmt(item.occurred_at, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }))} · ${esc(item.status)}</small></span></div>`).join('')}</div>` : '<p class="muted">Noch keine Kommunikation protokolliert.</p>'}`;
+    $('customer-communications').innerHTML = `${communications.length ? `<div class="communication-list">${communications.map(item => `<div class="communication-item"><span class="communication-channel">${esc(({ email: 'E-Mail', phone: 'Telefon', sms: 'SMS', whatsapp: 'WhatsApp', in_person: 'Persönlich', system: 'System' })[item.channel] || item.channel)}</span><span><strong>${esc(item.subject || item.communication_type)}</strong><small>${esc(fmt(item.occurred_at, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }))} · ${esc(item.status)}</small></span></div>`).join('')}</div>` : '<p class="muted">Noch keine Kommunikation protokolliert.</p>'}`;
     $('customer-rebook-message').disabled = !customer.email || !customer.marketing_consent || customer.do_not_contact;
     const matches = customer.phone ? state.customers.filter(item => item.id !== customer.id && phoneKey(item.phone) && phoneKey(item.phone) === phoneKey(customer.phone)) : [];
     $('customer-merge-suggestions').hidden = !matches.length;
@@ -1464,6 +1464,11 @@
     loadCustomerChat(customer.id);
     markCustomerMessagesRead(customer.id);
     openModal('customer-modal');
+    const scroll = $('customer-modal').querySelector('.modal-scroll');
+    if (scroll) {
+      if (focusChat) $('customer-chat').scrollIntoView({ block: 'start' });
+      else scroll.scrollTop = 0;
+    }
   }
 
   async function markCustomerMessagesRead(customerId) {
@@ -1495,7 +1500,7 @@
       let html = row.message ? `<p>${esc(row.message)}</p>` : '';
       if (row.photo_path) {
         const url = await signedCustomerPhotoUrl(row.photo_path);
-        if (url) html += `<img src="${url}" alt="" loading="lazy">`;
+        if (url) html += `<a href="${esc(url)}" target="_blank" rel="noopener"><img src="${esc(url)}" alt="" loading="lazy"></a>`;
       }
       html += `<time>${esc(fmt(row.created_at, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }))}${row.category === 'result' ? ' · Behandlungsfoto' : ''}</time>`;
       bubble.innerHTML = html;

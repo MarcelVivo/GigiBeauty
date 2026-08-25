@@ -468,7 +468,11 @@
 .account-chat-bubble { max-width: 82%; padding: .6rem .8rem; border-radius: 14px; font-size: .88rem; line-height: 1.5; }
 .account-chat-bubble.is-customer { justify-self: end; background: linear-gradient(135deg, #c8a06a, #b8903a); color: var(--ink); border-bottom-right-radius: 4px; }
 .account-chat-bubble.is-admin { justify-self: start; background: linear-gradient(135deg, rgba(181,101,118,.28), rgba(181,101,118,.12)); color: var(--gold-light); border: 1px solid rgba(212,175,106,.2); border-bottom-left-radius: 4px; }
-.account-chat-bubble img { display: block; width: 100%; max-width: 220px; margin-top: .45rem; border-radius: 10px; }
+/* Fixed px, not width:100%: inside a non-stretched grid item (justify-self:
+   end/start) a percentage-width image has no stable basis to resolve
+   against and collapses to a sliver -- see .account-chat { display:grid }
+   above. */
+.account-chat-bubble img { display: block; width: 220px; max-width: 100%; height: 200px; object-fit: cover; margin-top: .45rem; border-radius: 10px; cursor: zoom-in; }
 .account-chat-bubble time { display: block; margin-top: .35rem; font-size: .68rem; opacity: .65; }
 
 .account-chat-form textarea {
