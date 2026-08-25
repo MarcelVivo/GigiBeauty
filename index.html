@@ -6136,6 +6136,16 @@
     heroFrozen = true;
   }
 
+  // Raw 'scroll' events can fire far more often than once per rendered frame
+  // (fast trackpad/mouse-wheel input in particular). The freeze/unfreeze
+  // check above is cheap (no DOM reads) and stays on every raw event, but
+  // the offsetHeight read + style writes below are coalesced to at most once
+  // per animation frame via this ticking flag -- same pattern already used
+  // correctly for the botanical rail (requestBotanicalUpdate). window.scrollY
+  // is re-read fresh inside the rAF callback rather than closed over, so a
+  // burst of scroll events before the frame paints never leaves this on a
+  // stale position.
+  let heroScrollTicking = false;
   window.addEventListener('scroll', () => {
     const currentScrollY = window.scrollY;
 
@@ -6147,39 +6157,46 @@
     lastScrollY = currentScrollY;
 
     if (heroFrozen) return;   // still frozen — ignore scroll updates
-    const heroEl = document.getElementById('hero-scroll');
-    const maxScroll = heroEl.offsetHeight - window.innerHeight;
-    // Ground truth only — ALWAYS. This handler never touches scrollProgress
-    // (the value that actually drives rotation) at all, in any branch, under
-    // any condition. animate() is the one and only writer, every single
-    // frame, using one continuous formula (see below) — so there is nothing
-    // here that can conflict with it, no seed/handoff timing to get wrong,
-    // no cushion to run out of, no reset. Real scrolling simply moves this
-    // target; animate() is always smoothly chasing it, and chasing a
-    // stationary target *is* the run-out — same formula, no special case.
-    targetScrollProgress = Math.max(0, Math.min(1, currentScrollY / maxScroll));
-    isPastHero = currentScrollY > maxScroll + 40;
+    if (heroScrollTicking) return;
+    heroScrollTicking = true;
+    requestAnimationFrame(() => {
+      heroScrollTicking = false;
+      if (heroFrozen) return;
+      const scrollY = window.scrollY;
+      const heroEl = document.getElementById('hero-scroll');
+      const maxScroll = heroEl.offsetHeight - window.innerHeight;
+      // Ground truth only — ALWAYS. This handler never touches scrollProgress
+      // (the value that actually drives rotation) at all, in any branch, under
+      // any condition. animate() is the one and only writer, every single
+      // frame, using one continuous formula (see below) — so there is nothing
+      // here that can conflict with it, no seed/handoff timing to get wrong,
+      // no cushion to run out of, no reset. Real scrolling simply moves this
+      // target; animate() is always smoothly chasing it, and chasing a
+      // stationary target *is* the run-out — same formula, no special case.
+      targetScrollProgress = Math.max(0, Math.min(1, scrollY / maxScroll));
+      isPastHero = scrollY > maxScroll + 40;
 
 
-    // Hide scroll hint: desktop → after 60 px; mobile → only once past hero
-    const hint = document.getElementById('scroll-hint');
-    hint.style.opacity = isPastHero ? '0' : '1';
+      // Hide scroll hint: desktop → after 60 px; mobile → only once past hero
+      const hint = document.getElementById('scroll-hint');
+      hint.style.opacity = isPastHero ? '0' : '1';
 
 
-    // First service section: fade in 300 ms after entering, instant hide on return
-    const firstSvc = document.getElementById('section-gel-acryl-nails');
-    if (isPastHero) {
-      if (!firstSvc.classList.contains('svc-revealed') && !_firstSvcTimer) {
-        _firstSvcTimer = setTimeout(() => {
-          firstSvc.classList.add('svc-revealed');
-          _firstSvcTimer = null;
-        }, 300);
+      // First service section: fade in 300 ms after entering, instant hide on return
+      const firstSvc = document.getElementById('section-gel-acryl-nails');
+      if (isPastHero) {
+        if (!firstSvc.classList.contains('svc-revealed') && !_firstSvcTimer) {
+          _firstSvcTimer = setTimeout(() => {
+            firstSvc.classList.add('svc-revealed');
+            _firstSvcTimer = null;
+          }, 300);
+        }
+      } else {
+        clearTimeout(_firstSvcTimer);
+        _firstSvcTimer = null;
+        firstSvc.classList.remove('svc-revealed');
       }
-    } else {
-      clearTimeout(_firstSvcTimer);
-      _firstSvcTimer = null;
-      firstSvc.classList.remove('svc-revealed');
-    }
+    });
   }, { passive: true });
 
 
@@ -6445,6 +6462,7 @@
 
   function animate() {
     requestAnimationFrame(animate);
+    if (document.hidden) return;
 
     const elapsed = clock.getElapsedTime();
     const _now = performance.now();
@@ -8301,15 +8319,23 @@
     let requestedService = new URLSearchParams(location.search).get('service') || '';
     let butterflyRestTimer = 0;
 
+    // getBoundingClientRect() forces layout -- coalesce to once per rendered
+    // frame instead of once per raw scroll event.
+    let butterflyScrollTicking = false;
     const animateBookingButterflyOnScroll = () => {
-      if (!bookingScrollButterfly || !bookingSection) return;
-      const bounds = bookingSection.getBoundingClientRect();
-      if (bounds.bottom < 0 || bounds.top > window.innerHeight) return;
-      bookingScrollButterfly.classList.add('is-scrolling');
-      window.clearTimeout(butterflyRestTimer);
-      butterflyRestTimer = window.setTimeout(() => {
-        bookingScrollButterfly.classList.remove('is-scrolling');
-      }, 240);
+      if (butterflyScrollTicking) return;
+      butterflyScrollTicking = true;
+      requestAnimationFrame(() => {
+        butterflyScrollTicking = false;
+        if (!bookingScrollButterfly || !bookingSection) return;
+        const bounds = bookingSection.getBoundingClientRect();
+        if (bounds.bottom < 0 || bounds.top > window.innerHeight) return;
+        bookingScrollButterfly.classList.add('is-scrolling');
+        window.clearTimeout(butterflyRestTimer);
+        butterflyRestTimer = window.setTimeout(() => {
+          bookingScrollButterfly.classList.remove('is-scrolling');
+        }, 240);
+      });
     };
 
     window.addEventListener('scroll', animateBookingButterflyOnScroll, { passive: true });
@@ -8749,8 +8775,33 @@
     return pts;
   }
 
+  // ── Glow sprite, pre-rendered once ────────────────────────────────────────
+  // ctx.createRadialGradient() was being called fresh per particle, per
+  // frame (180 times, 60x/sec, forever) -- allocating and rasterizing a new
+  // gradient every time is one of the more expensive things you can do on a
+  // 2D canvas. Baking the same gradient into a sprite once and reusing it
+  // via drawImage() (scaled per particle, dimmed via globalAlpha for the
+  // twinkle) produces the same look for a fraction of the cost.
+  const DUST_SPRITE_SIZE = 48;
+  const dustSprite = document.createElement('canvas');
+  dustSprite.width = dustSprite.height = DUST_SPRITE_SIZE;
+  (function paintDustSprite() {
+    const sctx = dustSprite.getContext('2d');
+    const c = DUST_SPRITE_SIZE / 2;
+    const grd = sctx.createRadialGradient(c, c, 0, c, c, c);
+    grd.addColorStop(0.0, 'rgba(255,220,120,1)');
+    grd.addColorStop(0.4, 'rgba(212,175,106,0.6)');
+    grd.addColorStop(1.0, 'rgba(212,175,106,0)');
+    sctx.fillStyle = grd;
+    sctx.beginPath();
+    sctx.arc(c, c, c, 0, Math.PI * 2);
+    sctx.fill();
+  })();
+
   // ── Draw one frame of particles ───────────────────────────────────────────
   function drawParticles(ctx, pts, w, h, t, resetY) {
+    const half = DUST_SPRITE_SIZE / 2;
+    ctx.globalAlpha = 1;
     pts.forEach(p => {
       // Rise & drift
       p.y -= p.vy;
@@ -8765,17 +8816,12 @@
       // Twinkle opacity
       const twinkle = 0.55 + 0.45 * Math.abs(Math.sin(t * p.twinkleSpd + p.phase));
       const alpha   = p.op * twinkle;
+      const size    = p.r * 2.2 * 2;
 
-      // Draw as small glowing dot
-      const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 2.2);
-      grd.addColorStop(0.0, `rgba(255,220,120,${alpha})`);
-      grd.addColorStop(0.4, `rgba(212,175,106,${alpha * 0.6})`);
-      grd.addColorStop(1.0, 'rgba(212,175,106,0)');
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r * 2.2, 0, Math.PI * 2);
-      ctx.fillStyle = grd;
-      ctx.fill();
+      ctx.globalAlpha = alpha;
+      ctx.drawImage(dustSprite, p.x - size / 2, p.y - size / 2, size, size);
     });
+    ctx.globalAlpha = 1;
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -8805,6 +8851,7 @@
   let t = 0;
   function dustLoop() {
     requestAnimationFrame(dustLoop);
+    if (document.hidden) return;
     t += 0.016;
 
     // ── Global dust
@@ -8892,6 +8939,24 @@
     };
   }
 
+  // Same fix as the global dust sprite above: bake the gradient once instead
+  // of calling createRadialGradient() per spark, per frame.
+  const SPARK_SPRITE_SIZE = 32;
+  const sparkSprite = document.createElement('canvas');
+  sparkSprite.width = sparkSprite.height = SPARK_SPRITE_SIZE;
+  (function paintSparkSprite() {
+    const sctx = sparkSprite.getContext('2d');
+    const c = SPARK_SPRITE_SIZE / 2;
+    const g = sctx.createRadialGradient(c, c, 0, c, c, c);
+    g.addColorStop(0.0, 'rgba(255,222,115,1)');
+    g.addColorStop(0.4, 'rgba(212,162,58,0.55)');
+    g.addColorStop(1.0, 'rgba(180,130,30,0)');
+    sctx.fillStyle = g;
+    sctx.beginPath();
+    sctx.arc(c, c, c, 0, Math.PI * 2);
+    sctx.fill();
+  })();
+
   // 30 wisps + 50 sparks per side on desktop; 18 + 30 on mobile
   const NWISP = MOBILE ? 18 : 30;
   const NSPARK = MOBILE ? 30 : 50;
@@ -8919,6 +8984,7 @@
   let t = 0;
   function loop() {
     requestAnimationFrame(loop);
+    if (document.hidden) return;
     t += 0.016;
     ctx.clearRect(0, 0, W, H);
 
@@ -8955,14 +9021,9 @@
       const alpha = s.maxOp * hFade(s.y) * twkl;
       if (alpha < 0.01) return;
 
-      const gr = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 2.6);
-      gr.addColorStop(0.0, `rgba(255,222,115,${alpha})`);
-      gr.addColorStop(0.4, `rgba(212,162,58,${(alpha*0.55).toFixed(3)})`);
-      gr.addColorStop(1.0, 'rgba(180,130,30,0)');
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r * 2.6, 0, Math.PI * 2);
-      ctx.fillStyle = gr;
-      ctx.fill();
+      const size = s.r * 2.6 * 2;
+      ctx.globalAlpha = alpha;
+      ctx.drawImage(sparkSprite, s.x - size / 2, s.y - size / 2, size, size);
     });
 
     ctx.globalAlpha = 1;
@@ -9260,14 +9321,21 @@
   var mx = -300, my = -300;
   var spawnX = -300, spawnY = -300;
   var stars = [];
+  var MAX_STARS = 60;
 
+  /* The dot's position used to be written to style.left/top directly inside
+     the mousemove handler -- a layout-affecting write on every raw input
+     event (mice/trackpads can fire this far faster than 60/frame), fighting
+     the Three.js hero scene + particle canvases for the same main thread
+     and making the cursor visibly lag behind the real pointer. Now mousemove
+     only updates plain numbers; the actual DOM write happens once per
+     rendered frame inside loop(), and uses transform (compositor-only,
+     no layout/paint) instead of left/top. */
   document.addEventListener('mousemove', function(e) {
     mx = e.clientX; my = e.clientY;
-    dot.style.left = mx + 'px';
-    dot.style.top  = my + 'px';
     var dx = mx - spawnX, dy = my - spawnY;
     if (dx*dx + dy*dy > 8) { spawnStar(); spawnX = mx; spawnY = my; }
-  });
+  }, { passive: true });
   document.addEventListener('mouseleave', function() { dot.style.opacity = '0'; });
   document.addEventListener('mouseenter', function() { dot.style.opacity = '1'; });
 
@@ -9281,9 +9349,10 @@
   }
 
   function spawnStar() {
+    if (stars.length >= MAX_STARS) return;
     /* Occasionally spawn 2 stars for denser trail on fast movement */
     var count = Math.random() < 0.4 ? 2 : 1;
-    for (var n = 0; n < count; n++) {
+    for (var n = 0; n < count && stars.length < MAX_STARS; n++) {
       stars.push({
         x:    mx + (Math.random() - 0.5) * 10,
         y:    my + (Math.random() - 0.5) * 10,
@@ -9298,10 +9367,49 @@
     }
   }
 
+  /* Pre-rendered once, reused every frame: ctx.shadowBlur is one of the most
+     expensive Canvas2D operations (an unaccelerated software blur in most
+     engines) -- doing it per-star, per-frame, for a variable star count was
+     the single biggest cost in this loop. Baking the glow into a sprite
+     up front and just drawImage()-ing it per star (same technique already
+     used for the side-edge smoke wisps) keeps the identical look for a
+     fraction of the cost. */
+  var STAR_SPRITE_SIZE = 64;
+  var starSprite = document.createElement('canvas');
+  starSprite.width = starSprite.height = STAR_SPRITE_SIZE;
+  (function paintStarSprite() {
+    var sctx = starSprite.getContext('2d');
+    var c = STAR_SPRITE_SIZE / 2;
+    var r = STAR_SPRITE_SIZE * 0.22;
+    sctx.translate(c, c);
+    sctx.beginPath();
+    for (var j = 0; j < 8; j++) {
+      var ang = (j / 8) * Math.PI * 2 - Math.PI / 2;
+      var rad = (j % 2 === 0) ? r : r * 0.30;
+      if (j === 0) sctx.moveTo(Math.cos(ang) * rad, Math.sin(ang) * rad);
+      else         sctx.lineTo(Math.cos(ang) * rad, Math.sin(ang) * rad);
+    }
+    sctx.closePath();
+    sctx.shadowColor = 'rgba(212,175,106,0.95)';
+    sctx.shadowBlur = r * 2.5;
+    sctx.fillStyle = 'rgba(255,228,100,1)';
+    sctx.fill();
+  })();
+
+  var dotX = mx, dotY = my;
   function loop() {
     requestAnimationFrame(loop);
-    ctx.clearRect(0, 0, cvs.width, cvs.height);
+    if (document.hidden) return;
 
+    /* Compositor-only move: transform, not left/top, so the browser can
+       place the dot without a style/layout/paint pass on the main thread. */
+    if (dotX !== mx || dotY !== my) {
+      dotX = mx; dotY = my;
+      dot.style.transform = 'translate3d(' + dotX + 'px,' + dotY + 'px,0) translate(-50%,-50%)';
+    }
+
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+    var half = STAR_SPRITE_SIZE / 2;
     for (var i = stars.length - 1; i >= 0; i--) {
       var s = stars[i];
       s.x   += s.vx;
@@ -9311,25 +9419,13 @@
       s.rot += s.drot;
       if (s.a <= 0) { stars.splice(i, 1); continue; }
 
+      var scale = s.r / (STAR_SPRITE_SIZE * 0.22);
       ctx.save();
       ctx.globalAlpha = s.a;
       ctx.translate(s.x, s.y);
       ctx.rotate(s.rot);
-
-      /* 4-pointed star (8 vertices alternating outer/inner) */
-      ctx.beginPath();
-      for (var j = 0; j < 8; j++) {
-        var ang = (j / 8) * Math.PI * 2 - Math.PI / 2;
-        var rad = (j % 2 === 0) ? s.r : s.r * 0.30;
-        if (j === 0) ctx.moveTo(Math.cos(ang)*rad, Math.sin(ang)*rad);
-        else         ctx.lineTo(Math.cos(ang)*rad, Math.sin(ang)*rad);
-      }
-      ctx.closePath();
-
-      ctx.shadowColor = 'rgba(212,175,106,0.95)';
-      ctx.shadowBlur  = s.r * 2.5;
-      ctx.fillStyle   = 'rgba(255,228,100,' + s.a + ')';
-      ctx.fill();
+      ctx.scale(scale, scale);
+      ctx.drawImage(starSprite, -half, -half);
       ctx.restore();
     }
   }
@@ -9723,6 +9819,7 @@
 (function () {
   var hint    = document.getElementById('side-scroll-hint');
   var firstSec = document.getElementById('section-gel-acryl-nails');
+  var ticking = false;
   function update() {
     var top = firstSec ? firstSec.getBoundingClientRect().top : Infinity;
     if (top < window.innerHeight * 0.95) {
@@ -9731,7 +9828,13 @@
       hint.classList.add('ssh-visible');
     }
   }
-  window.addEventListener('scroll', update, { passive: true });
+  // getBoundingClientRect() forces layout -- coalesce to once per rendered
+  // frame instead of once per raw scroll event.
+  window.addEventListener('scroll', function () {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () { ticking = false; update(); });
+  }, { passive: true });
   update();
 })();
 </script>
