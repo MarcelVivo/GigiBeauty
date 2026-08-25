@@ -9278,7 +9278,7 @@
       var halfWidth = markerRect.width / 2;
       var minGap = isMobile ? 18 : 34;
       var extraGap = Math.random() * (isMobile ? 14 : 26);
-      var markerX = titleRect.left - railRect.left - halfWidth - minGap - extraGap + markerRect.width * 2 / 3;
+      var markerX = titleRect.left - railRect.left - halfWidth - minGap - extraGap - markerRect.width / 3;
       markerX = Math.max(12, markerX);
 
       /* Anchor the butterfly's bottom edge to the title's vertical middle,
