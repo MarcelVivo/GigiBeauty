@@ -1,0 +1,458 @@
+/* ─── Beauty Konfigurator (AI look preview) ────────────────────────────────
+   Ported from index.html so the customer portal (pages/booking.html) can
+   also open this funnel. Kept visually/behaviorally identical to the
+   homepage version; only the "Jetzt Termin buchen" JS handler differs
+   (see assets/js/beauty-konfigurator.js) since this already lives on the
+   booking page. */
+
+body.treatment-modal-open {
+  overflow: hidden !important;
+}
+
+@keyframes treatmentModalIn {
+  from { opacity: 0; transform: translateY(18px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes treatmentSheetIn {
+  from { opacity: 0; transform: translateY(34px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+  .aip-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 5100;
+    display: grid;
+    place-items: center;
+    padding: 22px;
+    background: rgba(10, 5, 4, 0.82);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+  .aip-backdrop[hidden] { display: none; }
+
+  .aip-modal {
+    position: relative;
+    width: min(100%, 620px);
+    max-height: calc(100dvh - 44px);
+    overflow: auto;
+    padding: clamp(24px, 4vw, 40px);
+    border: 1px solid rgba(232, 197, 121, 0.30);
+    border-radius: 20px;
+    color: rgba(255, 243, 220, 0.94);
+    background-color: #1b110d;
+    background-image: radial-gradient(circle at 92% 4%, rgba(212, 175, 106, 0.13), transparent 18rem);
+    box-shadow: 0 34px 100px rgba(0, 0, 0, 0.58), inset 0 1px 0 rgba(255, 239, 205, 0.06);
+    animation: treatmentModalIn 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .aip-close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    z-index: 2;
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    padding: 0;
+    border: 1px solid rgba(232, 197, 121, 0.24);
+    border-radius: 50%;
+    color: #e8c579;
+    background: rgba(27, 17, 13, 0.7);
+    cursor: pointer;
+    font-size: 1.45rem;
+    line-height: 1;
+  }
+  .aip-close:hover, .aip-close:focus-visible { border-color: rgba(232, 197, 121, 0.68); background: rgba(232, 197, 121, 0.09); outline: none; }
+
+  .aip-kicker {
+    display: block;
+    margin: 0 56px 6px 0;
+    color: rgba(232, 197, 121, 0.72);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+  }
+
+  .aip-modal h2 {
+    margin: 0 56px 18px 0;
+    color: #f1cf86;
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.4rem, 3vw, 1.8rem);
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+
+  .aip-service-tag {
+    display: inline-block;
+    margin-bottom: 20px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    background: rgba(232, 197, 121, 0.12);
+    border: 1px solid rgba(232, 197, 121, 0.3);
+    color: #e8c579;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+  }
+
+  .aip-copy {
+    margin: 0 0 22px;
+    color: rgba(245,230,200,0.82);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.02rem;
+    line-height: 1.7;
+  }
+
+  .aip-primary-btn {
+    display: inline-block;
+    width: 100%;
+    background: linear-gradient(135deg, #c8a06a 0%, #d4af6a 50%, #b8903a 100%);
+    color: #1a0a0a;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 0.92rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 15px 20px;
+    border-radius: 2px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 24px rgba(212,175,106,0.24);
+  }
+  .aip-primary-btn:hover:not(:disabled) { background: linear-gradient(135deg, #d4af6a 0%, #e8c87a 50%, #c8a04a 100%); box-shadow: 0 8px 34px rgba(212,175,106,0.4); }
+  .aip-primary-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+  .aip-secondary-btn {
+    display: block;
+    width: 100%;
+    margin-top: 14px;
+    padding: 10px;
+    border: 0;
+    background: none;
+    color: rgba(255, 238, 207, 0.65);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.86rem;
+    letter-spacing: 0.06em;
+    text-decoration: underline;
+    text-align: center;
+    cursor: pointer;
+  }
+  .aip-secondary-btn:hover { color: #f1cf86; }
+
+  .aip-dropzone {
+    display: grid;
+    place-items: center;
+    gap: 8px;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    margin-bottom: 18px;
+    border: 1.5px dashed rgba(212,175,106,0.4);
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    color: rgba(255, 238, 207, 0.55);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.95rem;
+    text-align: center;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    transition: border-color 0.2s ease;
+  }
+  .aip-dropzone:hover { border-color: rgba(212,175,106,0.75); }
+  .aip-dropzone-icon { font-size: 1.8rem; color: rgba(232,197,121,0.75); }
+  .aip-dropzone img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .aip-dropzone input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+
+  .aip-field { margin-bottom: 8px; }
+  .aip-field label {
+    display: block;
+    margin-bottom: 8px;
+    color: rgba(232, 197, 121, 0.72);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .aip-textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid rgba(212,175,106,0.3);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    color: #f5e6c8;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 78px;
+  }
+  .aip-textarea:focus { outline: none; border-color: rgba(212,175,106,0.7); }
+
+  .aip-preset-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .aip-preset-chip {
+    padding: 9px 16px;
+    border: 1px solid rgba(212,175,106,0.35);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.03);
+    color: rgba(245,230,200,0.85);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.86rem;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .aip-preset-chip:hover { border-color: rgba(212,175,106,0.7); }
+  .aip-preset-chip.is-selected { background: rgba(212,175,106,0.85); border-color: rgba(212,175,106,0.9); color: #1a0a0a; font-weight: 600; }
+
+  .aip-color-row { display: flex; flex-wrap: wrap; gap: 12px; }
+  .aip-color-swatch {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .aip-color-swatch::after {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    background: var(--swatch-colour);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
+  }
+  .aip-color-swatch:hover { transform: scale(1.08); }
+  .aip-color-swatch.is-selected { border-color: rgba(232,197,121,0.95); }
+  .aip-color-swatch.is-selected::before {
+    content: "✓";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  }
+
+  .aip-color-area { margin-bottom: 14px; }
+  .aip-color-area label { margin-bottom: 8px; }
+
+  /* Custom swatch: opens the browser's native full-spectrum colour picker.
+     Shows a small rainbow conic gradient until a colour has been chosen,
+     then behaves exactly like any other swatch (fills with --swatch-colour). */
+  .aip-color-swatch--custom { --swatch-colour: conic-gradient(from 0deg, #ff004c, #ffe000, #33ff00, #00e5ff, #4d5bff, #ff00e5, #ff004c); }
+  .aip-color-swatch--custom::after { background: var(--swatch-colour); }
+  .aip-color-swatch--custom.has-custom-colour::after { background: var(--swatch-colour); }
+  .aip-color-swatch--custom input[type="color"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; padding: 0; }
+
+  .aip-privacy-note {
+    margin: 14px 0 20px;
+    color: rgba(255, 238, 207, 0.48);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.78rem;
+    line-height: 1.55;
+  }
+
+  .aip-error-copy { margin: 0 0 18px; color: rgba(232, 150, 140, 0.92); font-family: 'Cormorant Garamond', serif; font-size: 0.98rem; line-height: 1.6; }
+
+  /* Personal AI before/after slider -- structurally similar clip-path
+     technique to .ba-image but a fully separate instance/class set. */
+  .aip-slider {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    margin-bottom: 18px;
+    overflow: hidden;
+    border-radius: 12px;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .aip-slider.is-locked { cursor: default; }
+  .aip-slider.is-live { cursor: ew-resize; }
+
+  .aip-image { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; background: #100a08; }
+  .aip-image--before { z-index: 2; clip-path: inset(0 50% 0 0); transition: filter 1.2s ease; }
+  .aip-image--before.is-processing { filter: grayscale(70%) sepia(35%) brightness(0.92) contrast(1.05); }
+  .aip-image--after { z-index: 1; }
+
+  .aip-tag {
+    position: absolute;
+    top: 14px;
+    z-index: 3;
+    padding: 5px 12px;
+    border-radius: 999px;
+    color: #1a0a0a;
+    background: rgba(232, 197, 121, 0.88);
+    font: 700 0.62rem 'Cormorant Garamond', serif;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+  .aip-tag--before { left: 14px; }
+  .aip-tag--after { right: 14px; }
+
+  .aip-handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    z-index: 4;
+    width: 2px;
+    background: rgba(212, 175, 106, 0.92);
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  /* Same butterfly artwork/colour logic as the 7 reference sliders' handle
+     (.ba-wing / .ba-wing-fill / .ba-wing-veins) -- reused assets and formula
+     on an entirely separate element set, not the same DOM/instance. */
+  .aip-wing {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 64px;
+    height: 64px;
+    transform: translate(-50%, -50%);
+    filter: drop-shadow(0 3px 9px rgba(0, 0, 0, 0.5));
+  }
+  .aip-arrow {
+    position: absolute;
+    top: calc(50% + 40px);
+    color: rgba(212, 175, 106, 0.92);
+    font: 700 1.1rem/1 Georgia, serif;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+  }
+  .aip-arrow--left { right: calc(50% + 10px); }
+  .aip-arrow--right { left: calc(50% + 10px); }
+
+  .aip-wing-fill,
+  .aip-wing-veins {
+    position: absolute;
+    inset: 0;
+    display: block;
+    -webkit-mask: url('../../../public/images/Butterfly/SchmetterlingNeu-mask.png') center / 100% 100% no-repeat;
+    mask: url('../../../public/images/Butterfly/SchmetterlingNeu-mask.png') center / 100% 100% no-repeat;
+  }
+  .aip-wing-fill {
+    z-index: 1;
+    background:
+      radial-gradient(circle at 24% 28%, #a9d0ec 0%, transparent 46%),
+      radial-gradient(circle at 76% 22%, #f0b8cf 0%, transparent 50%),
+      radial-gradient(circle at 62% 74%, #f8dd7a 0%, transparent 48%),
+      radial-gradient(circle at 22% 76%, #9bd99a 0%, transparent 46%),
+      radial-gradient(circle at 85% 62%, #85d9cd 0%, transparent 42%),
+      radial-gradient(circle at 48% 48%, #ffb37f 0%, transparent 58%);
+  }
+  .aip-wing-veins {
+    z-index: 2;
+    background: url('../../../public/images/Butterfly/SchmetterlingNeu-photo-overlay.png') center / 100% 100% no-repeat;
+  }
+
+  /* Magic sparkle field -- above BOTH photo layers (not hidden behind
+     whichever side the oscillating slider currently covers), scattered
+     across the whole frame, left and right of the butterfly. */
+  .aip-sparkle-field {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .aip-spark, .aip-particle {
+    position: absolute;
+    opacity: 0;
+    animation: aipSparkFly 2.6s ease-out infinite;
+    animation-delay: var(--spark-delay, 0s);
+  }
+  .aip-spark {
+    color: #e8c579;
+    font-size: 13px;
+    text-shadow: 0 0 7px rgba(232, 197, 121, 0.85), 0 0 2px rgba(255, 255, 255, 0.6);
+  }
+  .aip-particle {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff6d8 0%, #e8c579 45%, transparent 75%);
+    box-shadow: 0 0 6px rgba(232, 197, 121, 0.9);
+  }
+  @keyframes aipSparkFly {
+    0% { opacity: 0; transform: translate(-50%, -50%) translate(0, 0) scale(0.3); }
+    22% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--spark-dx, 0px), var(--spark-dy, 0px)) scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .aip-spark, .aip-particle { animation: none; opacity: 0; }
+  }
+
+  .aip-generating-copy {
+    margin: 0 0 18px;
+    color: rgba(255, 238, 207, 0.7);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.98rem;
+    text-align: center;
+    line-height: 1.6;
+  }
+  .aip-generating-copy small { display: block; margin-top: 4px; color: rgba(255, 238, 207, 0.42); font-size: 0.78rem; }
+
+  /* The one decisive moment after seeing the result: a single booking CTA,
+     with the data-transfer consent built right into the same card instead
+     of a separate, easy-to-ignore secondary action. */
+  .aip-result-cta {
+    margin-top: 8px;
+    padding: 20px;
+    border: 1px solid rgba(212,175,106,0.3);
+    border-radius: 14px;
+    background: linear-gradient(160deg, rgba(212,175,106,0.1), rgba(110,56,76,0.1));
+  }
+  .aip-result-headline {
+    margin: 0 0 14px;
+    color: #f1cf86;
+    font-family: 'Playfair Display', serif;
+    font-weight: 400;
+    font-style: italic;
+    font-size: 1.15rem;
+    text-align: center;
+  }
+  .aip-consent-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 16px;
+    color: rgba(245,230,200,0.8);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    cursor: pointer;
+  }
+  .aip-consent-check input { margin-top: 3px; accent-color: #d4af6a; }
+
+  @media (max-width: 767px) {
+    .aip-backdrop { align-items: end; padding: 8px 8px max(8px, env(safe-area-inset-bottom)); }
+    .aip-modal { width: 100%; max-height: calc(100dvh - 16px); padding: 26px 18px 22px; border-radius: 20px 20px 12px 12px; animation-name: treatmentSheetIn; }
+    .aip-modal h2 { margin-right: 44px; font-size: 1.35rem; }
+    .aip-close { top: 14px; right: 14px; width: 40px; height: 40px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aip-modal { transition: none; animation: none; }
+  }

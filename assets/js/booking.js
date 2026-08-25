@@ -94,6 +94,10 @@
     renderServices(scrollBehavior);
   }
 
+  // Lets the Beauty Konfigurator (assets/js/beauty-konfigurator.js) hand off
+  // the chosen treatment to this booking flow once it lives on this page too.
+  window.gigiSelectService = slug => selectServiceBySlug(slug, 'smooth');
+
   window.addEventListener('message', event => {
     if (event.origin !== window.location.origin || event.source !== window.parent) return;
     if (event.data?.type !== 'gigi-select-booking-service') return;

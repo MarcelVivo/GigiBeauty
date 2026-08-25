@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="../assets/css/global.css">
   <link rel="stylesheet" href="../assets/css/pages/nav.css">
   <link rel="stylesheet" href="../assets/css/pages/booking.css?v=20260811-4">
+  <link rel="stylesheet" href="../assets/css/pages/beauty-konfigurator.css">
 </head>
 <body class="booking-page">
   <nav id="site-nav">
@@ -145,6 +146,15 @@
 
       <div class="account-divider"></div>
 
+      <div class="account-invite">
+        <span class="account-invite-eyebrow">✦ Beauty Konfigurator</span>
+        <h4>Wie würde dein neuer Look aussehen?</h4>
+        <p>Lade ein Foto hoch und probiere Nägel, Lashes, Permanent Make-up und mehr virtuell an – bevor du deinen Termin buchst.</p>
+        <button class="btn" type="button" data-ai-preview="">Jetzt ausprobieren</button>
+      </div>
+
+      <div class="account-divider"></div>
+
       <div class="account-subhead-row">
         <h3 class="account-subhead">Deine Reise bei GiGi Beauty</h3>
         <span class="account-count-badge" id="account-count-badge"></span>
@@ -191,12 +201,87 @@
     </section>
   </div>
 
+  <div class="aip-backdrop" id="aip-backdrop" hidden>
+    <section class="aip-modal" role="dialog" aria-modal="true" aria-labelledby="aip-title">
+      <button class="aip-close" id="aip-close" type="button" aria-label="Schliessen">×</button>
+      <span class="aip-kicker">GiGi Beauty Konfigurator</span>
+      <h2 id="aip-title">Dein Look. Deine Idee.</h2>
+      <span class="aip-service-tag" id="aip-service-tag"></span>
+
+      <div data-aip-panel="intro">
+        <p class="aip-copy">Lade dein Foto hoch und entdecke, wie dein gewünschter Beauty-Look an dir aussehen könnte.</p>
+        <div class="aip-field" id="aip-treatment-field" hidden>
+          <label>Welche Behandlung möchtest du testen?</label>
+          <div class="aip-preset-grid" id="aip-treatment-grid"></div>
+        </div>
+        <button class="aip-primary-btn" type="button" id="aip-start-upload" disabled>Foto auswählen</button>
+      </div>
+
+      <div data-aip-panel="upload" hidden>
+        <label class="aip-dropzone" id="aip-dropzone">
+          <span class="aip-dropzone-icon" id="aip-dropzone-icon" aria-hidden="true">📷</span>
+          <span id="aip-dropzone-label">Foto auswählen (JPG, PNG oder WEBP)</span>
+          <input type="file" id="aip-file-input" accept="image/jpeg,image/jpg,image/png,image/webp">
+        </label>
+        <div class="aip-field" id="aip-preset-field" hidden>
+          <label>Wähle einen Stil</label>
+          <div class="aip-preset-grid" id="aip-preset-grid"></div>
+        </div>
+        <div id="aip-color-areas"></div>
+        <div class="aip-field">
+          <label for="aip-wish" id="aip-wish-label">Weitere Wünsche (optional)</label>
+          <textarea class="aip-textarea" id="aip-wish" rows="2"></textarea>
+        </div>
+        <div class="aip-field">
+          <label for="aip-name">Dein Name (optional)</label>
+          <input type="text" class="aip-textarea" id="aip-name" placeholder="Damit Liliane deine Farbwahl beim Termin zuordnen kann" autocomplete="name">
+        </div>
+        <p class="aip-privacy-note">Dein Foto wird ausschliesslich zur Erstellung deiner persönlichen KI-Vorschau verarbeitet und danach nicht dauerhaft gespeichert.</p>
+        <button class="aip-primary-btn" type="button" id="aip-generate" disabled>Meinen Look erstellen</button>
+      </div>
+
+      <div data-aip-panel="stage" hidden>
+        <div class="aip-slider is-locked" id="aip-slider" role="slider" tabindex="0" aria-label="Vorher/Nachher-Vergleich deines persönlichen Looks" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+          <img class="aip-image aip-image--after" id="aip-image-after" src="" alt="Dein KI-Look">
+          <div class="aip-sparkle-field" id="aip-sparkle-field" aria-hidden="true"></div>
+          <img class="aip-image aip-image--before" id="aip-image-before" src="" alt="Dein Originalfoto">
+          <span class="aip-tag aip-tag--before">Vorher</span>
+          <span class="aip-tag aip-tag--after">Nachher</span>
+          <div class="aip-handle" id="aip-handle">
+            <span class="aip-wing">
+              <span class="aip-wing-fill" id="aip-wing-fill" aria-hidden="true"></span>
+              <span class="aip-wing-veins" aria-hidden="true"></span>
+            </span>
+            <span class="aip-arrow aip-arrow--left" aria-hidden="true">❮</span>
+            <span class="aip-arrow aip-arrow--right" aria-hidden="true">❯</span>
+          </div>
+        </div>
+        <p class="aip-generating-copy" id="aip-generating-copy" hidden>Wir kreieren deinen persönlichen Look …<small>Deine natürlichen Merkmale bleiben erhalten.</small></p>
+        <div class="aip-result-cta" id="aip-result-cta" hidden>
+          <p class="aip-result-headline">Dein Look ist bereit.</p>
+          <label class="aip-consent-check">
+            <input type="checkbox" id="aip-consent-checkbox">
+            <span>Mein Foto und meine Farbwahl werden an GiGi Beauty übermittelt, damit Liliane bei meinem Termin bestens vorbereitet ist.</span>
+          </label>
+          <button class="aip-primary-btn" type="button" id="aip-book">Jetzt Termin buchen</button>
+          <button class="aip-secondary-btn" type="button" id="aip-retry">Anderen Look testen</button>
+        </div>
+      </div>
+
+      <div data-aip-panel="error" hidden>
+        <p class="aip-error-copy">Dein Look konnte gerade nicht erstellt werden.<br>Bitte versuche es noch einmal.</p>
+        <button class="aip-primary-btn" type="button" id="aip-error-retry">Erneut versuchen</button>
+      </div>
+    </section>
+  </div>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../assets/js/supabase-config.js"></script>
   <script src="../assets/js/main.js"></script>
   <script src="../assets/js/booking.js?v=20260811-2"></script>
+  <script src="../assets/js/beauty-konfigurator.js"></script>
   <script src="../assets/js/password-toggle.js"></script>
   <script>
     if (document.documentElement.classList.contains('booking-embed')) {
