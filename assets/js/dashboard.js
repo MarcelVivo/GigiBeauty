@@ -614,9 +614,12 @@
   // Zieht einen Termin auf Tag+Uhrzeit (15-Minuten-Raster): Kollisionen
   // werden clientseitig geprüft (dieselbe Formel wie booking.js
   // slotStatus()), die DB-Exclusion-Constraint appointments_no_overlap
-  // bleibt das eigentliche Sicherheitsnetz. Nach erfolgreichem Verschieben
-  // bietet das Flyout-Menü optional den Versand einer Bestätigungsmail an --
-  // siehe offerRescheduleEmail() -- statt sie automatisch zu verschicken.
+  // bleibt das eigentliche Sicherheitsnetz. Die Änderung wird sofort
+  // gespeichert (kein Bestätigungsschritt, der jede Verschiebung ausbremst)
+  // -- stattdessen zeigt das Flyout-Menü danach IMMER "Rückgängig" (1 Klick
+  // stellt die alte Zeit wieder her) und, falls möglich, den optionalen
+  // Mailversand. Der verschobene Termin pulsiert kurz, damit man ihn auf
+  // Anhieb wiederfindet.
   async function rescheduleAppointment(appointmentId, dateKey, minutesOfDay) {
     const appointment = state.appointments.find(a => a.id === appointmentId);
     if (!appointment || !dateKey || minutesOfDay == null) return;
@@ -633,11 +636,16 @@
     const result = await db.from('appointments').update({ starts_at: newStart.toISOString(), ends_at: newEnd.toISOString() }).eq('id', appointmentId);
     if (result.error) { toast(result.error.message); return; }
     await loadAll();
-    if (appointment.status === 'booked' && !appointment.is_private && appointment.customer_email) {
-      offerRescheduleEmail(appointmentId, oldStart, newStart);
-    } else {
-      toast('Termin verschoben.');
-    }
+    pulseAppointment(appointmentId);
+    const canEmail = appointment.status === 'booked' && !appointment.is_private && !!appointment.customer_email;
+    offerRescheduleEmail(appointmentId, oldStart, oldEnd, newStart, canEmail);
+  }
+
+  function pulseAppointment(appointmentId) {
+    const el = document.querySelector(`.calendar-event[data-edit-appointment="${appointmentId}"]`);
+    if (!el) return;
+    el.classList.add('is-just-moved');
+    setTimeout(() => el.classList.remove('is-just-moved'), 3000);
   }
 
   // Hält der Admin die Terminkarte beim Ziehen über "←"/"→" (Wochenwechsel),
@@ -665,15 +673,21 @@
   }
 
   // Flyout nach jedem erfolgreichen Verschieben eines Termins (Drag & Drop
-  // oder manuelle Bearbeitung im Dialog): Admin entscheidet pro Vorgang, ob
-  // die Kundin eine automatische Verschiebungs-Bestätigung erhält. Der
+  // oder manuelle Bearbeitung im Dialog): erscheint IMMER, unabhängig davon,
+  // ob eine E-Mail-Adresse hinterlegt ist -- "Rückgängig" macht die alte
+  // Zeit mit einem Klick wieder her (die Verschiebung selbst ist ja längst
+  // gespeichert, siehe rescheduleAppointment()), "Bestätigungsmail senden"
+  // erscheint nur, wenn die Kundin überhaupt per Mail erreichbar ist. Der
   // eigentliche Versand läuft über die bestehende email_outbox/Resend-
   // Pipeline (RPC queue_reschedule_email, siehe Migration).
   let rescheduleFlyoutTimer = null;
-  function offerRescheduleEmail(appointmentId, oldStart, newStart) {
+  function offerRescheduleEmail(appointmentId, oldStart, oldEnd, newStart, canEmail) {
     const flyout = $('reschedule-flyout');
     const range = value => `${fmt(value, { weekday: 'short', day: '2-digit', month: '2-digit' })}, ${fmt(value, { hour: '2-digit', minute: '2-digit' })} Uhr`;
-    $('reschedule-flyout-detail').textContent = `Von ${range(oldStart)} auf ${range(newStart)}. Soll die Kundin eine automatische Bestätigung per E-Mail erhalten?`;
+    $('reschedule-flyout-detail').textContent = canEmail
+      ? `Von ${range(oldStart)} auf ${range(newStart)}. Soll die Kundin eine automatische Bestätigung per E-Mail erhalten?`
+      : `Von ${range(oldStart)} auf ${range(newStart)}.`;
+    $('reschedule-flyout-send').hidden = !canEmail;
     flyout.hidden = false;
     requestAnimationFrame(() => flyout.classList.add('is-visible'));
     clearTimeout(rescheduleFlyoutTimer);
@@ -683,7 +697,15 @@
       const { error } = await db.rpc('queue_reschedule_email', { requested_appointment_id: appointmentId });
       toast(error ? error.message : 'Bestätigungsmail wurde eingeplant.');
     };
-    $('reschedule-flyout-skip').onclick = () => { hideRescheduleFlyout(); toast('Termin verschoben.'); };
+    $('reschedule-flyout-undo').onclick = async () => {
+      hideRescheduleFlyout();
+      const result = await db.from('appointments').update({ starts_at: oldStart.toISOString(), ends_at: oldEnd.toISOString() }).eq('id', appointmentId);
+      if (result.error) { toast(result.error.message); return; }
+      await loadAll();
+      pulseAppointment(appointmentId);
+      toast('Verschieben rückgängig gemacht.');
+    };
+    $('reschedule-flyout-close').onclick = hideRescheduleFlyout;
   }
   function hideRescheduleFlyout() {
     clearTimeout(rescheduleFlyoutTimer);
@@ -694,6 +716,28 @@
 
   function taskTypeLabel(type) {
     return ({ registration_invite: 'Kundenlogin', missing_email: 'Datenpflege', rebooking: 'Wiederbuchung', winback: 'Reaktivierung', birthday: 'Geburtstag', low_stock: 'Lager', waitlist: 'Warteliste' })[type] || 'CRM';
+  }
+
+  // Änderungsprotokoll: audit_log speichert bei jeder Änderung die
+  // komplette alte/neue Zeile (old_data/new_data, siehe
+  // audit_business_change() in den Migrationen) -- hier wird daraus eine
+  // lesbare Zeile, insbesondere "wann war der Termin VORHER", damit sich
+  // Testverschiebungen oder versehentliche Änderungen nachvollziehen lassen.
+  function auditDetail(entry) {
+    const before = entry.old_data || {};
+    const after = entry.new_data || {};
+    const dateTime = value => esc(fmt(value, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }));
+    if (entry.table_name === 'appointments') {
+      const name = esc(after.customer_name || before.customer_name || 'Termin');
+      if (entry.action === 'update' && before.starts_at && after.starts_at && before.starts_at !== after.starts_at) {
+        return `${name}: ${dateTime(before.starts_at)} → ${dateTime(after.starts_at)}`;
+      }
+      if (entry.action === 'insert' && after.starts_at) return `${name} (${dateTime(after.starts_at)})`;
+      if (entry.action === 'delete') return `${name} gelöscht`;
+      return name;
+    }
+    if (entry.table_name === 'customers') return esc(after.full_name || before.full_name || entry.record_id || '–');
+    return `<span class="muted">${esc(entry.record_id || '–')}</span>`;
   }
 
   function registrationActionButtons(customer, compact = false) {
@@ -743,7 +787,7 @@
       const admin = state.profiles.find(profile => profile.id === task.completed_by);
       return `<tr><td>${task.completed_at ? esc(fmt(task.completed_at, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })) : '–'}</td><td><strong>${esc(task.title)}</strong></td><td>${task.status === 'done' ? '<span class="status status-completed">Erledigt</span>' : '<span class="status status-cancelled">Nicht relevant</span>'}</td><td>${esc(admin?.full_name || 'System')}</td><td>${esc(task.dismissed_reason || '–')}</td></tr>`;
     }).join('') : '<tr><td colspan="5" class="empty">Noch keine abgeschlossenen Aufgaben.</td></tr>';
-    $('audit-table').innerHTML = state.auditLog.length ? state.auditLog.slice(0, 25).map(entry => `<tr><td>${esc(fmt(entry.changed_at, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }))}</td><td>${esc(({ customers: 'Kundenprofil', appointments: 'Termin', payments: 'Zahlung', expenses: 'Ausgabe', inventory_items: 'Lagerprodukt', waitlist_entries: 'Warteliste', services: 'Website-Inhalt', service_price_items: 'Preisposition', site_content_blocks: 'Website-Text' })[entry.table_name] || entry.table_name)}</td><td>${esc(({ insert: 'Erstellt', update: 'Geändert', delete: 'Gelöscht' })[entry.action] || entry.action)}</td><td><span class="muted">${esc(entry.record_id || '–')}</span></td></tr>`).join('') : '<tr><td colspan="4" class="empty">Noch keine Änderungen protokolliert.</td></tr>';
+    $('audit-table').innerHTML = state.auditLog.length ? state.auditLog.slice(0, 25).map(entry => `<tr><td>${esc(fmt(entry.changed_at, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }))}</td><td>${esc(({ customers: 'Kundenprofil', appointments: 'Termin', payments: 'Zahlung', expenses: 'Ausgabe', inventory_items: 'Lagerprodukt', waitlist_entries: 'Warteliste', services: 'Website-Inhalt', service_price_items: 'Preisposition', site_content_blocks: 'Website-Text' })[entry.table_name] || entry.table_name)}</td><td>${esc(({ insert: 'Erstellt', update: 'Geändert', delete: 'Gelöscht' })[entry.action] || entry.action)}</td><td>${auditDetail(entry)}</td></tr>`).join('') : '<tr><td colspan="4" class="empty">Noch keine Änderungen protokolliert.</td></tr>';
     document.querySelectorAll('[data-open-customer]').forEach(button => button.onclick = () => openCustomer(button.dataset.openCustomer));
     document.querySelectorAll('[data-complete-task]').forEach(button => button.onclick = () => completeTask(button.dataset.completeTask, 'done'));
     document.querySelectorAll('[data-snooze-task]').forEach(button => button.onclick = () => openTaskSnooze(button.dataset.snoozeTask));
@@ -1550,8 +1594,10 @@
     const result = id ? await db.from('appointments').update(payload).eq('id', id) : await db.from('appointments').insert(payload);
     if (result.error) { $('appointment-message').textContent = result.error.message; return; }
     closeModal('appointment-modal'); await loadAll();
-    if (existing && !privateEntry && payload.status === 'booked' && payload.customer_email && new Date(existing.starts_at).getTime() !== start.getTime()) {
-      offerRescheduleEmail(id, new Date(existing.starts_at), start);
+    if (existing && new Date(existing.starts_at).getTime() !== start.getTime()) {
+      pulseAppointment(id);
+      const canEmail = !privateEntry && payload.status === 'booked' && !!payload.customer_email;
+      offerRescheduleEmail(id, new Date(existing.starts_at), new Date(existing.ends_at), start, canEmail);
     } else {
       toast(id ? 'Termin aktualisiert.' : 'Termin eingetragen.');
     }

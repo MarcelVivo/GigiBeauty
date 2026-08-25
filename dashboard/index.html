@@ -88,7 +88,7 @@
         <div class="subsection-head"><div><h2>Aufgabenverlauf</h2><p>Erledigte und bewusst als nicht relevant markierte Aufgaben.</p></div></div>
         <div class="table-wrap"><table><thead><tr><th>Abschluss</th><th>Aufgabe</th><th>Status</th><th>Admin</th><th>Begründung</th></tr></thead><tbody id="task-history"></tbody></table></div>
         <div class="subsection-head"><div><h2>Änderungsprotokoll</h2><p>Nachvollziehbarkeit für Admin 01 und Admin 02.</p></div></div>
-        <div class="table-wrap"><table><thead><tr><th>Zeit</th><th>Bereich</th><th>Aktion</th><th>Datensatz</th></tr></thead><tbody id="audit-table"></tbody></table></div>
+        <div class="table-wrap"><table><thead><tr><th>Zeit</th><th>Bereich</th><th>Aktion</th><th>Details</th></tr></thead><tbody id="audit-table"></tbody></table></div>
       </section>
 
       <section class="view-panel" data-view-panel="calendar" hidden>
@@ -338,10 +338,11 @@
 
   <div class="toast" id="toast" role="status"></div>
   <div class="reschedule-flyout" id="reschedule-flyout" hidden>
+    <button class="reschedule-flyout-close" type="button" id="reschedule-flyout-close" aria-label="Schliessen">×</button>
     <strong>Termin verschoben.</strong>
     <p id="reschedule-flyout-detail"></p>
     <div class="reschedule-flyout-actions">
-      <button class="secondary" type="button" id="reschedule-flyout-skip">Nicht senden</button>
+      <button class="secondary" type="button" id="reschedule-flyout-undo">Rückgängig</button>
       <button class="primary" type="button" id="reschedule-flyout-send">Bestätigungsmail senden</button>
     </div>
   </div>
