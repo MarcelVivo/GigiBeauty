@@ -172,6 +172,9 @@
     pendingServiceSlug = null;
     renderServices();
     await restoreSession();
+    if (new URLSearchParams(location.search).get('auth')) {
+      if (state.user) openAccount(); else openModal(els.authModal);
+    }
     await refreshCalendar();
   }
 
