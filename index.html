@@ -693,8 +693,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 0 28px;
+    gap: 8px;
+    padding: 0 22px;
     height: 62px;
     background: rgba(33, 23, 17, 0.90);
     backdrop-filter: blur(16px);
@@ -727,12 +727,12 @@
 
   .nav-links a {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 0.75rem;
-    letter-spacing: 0.13em;
+    font-size: 0.71rem;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
     color: #d4af6a;
     text-decoration: none;
-    padding: 6px 8px;
+    padding: 6px 6px;
     border-radius: 2px;
     transition: color 0.2s ease, background 0.2s ease;
     white-space: nowrap;
@@ -777,24 +777,21 @@
     letter-spacing: 0.22em;
   }
 
-  /* Kundenlogin — quiet outline pill, sits before Termin buchen */
+  /* Kundenlogin — quiet icon-only circle, sits before Termin buchen */
   .nav-login-btn {
     display: inline-flex;
     align-items: center;
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 0.72rem;
-    letter-spacing: 0.13em;
-    text-transform: uppercase;
-    text-decoration: none;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
     color: #d4af6a;
     background: transparent;
     border: 1px solid rgba(212,175,106,0.42);
-    padding: 8px 15px;
-    border-radius: 999px;
-    white-space: nowrap;
+    border-radius: 50%;
     flex-shrink: 0;
     transition: all 0.22s ease;
   }
+  .nav-login-btn svg { display: block; width: 15px; height: 15px; }
   .nav-login-btn:hover {
     color: #211711;
     background: rgba(212,175,106,0.85);
@@ -802,37 +799,13 @@
   }
 
   /* Extra gap before the About button, tighter gap before Termin buchen */
-  .nav-links .nav-about-li { margin-left: .9rem; }
-  .nav-cta-btn             { margin-left: -10px; }
+  .nav-links .nav-about-li { margin-left: .7rem; }
+  .nav-cta-btn             { margin-left: -6px; }
 
   /* "Über GiGi Beauty" and "Kundenlogin" live as external .nav-cta-btn /
      .nav-login-btn siblings on desktop; these duplicates keep them reachable
      from the mobile hamburger menu, where the external buttons are hidden. */
-  @media (min-width: 1481px) { .nav-about-li-mobile, .nav-login-li-mobile { display: none; } }
-
-  #lang-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 0.70rem;
-    letter-spacing: 0.20em;
-    text-transform: uppercase;
-    color: rgba(212,175,106,0.8);
-    background: transparent;
-    border: 1px solid rgba(212,175,106,0.32);
-    padding: 7px 11px;
-    border-radius: 2px;
-    white-space: nowrap;
-    flex-shrink: 0;
-    cursor: pointer;
-    transition: color 0.22s ease, border-color 0.22s ease, background 0.22s ease;
-  }
-  #lang-btn:hover {
-    color: #d4af6a;
-    border-color: rgba(212,175,106,0.65);
-    background: rgba(212,175,106,0.07);
-  }
+  @media (min-width: 1261px) { .nav-about-li-mobile, .nav-login-li-mobile { display: none; } }
 
   /* Hamburger (mobile) */
   .nav-hamburger {
@@ -857,9 +830,10 @@
   #top-nav.menu-open .nav-hamburger span:nth-child(2) { opacity: 0; }
   #top-nav.menu-open .nav-hamburger span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-  @media (max-width: 1480px) {
+  @media (max-width: 1260px) {
     .nav-hamburger { display: flex; }
     .nav-cta-btn   { display: none; }   /* moves into hamburger menu */
+    #top-nav > .nav-login-btn { display: none; }   /* moves into hamburger menu */
     .nav-links {
       display: none;
       position: fixed;
@@ -883,7 +857,8 @@
     /* Reset desktop-only spacing adjustments */
     .nav-links .nav-about-li { margin-left: 0; }
     .nav-links .nav-about-btn { display: block; padding: 13px 32px; border-radius: 0; }
-    .nav-links .nav-login-btn { display: block; border: 0; border-top: 1px solid rgba(212,175,106,0.15); padding: 13px 32px; border-radius: 0; background: transparent; color: #d4af6a; }
+    .nav-links .nav-login-btn { display: block; width: auto; height: auto; border: 0; border-top: 1px solid rgba(212,175,106,0.15); padding: 13px 32px; border-radius: 0; background: transparent; color: #d4af6a; font-size: 0.88rem; letter-spacing: 0.13em; text-transform: uppercase; }
+    .nav-links .nav-login-btn svg { display: none; }
   }
 
   /* ═══════════════════════════════════════════════════════════════
@@ -1893,21 +1868,12 @@
       border-bottom-color: rgba(212, 175, 106, 0.18);
     }
     .nav-logo img { height: 35px; }
-    #lang-btn {
-      min-width: 42px;
-      min-height: 38px;
-      margin-left: auto;
-      padding: 6px 8px 6px 10px;
-      font-size: 0.68rem;
-      letter-spacing: 0.16em;
-      border-color: rgba(212, 175, 106, 0.28);
-    }
     .nav-hamburger {
       display: flex !important;
       width: 44px;
       height: 44px;
       align-items: center;
-      margin-left: 2px;
+      margin-left: auto;
       padding: 0;
     }
     .nav-hamburger span { width: 25px; }
@@ -3960,7 +3926,7 @@
   </a>
 
   <button class="nav-ai-badge" type="button" id="nav-ai-badge">
-    <span class="nav-ai-badge-icon" aria-hidden="true">✦</span><span class="nav-ai-badge-label">AI Beauty Preview</span>
+    <span class="nav-ai-badge-icon" aria-hidden="true">✦</span><span class="nav-ai-badge-label">AI Preview</span>
   </button>
 
   <ul class="nav-links" id="nav-links">
@@ -3976,10 +3942,10 @@
     <li class="nav-login-li-mobile"><a href="pages/booking.html?auth=1" class="nav-login-btn">Kundenlogin</a></li>
   </ul>
 
-  <a class="nav-cta-btn nav-login-btn" href="pages/booking.html?auth=1">Kundenlogin</a>
+  <a class="nav-login-btn" href="pages/booking.html?auth=1" aria-label="Kundenlogin" title="Kundenlogin">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.2" r="3.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 20c1.2-4 4-6.2 7.5-6.2s6.3 2.2 7.5 6.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </a>
   <a class="nav-cta-btn" href="ueber-liliane.html">Über uns</a>
-
-  <button id="lang-btn" aria-label="Sprache wechseln">PT</button>
 
   <button class="nav-hamburger" aria-label="Menü" aria-controls="nav-links" aria-expanded="false" onclick="toggleNav(this)">
     <span></span><span></span><span></span>
@@ -4034,7 +4000,7 @@
     if (!standard || !desktopAnchor || !compactAnchor) return;
 
     const alignStandard = () => {
-      const compact = window.matchMedia('(max-width: 1480px)').matches;
+      const compact = window.matchMedia('(max-width: 1260px)').matches;
       const anchor = compact ? compactAnchor : desktopAnchor;
       const anchorBox = anchor.getBoundingClientRect();
       const standardWidth = standard.getBoundingClientRect().width;
@@ -8969,7 +8935,7 @@
     ['navGel','navPmu','navPedicure','navFillers','navLashes','navKorean','navNatural','navBook']
       .forEach(function(k,i){ if(nl[i]) nl[i].textContent = t[k]; });
     qa('.nav-cta-btn:not(.nav-login-btn), .nav-about-li-mobile a').forEach(function(el){ el.textContent = t.navLiliane; });
-    qa('.nav-login-btn').forEach(function(el){ el.textContent = t.navLogin; });
+    qa('.nav-login-li-mobile .nav-login-btn').forEach(function(el){ el.textContent = t.navLogin; });
 
     // ── Hero ─────────────────────────────────────────────────────────────────
     var ha=q('#cta a');  if(ha) ha.textContent = t.heroCta;
@@ -9074,23 +9040,14 @@
       if(k && t[k]!==undefined) el.innerHTML=t[k];
     });
 
-    // ── Lang button label ─────────────────────────────────────────────────────
-    var btn=document.getElementById('lang-btn');
-    if(btn) btn.textContent = lang==='de' ? 'PT' : 'DE';
-
     localStorage.setItem('gigi-lang', lang);
     document.documentElement.lang = lang;
     _lang = lang;
   }
 
-  // Restore saved language
+  // Restore saved language (no visible switcher for now -- see #lang-btn removal)
   _lang = localStorage.getItem('gigi-lang') || 'de';
   applyLang(_lang);
-
-  // Toggle on button click
-  document.getElementById('lang-btn').addEventListener('click', function(){
-    applyLang(_lang === 'de' ? 'pt' : 'de');
-  });
 
   // Expose to the dashboard-content loader further down the page, so DB
   // edits can patch T.de and re-apply instead of only touching the DOM

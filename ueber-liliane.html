@@ -63,8 +63,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 0 28px;
+    gap: 8px;
+    padding: 0 22px;
     height: 62px;
     background: rgba(47, 37, 28, 0.85);
     backdrop-filter: blur(16px);
@@ -93,12 +93,12 @@
 
   .nav-links a {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 0.75rem;
-    letter-spacing: 0.13em;
+    font-size: 0.71rem;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
     color: #d4af6a;
     text-decoration: none;
-    padding: 6px 8px;
+    padding: 6px 6px;
     border-radius: 2px;
     transition: color 0.2s ease, background 0.2s ease;
     white-space: nowrap;
@@ -140,24 +140,22 @@
     letter-spacing: 0.22em;
   }
 
-  /* Kundenlogin — quiet outline pill, sits before Termin buchen */
+  /* Kundenlogin — quiet icon-only circle, sits before Termin buchen */
   .nav-login-btn {
     display: inline-flex;
     align-items: center;
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 0.72rem;
-    letter-spacing: 0.13em;
-    text-transform: uppercase;
-    text-decoration: none;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
     color: #d4af6a;
     background: transparent;
     border: 1px solid rgba(212,175,106,0.42);
-    padding: 8px 15px;
-    border-radius: 999px;
-    white-space: nowrap;
+    border-radius: 50%;
     flex-shrink: 0;
     transition: all 0.22s ease;
   }
+  .nav-login-btn svg { display: block; width: 15px; height: 15px; }
   .nav-login-btn:hover {
     color: #211711;
     background: rgba(212,175,106,0.85);
@@ -165,8 +163,8 @@
   }
 
   /* Extra gap before the About button, tighter gap before Termin buchen */
-  .nav-links .nav-about-li { margin-left: .9rem; }
-  .nav-cta-btn             { margin-left: -10px; }
+  .nav-links .nav-about-li { margin-left: .7rem; }
+  .nav-cta-btn             { margin-left: -6px; }
 
   .nav-hamburger {
     display: none;
@@ -186,34 +184,11 @@
     transition: transform 0.25s ease, opacity 0.2s ease;
   }
 
-  #lang-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 0.70rem;
-    letter-spacing: 0.20em;
-    text-transform: uppercase;
-    color: rgba(212,175,106,0.8);
-    background: transparent;
-    border: 1px solid rgba(212,175,106,0.32);
-    padding: 7px 11px;
-    border-radius: 2px;
-    white-space: nowrap;
-    flex-shrink: 0;
-    cursor: pointer;
-    transition: color 0.22s ease, border-color 0.22s ease, background 0.22s ease;
-  }
-  #lang-btn:hover {
-    color: #d4af6a;
-    border-color: rgba(212,175,106,0.65);
-    background: rgba(212,175,106,0.07);
-  }
   #top-nav.menu-open .nav-hamburger span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
   #top-nav.menu-open .nav-hamburger span:nth-child(2) { opacity: 0; }
   #top-nav.menu-open .nav-hamburger span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-  @media (max-width: 1480px) {
+  @media (max-width: 1260px) {
     .nav-hamburger { display: flex; }
     .nav-cta-btn   { display: none; }
     .nav-login-btn { display: none; }
@@ -246,8 +221,14 @@
       letter-spacing: 0.22em;
     }
     .nav-links .nav-login-li-mobile a {
+      display: block;
+      width: auto;
+      height: auto;
+      padding: 13px 32px;
       color: #d4af6a;
+      border: 0;
       border-top: 1px solid rgba(212,175,106,0.15);
+      border-radius: 0;
       background: transparent;
     }
     #top-nav { padding: 0 20px; }
@@ -795,8 +776,7 @@
       background: rgba(29, 19, 14, 0.96);
     }
     .nav-logo img { height: 35px; }
-    #lang-btn { min-width: 42px; min-height: 38px; margin-left: auto; padding: 6px 8px 6px 10px; }
-    .nav-hamburger { width: 44px; height: 44px; align-items: center; margin-left: 2px; padding: 0; }
+    .nav-hamburger { width: 44px; height: 44px; align-items: center; margin-left: auto; padding: 0; }
     .nav-hamburger span { width: 25px; }
     .nav-links {
       top: 64px;
@@ -902,10 +882,10 @@
     <li class="nav-login-li-mobile"><a href="pages/booking.html?auth=1" class="nav-login-btn">Kundenlogin</a></li>
   </ul>
 
-  <a class="nav-login-btn" href="pages/booking.html?auth=1">Kundenlogin</a>
+  <a class="nav-login-btn" href="pages/booking.html?auth=1" aria-label="Kundenlogin" title="Kundenlogin">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.2" r="3.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 20c1.2-4 4-6.2 7.5-6.2s6.3 2.2 7.5 6.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </a>
   <a class="nav-cta-btn" href="index.html#section-booking">Termin buchen</a>
-
-  <button id="lang-btn" aria-label="Sprache wechseln">PT</button>
 
   <button class="nav-hamburger" aria-label="Menü" aria-controls="nav-links" aria-expanded="false" onclick="var nav=document.getElementById('top-nav'),open=nav.classList.toggle('menu-open');this.setAttribute('aria-expanded',String(open))">
     <span></span><span></span><span></span>
@@ -1299,7 +1279,7 @@
     ['navGel','navPmu','navPedicure','navFillers','navLashes','navKorean','navNatural','navLiliane']
       .forEach(function(k,i){ if(nl[i]) nl[i].textContent = t[k]; });
     qa('.nav-cta-btn, .mobile-cta a').forEach(function(el){ el.textContent = t.navBook; });
-    qa('.nav-login-btn').forEach(function(el){ el.textContent = t.navLogin; });
+    qa('.nav-login-li-mobile .nav-login-btn').forEach(function(el){ el.textContent = t.navLogin; });
 
     // Page content
     var e;
@@ -1351,16 +1331,12 @@
       if(al[1]) al[1].textContent = t.fDatenschutz;
     }
 
-    // Lang button label
-    var btn = g('lang-btn');
-    if(btn) btn.textContent = lang === 'de' ? 'PT' : 'DE';
-
     localStorage.setItem('gigi-lang', lang);
     document.documentElement.lang = lang;
     _lang = lang;
   }
 
-  // Restore saved language (shared with main page)
+  // Restore saved language (shared with main page; no visible switcher for now)
   _lang = localStorage.getItem('gigi-lang') || 'de';
   applyLang(_lang);
 
@@ -1459,9 +1435,6 @@
     }
   })();
 
-  g('lang-btn').addEventListener('click', function(){
-    applyLang(_lang === 'de' ? 'pt' : 'de');
-  });
 })();
 </script>
 
