@@ -3457,8 +3457,13 @@
     pointer-events: none;
   }
 
-  .ba-tag--before { left: 14px; }
-  .ba-tag--after { right: 14px; }
+  /* left is set live in JS (setSlider()) to track the handle -- these
+     transforms just offset each tag to its side of that anchor point with
+     a small gap, so "Vorher" always sits just left of the divider and
+     "Nachher" just right of it, instead of staying glued to the outer
+     corners regardless of where the divider actually is. */
+  .ba-tag--before { transform: translateX(calc(-100% - 10px)); }
+  .ba-tag--after { transform: translateX(10px); }
 
   .ba-handle {
     position: absolute;
@@ -7554,6 +7559,8 @@
     const closeButton = document.getElementById('before-after-close');
     const beforeImg = document.getElementById('ba-image-before');
     const afterImg = document.getElementById('ba-image-after');
+    const beforeTag = slider?.querySelector('.ba-tag--before');
+    const afterTag = slider?.querySelector('.ba-tag--after');
     const title = document.getElementById('before-after-title');
     if (!backdrop || !slider) return;
 
@@ -7562,6 +7569,17 @@
       beforeImg.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
       handle.style.left = pct + '%';
       slider.setAttribute('aria-valuenow', Math.round(pct));
+
+      // "Vorher"/"Nachher" track the divider instead of sitting fixed in
+      // the corners -- otherwise dragging near either edge leaves a label
+      // floating over the "wrong" side's image. Clamped so a tag's own
+      // edge never runs past the frame.
+      if (beforeTag && afterTag) {
+        const rect = slider.getBoundingClientRect();
+        const handleX = (pct / 100) * rect.width;
+        beforeTag.style.left = Math.max(beforeTag.offsetWidth + 10, handleX) + 'px';
+        afterTag.style.left = Math.min(rect.width - afterTag.offsetWidth - 10, handleX) + 'px';
+      }
 
       // Wing fill goes from fully transparent (right) to fully coloured
       // (left) -- the gold rim artwork (.ba-wing-veins) is never touched
@@ -7602,8 +7620,11 @@
       afterImg.src = pair.after;
       const sectionTitle = document.querySelector('#section-' + slug + ' .svc-title');
       title.textContent = sectionTitle ? sectionTitle.textContent + ' — Vorher / Nachher' : 'Vorher / Nachher';
-      setSlider(50);
+      // backdrop must be visible first -- setSlider() now reads the
+      // slider's real rendered width to position the Vorher/Nachher tags,
+      // which would measure 0 while [hidden] still applies.
       backdrop.hidden = false;
+      setSlider(50);
       document.body.classList.add('treatment-modal-open');
     }
 
