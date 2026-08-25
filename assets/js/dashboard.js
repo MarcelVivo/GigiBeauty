@@ -87,6 +87,35 @@
     $('dashboard').hidden = false;
     await db.rpc('generate_daily_crm_tasks');
     await loadAll();
+    subscribeRealtime();
+  }
+
+  // Live updates: new bookings and new customer messages/photos (chat +
+  // AI-preview requests) appear without needing a manual page reload.
+  // Requires the tables to be added to the `supabase_realtime` publication
+  // -- see supabase/migrations/202608250001_dashboard_realtime.sql.
+  let realtimeChannel = null;
+  function subscribeRealtime() {
+    if (!db || realtimeChannel) return;
+    let reloadTimer = null;
+    const scheduleReload = () => {
+      clearTimeout(reloadTimer);
+      reloadTimer = setTimeout(() => { loadAll(); }, 700);
+    };
+    realtimeChannel = db.channel('dashboard-live')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'appointments' }, () => {
+        toast('Neuer Termin eingegangen.');
+        scheduleReload();
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'customer_media' }, payload => {
+        if (payload.new?.sender === 'customer') toast('Neue Nachricht oder Foto von einer Kundin.');
+        scheduleReload();
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ai_preview_requests' }, () => {
+        toast('Neue KI-Vorschau-Anfrage.');
+        scheduleReload();
+      })
+      .subscribe();
   }
 
   async function loadAll() {

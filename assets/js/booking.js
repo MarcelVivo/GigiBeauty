@@ -98,6 +98,31 @@
   // the chosen treatment to this booking flow once it lives on this page too.
   window.gigiSelectService = slug => selectServiceBySlug(slug, 'smooth');
 
+  // Saves a generated Beauty Konfigurator look straight into the customer's
+  // own account (the "Fotos & Wünsche" thread) -- independent of whether she
+  // ticks the separate admin-consent checkbox or ever books an appointment,
+  // so the photo stays reachable for her (and visible to Liliane) either way.
+  // Best-effort: a failure here must never interrupt the AI funnel itself.
+  window.gigiSaveAiLook = async function gigiSaveAiLook(dataUrl, caption) {
+    if (!db || !state.customerId || !dataUrl) return;
+    try {
+      const blob = await (await fetch(dataUrl)).blob();
+      const photo_path = `${state.customerId}/${crypto.randomUUID()}-ki-vorschau.jpg`;
+      const { error: uploadError } = await db.storage.from('customer-photos').upload(photo_path, blob, { contentType: 'image/jpeg' });
+      if (uploadError) return;
+      await db.from('customer_media').insert({
+        customer_id: state.customerId,
+        category: 'chat',
+        sender: 'customer',
+        message: caption || null,
+        photo_path
+      });
+      loadCustomerMedia();
+    } catch {
+      // Ignored deliberately -- see comment above.
+    }
+  };
+
   window.addEventListener('message', event => {
     if (event.origin !== window.location.origin || event.source !== window.parent) return;
     if (event.data?.type !== 'gigi-select-booking-service') return;

@@ -196,6 +196,7 @@
 
     let currentSlug = null;
     let originalDataUrl = null;
+    let lastGeneratedImage = null;
     let selectedPresetLabel = '';
     let selectedPresetText = '';
     // Keyed by colour-area key -- e.g. { lippen: { areaLabel: 'Lippen', label: 'Rosé', hex: '#d98a95' } }
@@ -286,15 +287,28 @@
         .join('. ');
     }
 
-    // Fire-and-forget: stores the chosen preset/colours (not the photo) so
-    // Liliane can look up exactly which shades a customer picked and use
-    // them when mixing products for the real treatment.
-    // Only runs when the customer explicitly ticks the consent checkbox and
-    // clicks "Foto & Farben an Liliane senden" on the result screen -- never
-    // automatically. The photo is uploaded ONLY at this point, specifically
-    // because the customer agreed to it; before that, the funnel never
-    // persists the photo anywhere (see the OpenAI edit call, which sends it
-    // to the Edge Function only for ephemeral processing).
+    // Saves the freshly generated look into the logged-in customer's own
+    // account (her "Fotos & Wünsche" thread), independent of the separate
+    // admin-consent step below -- her own copy of her own photo needs no
+    // extra consent. No-op wherever window.gigiSaveAiLook isn't defined
+    // (i.e. anywhere outside the customer portal, or while logged out).
+    async function saveLookToCustomerAccount() {
+      if (!window.gigiSaveAiLook || !lastGeneratedImage) return;
+      const label = AIP_SERVICE_META[currentSlug]?.label || currentSlug || '';
+      const extra = composedUserRequest();
+      const caption = `✦ KI-Vorschau: ${label}${extra ? ' — ' + extra : ''}`;
+      window.gigiSaveAiLook(lastGeneratedImage, caption);
+    }
+
+    // Fire-and-forget: stores the chosen preset/colours AND the photo in the
+    // admin-only ai_preview_requests table, so Liliane can look up exactly
+    // which shades a customer picked and use them when mixing products for
+    // the real treatment -- across ALL customers, logged in or not, in one
+    // place. Only runs when the customer explicitly ticks the consent
+    // checkbox and clicks "Jetzt Termin buchen" on the result screen; the
+    // customer's own copy (saveLookToCustomerAccount, above) already saved
+    // regardless, so this step is purely about surfacing it in the "KI
+    // Farbwünsche" dashboard view, not about persisting the photo at all.
     // Best-effort only: this must never block or delay the customer's
     // booking journey. Runs solely because the consent checkbox on the
     // result screen was ticked -- see the #aip-book handler below.
@@ -516,9 +530,16 @@
         stopOscillation();
         stopSparkles();
         imageAfter.src = generatedImage;
+        lastGeneratedImage = generatedImage;
         setFunnelState('revealing');
         await tweenAipPct(AIP_REVEAL_PCT, 1400);
         setFunnelState('result');
+        // Independent of the separate admin-consent checkbox below -- a
+        // logged-in customer's own generated look always stays reachable in
+        // her account. No-ops on pages without window.gigiSaveAiLook (i.e.
+        // outside the customer portal) and in demo mode (?aip_demo=1, where
+        // "generatedImage" is just the original upload, not a real result).
+        if (!AIP_DEMO_MODE) saveLookToCustomerAccount();
       } catch (error) {
         stopOscillation();
         stopSparkles();
