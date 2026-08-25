@@ -476,35 +476,96 @@
     return { private: 'is-private', online: 'is-online', admin: 'is-admin-entered' }[origin] || '';
   }
 
+  // Zeitraster-Kalender: 72px pro Stunde (siehe passende repeating-linear-
+  // gradient-Zeilenhöhe in dashboard.css .admin-day-body) -- beide Werte
+  // müssen synchron bleiben, sonst driften Stundenlinien und Terminhöhen
+  // auseinander. 15-Minuten-Raster beim Ziehen, das ist feiner als der
+  // öffentliche 90-Minuten-Buchungsraster (booking.js SLOT_MINUTES), aber
+  // Liliane trägt Termine im Dashboard ohnehin frei nach Bedarf ein.
+  const CAL_PX_PER_MIN = 1.2;
+  const CAL_SLOT_MINUTES = 15;
+
+  // Ermittelt den sichtbaren Zeitbereich der aktuellen Woche: mindestens die
+  // Öffnungszeiten, aber zusätzlich erweitert um jeden tatsächlich
+  // eingetragenen Termin/Sperrzeit dieser Woche, damit ein früher oder
+  // später liegender Eintrag nie oberhalb/unterhalb des Rasters abgeschnitten
+  // wird. Auf volle Stunden gerundet, plus eine Pufferstunde unten.
+  function calendarBounds(days) {
+    const toMin = value => Number(value.split(':')[0]) * 60 + Number(value.split(':')[1]);
+    const hours = state.settings?.opening_hours || {};
+    let min = null, max = null;
+    Object.values(hours).forEach(range => {
+      if (!range) return;
+      const start = toMin(range[0]), end = toMin(range[1]);
+      min = min === null ? start : Math.min(min, start);
+      max = max === null ? end : Math.max(max, end);
+    });
+    if (min === null) { min = 9 * 60; max = 18 * 60; }
+    const keys = new Set(days.map(dayKey));
+    [...state.appointments, ...state.blocks].forEach(item => {
+      if (item.status === 'cancelled' || !keys.has(dayKey(item.starts_at))) return;
+      const s = new Date(item.starts_at), e = new Date(item.ends_at);
+      min = Math.min(min, s.getHours() * 60 + s.getMinutes());
+      max = Math.max(max, e.getHours() * 60 + e.getMinutes());
+    });
+    min = Math.max(0, Math.floor(min / 60) * 60);
+    max = Math.min(24 * 60, Math.ceil(max / 60) * 60 + 60);
+    return { min, max };
+  }
+
   function renderCalendar() {
+    const days = Array.from({ length: 7 }, (_, index) => addDays(state.week, index));
     const end = addDays(state.week, 6);
     $('week-title').textContent = `${fmt(state.week, { day: '2-digit', month: 'short' })} bis ${fmt(end, { day: '2-digit', month: 'short', year: 'numeric' })}`;
-    $('admin-calendar').innerHTML = Array.from({ length: 7 }, (_, index) => {
-      const date = addDays(state.week, index);
+
+    const { min, max } = calendarBounds(days);
+    const gridHeight = (max - min) * CAL_PX_PER_MIN;
+    const hourMarks = [];
+    for (let m = Math.ceil(min / 60) * 60; m <= max; m += 60) hourMarks.push(m);
+    const gutter = `<div class="admin-time-gutter">${hourMarks.map(m => `<span style="top:${3.1 * 16 + (m - min) * CAL_PX_PER_MIN}px">${String(Math.floor(m / 60)).padStart(2, '0')}:00</span>`).join('')}</div>`;
+
+    const dayCols = days.map(date => {
       const key = dayKey(date);
       const events = state.appointments.filter(a => dayKey(a.starts_at) === key && a.status !== 'cancelled').map(a => ({ ...a, type: 'appointment' }));
       const blocks = state.blocks.filter(b => dayKey(b.starts_at) === key).map(b => ({ ...b, type: 'block' }));
-      return `<section class="admin-day" data-date="${key}"><div class="admin-day-head"><strong>${fmt(date, { weekday: 'short' })}</strong><span>${fmt(date, { day: '2-digit', month: '2-digit' })}</span></div>
-        ${[...events, ...blocks].sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at)).map(event => {
-          if (event.type === 'block') {
-            return `<button class="calendar-event is-block" type="button" data-delete-block="${event.id}"><time>${fmt(event.starts_at, { hour: '2-digit', minute: '2-digit' })}–${fmt(event.ends_at, { hour: '2-digit', minute: '2-digit' })}</time><strong>Gesperrt</strong><small>${esc(event.reason)}</small></button>`;
-          }
-          const origin = appointmentOrigin(event);
-          return `<button class="calendar-event ${appointmentOriginClass(origin)}" type="button" draggable="true" data-edit-appointment="${event.id}"><time>${fmt(event.starts_at, { hour: '2-digit', minute: '2-digit' })}–${fmt(event.ends_at, { hour: '2-digit', minute: '2-digit' })}</time><strong>${esc(event.customer_name)}</strong><small>${esc(event.services?.name || 'Privat')}</small><span class="calendar-event-origin">${esc(appointmentOriginLabel(origin))}</span></button>`;
-        }).join('')}
-      </section>`;
+      const body = [...events, ...blocks].sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at)).map(event => {
+        const s = new Date(event.starts_at), e = new Date(event.ends_at);
+        const top = Math.max(0, (s.getHours() * 60 + s.getMinutes() - min) * CAL_PX_PER_MIN);
+        const height = Math.max(28, (e.getHours() * 60 + e.getMinutes() - (s.getHours() * 60 + s.getMinutes())) * CAL_PX_PER_MIN);
+        const style = `top:${top}px;height:${height}px`;
+        const time = `<time>${fmt(event.starts_at, { hour: '2-digit', minute: '2-digit' })}–${fmt(event.ends_at, { hour: '2-digit', minute: '2-digit' })}</time>`;
+        // Kurze Termine (< ~75 Min., < 96px hoch) haben keinen Platz für alle
+        // vier Zeilen -- Service/Herkunfts-Badge würden abgeschnitten. Statt
+        // Text zu verstecken (der User weiss dann nicht, was fehlt), zeigen
+        // wir dort nur Zeit+Name; alles Weitere bleibt im Bearbeiten-Dialog
+        // einen Klick entfernt.
+        const compact = height < 96;
+        if (event.type === 'block') {
+          const detail = compact ? '' : `<small>${esc(event.reason)}</small>`;
+          return `<button class="calendar-event is-block" type="button" style="${style}" data-delete-block="${event.id}">${time}<strong>Gesperrt</strong>${detail}</button>`;
+        }
+        const origin = appointmentOrigin(event);
+        const detail = compact ? '' : `<small>${esc(event.services?.name || 'Privat')}</small><span class="calendar-event-origin">${esc(appointmentOriginLabel(origin))}</span>`;
+        return `<button class="calendar-event ${appointmentOriginClass(origin)}" type="button" draggable="true" style="${style}" data-edit-appointment="${event.id}">${time}<strong>${esc(event.customer_name)}</strong>${detail}</button>`;
+      }).join('');
+      return `<section class="admin-day" data-date="${key}"><div class="admin-day-head"><strong>${fmt(date, { weekday: 'short' })}</strong><span>${fmt(date, { day: '2-digit', month: '2-digit' })}</span></div><div class="admin-day-body" style="height:${gridHeight}px">${body}</div></section>`;
     }).join('');
+
+    $('admin-calendar').innerHTML = gutter + dayCols;
     document.querySelectorAll('[data-edit-appointment]').forEach(button => button.onclick = () => openAppointment(button.dataset.editAppointment));
     document.querySelectorAll('[data-delete-block]').forEach(button => button.onclick = () => removeBlock(button.dataset.deleteBlock));
-    attachCalendarDragHandlers();
+    attachCalendarDragHandlers(min);
   }
 
   let draggedAppointmentId = null;
+  let draggedDurationMs = 0;
 
-  function attachCalendarDragHandlers() {
+  function attachCalendarDragHandlers(gridMin) {
     document.querySelectorAll('.calendar-event[data-edit-appointment]').forEach(button => {
       button.addEventListener('dragstart', event => {
         draggedAppointmentId = button.dataset.editAppointment;
+        const appointment = state.appointments.find(a => a.id === draggedAppointmentId);
+        draggedDurationMs = appointment ? new Date(appointment.ends_at) - new Date(appointment.starts_at) : 5400000;
         event.dataTransfer.effectAllowed = 'move';
         event.dataTransfer.setData('text/plain', draggedAppointmentId);
         button.classList.add('is-dragging');
@@ -512,48 +573,123 @@
       button.addEventListener('dragend', () => {
         button.classList.remove('is-dragging');
         document.querySelectorAll('.admin-day.drop-target').forEach(el => el.classList.remove('drop-target'));
+        document.querySelectorAll('.drop-ghost').forEach(el => el.remove());
         draggedAppointmentId = null;
       });
     });
     document.querySelectorAll('.admin-day').forEach(day => {
+      const body = day.querySelector('.admin-day-body');
       day.addEventListener('dragover', event => {
-        if (!draggedAppointmentId) return;
+        if (!draggedAppointmentId || !body) return;
         event.preventDefault();
         day.classList.add('drop-target');
+        const offsetY = event.clientY - body.getBoundingClientRect().top;
+        const relativeMinutes = Math.max(0, offsetY / CAL_PX_PER_MIN);
+        const snapped = Math.round(relativeMinutes / CAL_SLOT_MINUTES) * CAL_SLOT_MINUTES;
+        let ghost = body.querySelector('.drop-ghost');
+        if (!ghost) { ghost = document.createElement('div'); ghost.className = 'drop-ghost'; body.appendChild(ghost); }
+        ghost.style.top = `${snapped * CAL_PX_PER_MIN}px`;
+        ghost.style.height = `${Math.max(28, (draggedDurationMs / 60000) * CAL_PX_PER_MIN)}px`;
+        ghost.dataset.minutesOfDay = gridMin + snapped;
       });
-      day.addEventListener('dragleave', () => day.classList.remove('drop-target'));
+      day.addEventListener('dragleave', event => {
+        if (day.contains(event.relatedTarget)) return;
+        day.classList.remove('drop-target');
+        body?.querySelector('.drop-ghost')?.remove();
+      });
       day.addEventListener('drop', event => {
         event.preventDefault();
+        const ghost = body?.querySelector('.drop-ghost');
+        const minutesOfDay = ghost ? Number(ghost.dataset.minutesOfDay) : null;
         day.classList.remove('drop-target');
-        if (!draggedAppointmentId) return;
+        ghost?.remove();
+        if (!draggedAppointmentId || minutesOfDay === null) return;
         const id = draggedAppointmentId;
         draggedAppointmentId = null;
-        rescheduleAppointmentToDay(id, day.dataset.date);
+        rescheduleAppointment(id, day.dataset.date, minutesOfDay);
       });
     });
   }
 
-  // Zieht die Kundin/den Termin auf einen anderen Tag: Uhrzeit und Dauer
-  // bleiben erhalten, nur das Datum ändert sich. Kollisionen werden clientseitig
-  // geprüft (dieselbe Formel wie booking.js slotStatus()), die DB-Exclusion-
-  // Constraint appointments_no_overlap bleibt das eigentliche Sicherheitsnetz.
-  async function rescheduleAppointmentToDay(appointmentId, dateKey) {
+  // Zieht einen Termin auf Tag+Uhrzeit (15-Minuten-Raster): Kollisionen
+  // werden clientseitig geprüft (dieselbe Formel wie booking.js
+  // slotStatus()), die DB-Exclusion-Constraint appointments_no_overlap
+  // bleibt das eigentliche Sicherheitsnetz. Nach erfolgreichem Verschieben
+  // bietet das Flyout-Menü optional den Versand einer Bestätigungsmail an --
+  // siehe offerRescheduleEmail() -- statt sie automatisch zu verschicken.
+  async function rescheduleAppointment(appointmentId, dateKey, minutesOfDay) {
     const appointment = state.appointments.find(a => a.id === appointmentId);
-    if (!appointment || !dateKey) return;
+    if (!appointment || !dateKey || minutesOfDay == null) return;
     const oldStart = new Date(appointment.starts_at);
     const oldEnd = new Date(appointment.ends_at);
-    const newStart = new Date(oldStart);
     const [year, month, day] = dateKey.split('-').map(Number);
-    newStart.setFullYear(year, month - 1, day);
-    if (dayKey(newStart) === dayKey(oldStart)) return;
+    const newStart = new Date(year, month - 1, day, 0, 0, 0, 0);
+    newStart.setMinutes(minutesOfDay);
+    if (newStart.getTime() === oldStart.getTime()) return;
     const newEnd = new Date(newStart.getTime() + (oldEnd - oldStart));
     const conflict = state.appointments.some(a => a.id !== appointmentId && a.status !== 'cancelled' && newStart < new Date(a.ends_at) && newEnd > new Date(a.starts_at))
       || state.blocks.some(b => newStart < new Date(b.ends_at) && newEnd > new Date(b.starts_at));
     if (conflict) { toast('Termin kollidiert mit einem bestehenden Termin oder einer Sperrzeit.'); return; }
     const result = await db.from('appointments').update({ starts_at: newStart.toISOString(), ends_at: newEnd.toISOString() }).eq('id', appointmentId);
     if (result.error) { toast(result.error.message); return; }
-    toast('Termin verschoben.');
     await loadAll();
+    if (appointment.status === 'booked' && !appointment.is_private && appointment.customer_email) {
+      offerRescheduleEmail(appointmentId, oldStart, newStart);
+    } else {
+      toast('Termin verschoben.');
+    }
+  }
+
+  // Hält der Admin die Terminkarte beim Ziehen über "‹"/"›" (Wochenwechsel),
+  // springt der Kalender nach kurzer Verzögerung eine Woche weiter/zurück,
+  // ohne den Drag abzubrechen -- so lässt sich ein Termin auch auf eine
+  // andere Woche verschieben. Einmalige Bindung (die Buttons selbst werden
+  // bei renderCalendar() nicht neu erzeugt, anders als die Terminkarten).
+  let weekDragHoldTimer = null;
+  function bindWeekDragToShift() {
+    [$('week-prev'), $('week-next')].forEach(button => {
+      button.addEventListener('dragover', event => {
+        if (!draggedAppointmentId) return;
+        event.preventDefault();
+        button.classList.add('drop-target');
+        if (weekDragHoldTimer) return;
+        weekDragHoldTimer = setTimeout(() => { weekDragHoldTimer = null; button.click(); }, 650);
+      });
+      button.addEventListener('dragleave', () => {
+        button.classList.remove('drop-target');
+        clearTimeout(weekDragHoldTimer);
+        weekDragHoldTimer = null;
+      });
+      button.addEventListener('drop', event => event.preventDefault());
+    });
+  }
+
+  // Flyout nach jedem erfolgreichen Verschieben eines Termins (Drag & Drop
+  // oder manuelle Bearbeitung im Dialog): Admin entscheidet pro Vorgang, ob
+  // die Kundin eine automatische Verschiebungs-Bestätigung erhält. Der
+  // eigentliche Versand läuft über die bestehende email_outbox/Resend-
+  // Pipeline (RPC queue_reschedule_email, siehe Migration).
+  let rescheduleFlyoutTimer = null;
+  function offerRescheduleEmail(appointmentId, oldStart, newStart) {
+    const flyout = $('reschedule-flyout');
+    const range = value => `${fmt(value, { weekday: 'short', day: '2-digit', month: '2-digit' })}, ${fmt(value, { hour: '2-digit', minute: '2-digit' })} Uhr`;
+    $('reschedule-flyout-detail').textContent = `Von ${range(oldStart)} auf ${range(newStart)}. Soll die Kundin eine automatische Bestätigung per E-Mail erhalten?`;
+    flyout.hidden = false;
+    requestAnimationFrame(() => flyout.classList.add('is-visible'));
+    clearTimeout(rescheduleFlyoutTimer);
+    rescheduleFlyoutTimer = setTimeout(hideRescheduleFlyout, 14000);
+    $('reschedule-flyout-send').onclick = async () => {
+      hideRescheduleFlyout();
+      const { error } = await db.rpc('queue_reschedule_email', { requested_appointment_id: appointmentId });
+      toast(error ? error.message : 'Bestätigungsmail wurde eingeplant.');
+    };
+    $('reschedule-flyout-skip').onclick = () => { hideRescheduleFlyout(); toast('Termin verschoben.'); };
+  }
+  function hideRescheduleFlyout() {
+    clearTimeout(rescheduleFlyoutTimer);
+    const flyout = $('reschedule-flyout');
+    flyout.classList.remove('is-visible');
+    setTimeout(() => { flyout.hidden = true; }, 250);
   }
 
   function taskTypeLabel(type) {
@@ -1389,6 +1525,7 @@
   async function saveAppointment(event) {
     event.preventDefault();
     const id = $('appointment-id').value;
+    const existing = id ? state.appointments.find(a => a.id === id) : null;
     const start = new Date($('appointment-start').value);
     const privateEntry = $('appointment-kind').value === 'private';
     const priceItemId = privateEntry ? '' : $('appointment-price-item').value;
@@ -1412,7 +1549,12 @@
     };
     const result = id ? await db.from('appointments').update(payload).eq('id', id) : await db.from('appointments').insert(payload);
     if (result.error) { $('appointment-message').textContent = result.error.message; return; }
-    closeModal('appointment-modal'); toast(id ? 'Termin aktualisiert.' : 'Termin eingetragen.'); await loadAll();
+    closeModal('appointment-modal'); await loadAll();
+    if (existing && !privateEntry && payload.status === 'booked' && payload.customer_email && new Date(existing.starts_at).getTime() !== start.getTime()) {
+      offerRescheduleEmail(id, new Date(existing.starts_at), start);
+    } else {
+      toast(id ? 'Termin aktualisiert.' : 'Termin eingetragen.');
+    }
   }
 
   async function cancelAppointment() {
@@ -1812,6 +1954,7 @@
   $('week-prev').onclick = () => { state.week = addDays(state.week, -7); renderCalendar(); };
   $('week-next').onclick = () => { state.week = addDays(state.week, 7); renderCalendar(); };
   $('week-today').onclick = () => { state.week = startOfWeek(new Date()); renderCalendar(); };
+  bindWeekDragToShift();
   $('appointment-kind').onchange = togglePrivateFields;
   $('appointment-service').onchange = () => fillPriceItemSelect($('appointment-service').value);
   $('appointment-form').onsubmit = saveAppointment;

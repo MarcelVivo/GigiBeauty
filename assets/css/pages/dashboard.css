@@ -223,24 +223,41 @@ tr[data-price-item].drop-after { box-shadow: inset 0 -2px 0 0 var(--dash-wine); 
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .8rem; margin-bottom: 1rem; }
 .toolbar-group { display: flex; align-items: center; gap: .5rem; }
 .date-title { min-width: 220px; text-align: center; font-family: 'Playfair Display', serif; font-size: 1.2rem; }
-.admin-calendar { display: grid; grid-template-columns: repeat(7, minmax(120px, 1fr)); gap: .6rem; overflow-x: auto; }
-.admin-day { min-width: 120px; min-height: 480px; padding: .65rem; border-radius: 12px; background: #eee8e0; }
-.admin-day-head { margin-bottom: .7rem; padding-bottom: .6rem; border-bottom: 1px solid #ddd3c7; text-align: center; }
+/* Zeitraster-Kalender: eine gemeinsame Stundenskala (72px/Stunde, siehe
+   CAL_PX_PER_MIN in dashboard.js -- beide Werte müssen synchron bleiben)
+   über eine Zeitleiste + 7 Tagesspalten. Termine sind innerhalb einer
+   Tagesspalte absolut nach Uhrzeit positioniert, damit Drag & Drop nicht nur
+   den Tag, sondern auch die genaue Uhrzeit setzen kann. */
+.admin-calendar { display: flex; gap: .6rem; align-items: flex-start; overflow: auto; max-height: 70vh; padding-bottom: .3rem; }
+.admin-time-gutter { position: relative; flex: 0 0 46px; padding-top: 3.1rem; }
+.admin-time-gutter span { position: absolute; left: 0; right: .35rem; transform: translateY(-50%); text-align: right; font-size: .68rem; color: var(--dash-muted); }
+.admin-day { flex: 1 1 0; min-width: 130px; display: flex; flex-direction: column; padding: 0; border-radius: 12px; background: #eee8e0; overflow: hidden; }
+.admin-day-head { padding: .65rem; margin-bottom: 0; border-bottom: 1px solid #ddd3c7; text-align: center; }
 .admin-day-head strong { display: block; }
-.calendar-event { width: 100%; margin-bottom: .45rem; padding: .65rem; border: 0; border-left: 3px solid var(--dash-wine); border-radius: 8px; color: var(--dash-ink); background: white; text-align: left; box-shadow: 0 3px 10px rgba(45,34,28,.05); }
+.admin-day-body { position: relative; background-image: repeating-linear-gradient(to bottom, #ddd3c7 0, #ddd3c7 1px, transparent 1px, transparent 72px); }
+.calendar-event { position: absolute; left: .35rem; right: .35rem; width: auto; margin-bottom: 0; padding: .3rem .5rem; border: 0; border-left: 3px solid var(--dash-wine); border-radius: 8px; color: var(--dash-ink); background: white; text-align: left; overflow: hidden; box-shadow: 0 3px 10px rgba(45,34,28,.05); }
 .calendar-event.is-private { border-color: #71849b; background: #f3f6f9; }
 .calendar-event.is-online { border-color: var(--dash-wine); background: white; }
 .calendar-event.is-admin-entered { border-color: #c9973f; background: #fbf3e2; }
 .calendar-event.is-block { border-color: #9a918c; color: var(--dash-muted); background: #e2ded9; }
-.calendar-event time { display: block; font-size: .72rem; font-weight: 750; }
-.calendar-event strong { display: block; margin: .2rem 0; font-size: .78rem; }
-.calendar-event small { display: block; color: var(--dash-muted); line-height: 1.25; }
-.calendar-event-origin { display: inline-block; margin-top: .3rem; padding: .12rem .4rem; border-radius: 999px; font-size: .56rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; background: rgba(0,0,0,.06); color: var(--dash-muted); }
+.calendar-event time { display: block; font-size: .68rem; font-weight: 750; line-height: 1.2; }
+.calendar-event strong { display: block; margin: .1rem 0; font-size: .74rem; line-height: 1.2; }
+.calendar-event small { display: block; color: var(--dash-muted); line-height: 1.2; }
+.calendar-event-origin { display: inline-block; margin-top: .2rem; padding: .1rem .35rem; border-radius: 999px; font-size: .54rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; background: rgba(0,0,0,.06); color: var(--dash-muted); }
 .calendar-event.is-private .calendar-event-origin { background: rgba(113,132,155,.16); color: #4d5f74; }
 .calendar-event.is-admin-entered .calendar-event-origin { background: rgba(201,151,63,.22); color: #8a6323; }
 .calendar-event[draggable="true"] { cursor: grab; }
-.calendar-event.is-dragging { opacity: .4; }
-.admin-day.drop-target { background: #e4d9cc; box-shadow: inset 0 0 0 2px var(--dash-wine); }
+.calendar-event.is-dragging { opacity: .35; }
+.admin-day.drop-target { background: #e4d9cc; }
+.drop-ghost { position: absolute; left: .35rem; right: .35rem; border-radius: 8px; background: rgba(110,56,76,.16); border: 1.5px dashed var(--dash-wine); pointer-events: none; }
+#week-prev.drop-target, #week-next.drop-target { box-shadow: 0 0 0 2px var(--dash-wine) inset; }
+
+.reschedule-flyout { position: fixed; z-index: 85; right: 1.5rem; bottom: 1.5rem; width: min(400px, calc(100vw - 3rem)); padding: 1.1rem 1.2rem; border-radius: 14px; background: var(--dash-card); border: 1px solid var(--dash-line); box-shadow: 0 18px 40px rgba(42,33,28,.2); transform: translateY(140%); opacity: 0; transition: transform .25s ease, opacity .25s ease; }
+.reschedule-flyout.is-visible { transform: translateY(0); opacity: 1; }
+.reschedule-flyout strong { display: block; margin-bottom: .3rem; font-family: 'Playfair Display', serif; font-size: 1.02rem; color: var(--dash-ink); }
+.reschedule-flyout p { margin: 0 0 .9rem; color: var(--dash-muted); font-size: .85rem; line-height: 1.4; }
+.reschedule-flyout-actions { display: flex; gap: .55rem; }
+.reschedule-flyout-actions button { flex: 1; }
 .table-wrap { overflow-x: auto; border: 1px solid var(--dash-line); border-radius: 12px; background: var(--dash-card); }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: .85rem 1rem; border-bottom: 1px solid var(--dash-line); text-align: left; white-space: nowrap; font-size: .85rem; }
