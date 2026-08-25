@@ -1331,14 +1331,14 @@
       if(al[1]) al[1].textContent = t.fDatenschutz;
     }
 
-    localStorage.setItem('gigi-lang', lang);
     document.documentElement.lang = lang;
     _lang = lang;
   }
 
-  // Restore saved language (shared with main page; no visible switcher for now)
-  _lang = localStorage.getItem('gigi-lang') || 'de';
-  applyLang(_lang);
+  // No visible switcher for now -- always German, and ignore any 'pt' a
+  // visitor's browser stored from before that removal.
+  localStorage.removeItem('gigi-lang');
+  applyLang('de');
 
   // Live-editierbare Texte aus dem Dashboard laden (nur Deutsch; die
   // portugiesische Übersetzung bleibt statisch). Bei Fehler/offline bleibt

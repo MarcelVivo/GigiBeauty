@@ -9040,14 +9040,14 @@
       if(k && t[k]!==undefined) el.innerHTML=t[k];
     });
 
-    localStorage.setItem('gigi-lang', lang);
     document.documentElement.lang = lang;
     _lang = lang;
   }
 
-  // Restore saved language (no visible switcher for now -- see #lang-btn removal)
-  _lang = localStorage.getItem('gigi-lang') || 'de';
-  applyLang(_lang);
+  // No visible switcher for now (see #lang-btn removal) -- always German,
+  // and ignore any 'pt' a visitor's browser stored from before that removal.
+  localStorage.removeItem('gigi-lang');
+  applyLang('de');
 
   // Expose to the dashboard-content loader further down the page, so DB
   // edits can patch T.de and re-apply instead of only touching the DOM
