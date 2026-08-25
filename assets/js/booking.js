@@ -496,7 +496,10 @@
     hero.innerHTML = '<div class="calendar-loading" style="min-height:120px">Termine werden geladen.</div>';
     pastList.innerHTML = '';
     countBadge.textContent = '';
-    document.getElementById('account-greeting-name').textContent = (state.profile?.full_name || '').split(' ')[0] || '';
+    const fullName = state.profile?.full_name || '';
+    document.getElementById('account-greeting-name').textContent = fullName.split(' ')[0] || '';
+    const avatarEl = document.getElementById('account-avatar');
+    if (avatarEl) avatarEl.textContent = fullName.trim().split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0].toUpperCase()).join('') || 'GB';
     openModal(els.accountModal);
 
     const newsletter = document.getElementById('account-newsletter');
