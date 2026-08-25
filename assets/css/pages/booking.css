@@ -397,21 +397,23 @@
 .account-appointment strong { display: block; color: var(--gold-light); font-weight: 500; }
 .account-appointment span { color: var(--text-muted); font-size: .83rem; }
 .account-empty { padding: 2rem 0; color: var(--text-muted); text-align: center; font-size: .92rem; }
-.account-modal { width: min(100%, 620px); }
+.account-modal { width: min(96vw, 1360px); }
 .account-subhead { margin: 1.6rem 0 .35rem; color: var(--gold); font-family: var(--font-serif); font-style: italic; font-weight: 400; font-size: 1.15rem; letter-spacing: .01em; }
 .account-subhead:first-of-type { margin-top: 1.2rem; }
 .account-hint { margin: 0 0 .9rem; color: var(--text-muted); font-size: .84rem; line-height: 1.55; }
 #account-past { display: grid; gap: .6rem; }
 
-.account-welcome { text-align: center; margin-bottom: 1.75rem; display: flex; flex-direction: column; align-items: center; gap: .65rem; }
+.account-welcome { text-align: left; margin-bottom: 2rem; display: flex; align-items: center; gap: 1.1rem; }
+.account-welcome-text { display: flex; flex-direction: column; gap: .3rem; }
 .account-avatar {
-  width: 54px; height: 54px;
+  flex: 0 0 auto;
+  width: 58px; height: 58px;
   display: grid; place-items: center;
   border-radius: 50%;
   background: linear-gradient(150deg, rgba(212,175,106,.4), var(--wine-soft));
   border: 1px solid rgba(212,175,106,.45);
   color: var(--gold-light);
-  font: 500 1rem var(--font-serif);
+  font: 500 1.05rem var(--font-serif);
   letter-spacing: .04em;
   box-shadow: 0 12px 30px rgba(0,0,0,.32);
 }
@@ -420,8 +422,12 @@
 .account-greeting-name { color: var(--gold); }
 .account-greeting-name:not(:empty)::before { content: ', '; color: var(--gold-light); }
 
-.account-divider { position: relative; height: 1px; margin: 1.9rem 0; background: linear-gradient(90deg, transparent, var(--line) 22%, var(--line) 78%, transparent); }
-.account-divider::after { content: '✦'; position: absolute; left: 50%; top: 0; transform: translate(-50%, -50%); padding: 0 .7rem; background: var(--charcoal-deep); color: var(--gold); font-size: .6rem; }
+/* Hauptspalte (Hero, Beauty Konfigurator, Chat, Fotos) links -- dort passiert
+   alles, was die Kundin gerade tun will. Seitenspalte (Verlauf, Newsletter,
+   Bewertung) rechts -- Nachschlage-/Einstellungs-Inhalte, die seltener
+   gebraucht werden. Trennung nach Wichtigkeit statt einem langen Stapel. */
+.account-columns { display: grid; grid-template-columns: 1.65fr 1fr; gap: 2.2rem; align-items: start; }
+.account-main, .account-sidebar { display: flex; flex-direction: column; gap: 1.75rem; min-width: 0; }
 
 .account-hero-card, .account-invite {
   padding: 2rem 2.1rem;
@@ -449,9 +455,12 @@
 .account-count-badge { color: var(--text-muted); font-size: .78rem; white-space: nowrap; }
 .account-count-badge strong { color: var(--gold); font-weight: 700; }
 
-.account-footer-row { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 1.8rem; align-items: start; }
-.account-footer-row::before { content: ''; position: absolute; left: 50%; top: .2rem; bottom: .2rem; width: 1px; background: var(--line); }
-.account-footer-row .account-subhead:first-of-type { margin-top: 0; }
+/* Card-Rahmen für alle Sektionen ausserhalb von Hero/Beauty-Konfigurator --
+   dieselbe Optik (Verlauf, Kartenfarbe, Schatten) wie .account-hero-card,
+   aber linksbündig statt zentriert, da Fliesstext/Listen/Formulare hier
+   drin liegen statt einer einzelnen CTA. */
+.account-card { padding: 1.75rem 1.9rem; border-radius: 20px; text-align: left; background: linear-gradient(160deg, var(--charcoal-soft), rgba(181,101,118,.1)); border: 1px solid rgba(212,175,106,.22); box-shadow: 0 20px 50px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04); }
+.account-card > *:first-child { margin-top: 0; }
 
 .account-chat {
   display: grid;
@@ -503,6 +512,9 @@
 @media (max-width: 1050px) {
   .service-grid { grid-template-columns: repeat(4, 1fr); }
 }
+@media (max-width: 960px) {
+  .account-columns { grid-template-columns: 1fr; gap: 1.5rem; }
+}
 @media (max-width: 720px) {
   body.booking-page {
     --nav-height: 64px;
@@ -512,8 +524,8 @@
     display: block;
     -webkit-text-size-adjust: 100%;
   }
-  .account-footer-row { grid-template-columns: 1fr; gap: 1.5rem; }
-  .account-footer-row::before { display: none; }
+  .account-welcome { align-items: flex-start; gap: .8rem; }
+  .account-card { padding: 1.4rem 1.3rem; }
   .account-hero-card, .account-invite { padding: 1.5rem 1.3rem; }
   .account-avatar { width: 48px; height: 48px; font-size: .92rem; }
   .booking-page button,
