@@ -250,6 +250,7 @@ tr[data-price-item].drop-after { box-shadow: inset 0 -2px 0 0 var(--dash-wine); 
 .calendar-event.is-dragging { opacity: .35; }
 .admin-day.drop-target { background: #e4d9cc; }
 .drop-ghost { position: absolute; left: .35rem; right: .35rem; border-radius: 8px; background: rgba(110,56,76,.16); border: 1.5px dashed var(--dash-wine); pointer-events: none; }
+#week-prev, #week-next { font-size: 1.05rem; line-height: 1; }
 #week-prev.drop-target, #week-next.drop-target { box-shadow: 0 0 0 2px var(--dash-wine) inset; }
 
 .reschedule-flyout { position: fixed; z-index: 85; right: 1.5rem; bottom: 1.5rem; width: min(400px, calc(100vw - 3rem)); padding: 1.1rem 1.2rem; border-radius: 14px; background: var(--dash-card); border: 1px solid var(--dash-line); box-shadow: 0 18px 40px rgba(42,33,28,.2); transform: translateY(140%); opacity: 0; transition: transform .25s ease, opacity .25s ease; }

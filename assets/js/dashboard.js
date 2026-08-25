@@ -640,7 +640,7 @@
     }
   }
 
-  // Hält der Admin die Terminkarte beim Ziehen über "‹"/"›" (Wochenwechsel),
+  // Hält der Admin die Terminkarte beim Ziehen über "←"/"→" (Wochenwechsel),
   // springt der Kalender nach kurzer Verzögerung eine Woche weiter/zurück,
   // ohne den Drag abzubrechen -- so lässt sich ein Termin auch auf eine
   // andere Woche verschieben. Einmalige Bindung (die Buttons selbst werden
