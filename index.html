@@ -2538,6 +2538,131 @@
     .nav-ai-badge-icon { animation: none; }
   }
 
+  /* ── Hover preview: a tiny animated "live" before/after demo that drops
+     down from the nav badge on hover, so the Beauty Konfigurator's effect
+     is visible before ever opening it. Same visual language (tag pills,
+     butterfly handle, sparkle field) as the real .aip-slider stage in the
+     configurator itself -- separate class names/DOM so nothing here can
+     interfere with that live, JS-driven instance. Desktop-only: gated to
+     devices with a real hover-capable pointer, so it never intercepts a
+     mobile tap (which must open the configurator immediately). */
+  .nav-ai-badge-wrap { position: relative; display: inline-flex; flex-shrink: 0; }
+  .nav-ai-preview {
+    position: absolute;
+    top: calc(100% + 14px);
+    left: 50%;
+    z-index: 250;
+    width: 200px;
+    padding: 12px 12px 13px;
+    border-radius: 16px;
+    background: rgba(28, 20, 14, 0.97);
+    border: 1px solid rgba(232, 197, 121, 0.4);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(-6px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nav-ai-badge-wrap:hover .nav-ai-preview,
+    .nav-ai-badge-wrap:focus-within .nav-ai-preview {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateX(-50%) translateY(0);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+  }
+  .nav-ai-preview-slider {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .nav-ai-preview-image { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; background: #100a08; }
+  .nav-ai-preview-image--before { z-index: 2; animation: navAiPreviewClip 3.6s ease-in-out infinite; }
+  .nav-ai-preview-image--after { z-index: 1; }
+  .nav-ai-preview-tag {
+    position: absolute;
+    top: 8px;
+    z-index: 3;
+    padding: 3px 8px;
+    border-radius: 999px;
+    color: #1a0a0a;
+    background: rgba(232, 197, 121, 0.9);
+    font: 700 0.5rem 'Cormorant Garamond', serif;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+  .nav-ai-preview-tag--before { left: 8px; }
+  .nav-ai-preview-tag--after { right: 8px; }
+  .nav-ai-preview-handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 30%;
+    z-index: 4;
+    width: 2px;
+    background: rgba(212, 175, 106, 0.92);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    animation: navAiPreviewHandle 3.6s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .nav-ai-preview-wing { position: absolute; top: 50%; left: 50%; width: 32px; height: 32px; transform: translate(-50%, -50%); filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5)); }
+  .nav-ai-preview-arrow { position: absolute; top: calc(50% + 20px); color: rgba(212, 175, 106, 0.92); font: 700 0.64rem/1 Georgia, serif; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); }
+  .nav-ai-preview-arrow--left { right: calc(50% + 5px); }
+  .nav-ai-preview-arrow--right { left: calc(50% + 5px); }
+  .nav-ai-preview-wing-fill, .nav-ai-preview-wing-veins {
+    position: absolute; inset: 0; display: block;
+    -webkit-mask: url('public/images/Butterfly/SchmetterlingNeu-mask.png') center / 100% 100% no-repeat;
+    mask: url('public/images/Butterfly/SchmetterlingNeu-mask.png') center / 100% 100% no-repeat;
+  }
+  .nav-ai-preview-wing-fill {
+    z-index: 1;
+    background:
+      radial-gradient(circle at 24% 28%, #a9d0ec 0%, transparent 46%),
+      radial-gradient(circle at 76% 22%, #f0b8cf 0%, transparent 50%),
+      radial-gradient(circle at 62% 74%, #f8dd7a 0%, transparent 48%),
+      radial-gradient(circle at 22% 76%, #9bd99a 0%, transparent 46%),
+      radial-gradient(circle at 85% 62%, #85d9cd 0%, transparent 42%),
+      radial-gradient(circle at 48% 48%, #ffb37f 0%, transparent 58%);
+  }
+  .nav-ai-preview-wing-veins { z-index: 2; background: url('public/images/Butterfly/SchmetterlingNeu-photo-overlay.png') center / 100% 100% no-repeat; }
+  @keyframes navAiPreviewHandle {
+    0%, 100% { left: 30%; }
+    50% { left: 70%; }
+  }
+  @keyframes navAiPreviewClip {
+    0%, 100% { clip-path: inset(0 70% 0 0); }
+    50% { clip-path: inset(0 30% 0 0); }
+  }
+  .nav-ai-preview-sparkle-field { position: absolute; inset: 0; z-index: 3; overflow: hidden; pointer-events: none; }
+  .nav-ai-preview-spark, .nav-ai-preview-particle {
+    position: absolute;
+    opacity: 0;
+    animation: navAiPreviewSparkFly 2.2s ease-out infinite;
+    animation-delay: var(--spark-delay, 0s);
+  }
+  .nav-ai-preview-spark { color: #e8c579; text-shadow: 0 0 5px rgba(232, 197, 121, 0.85), 0 0 2px rgba(255, 255, 255, 0.6); }
+  .nav-ai-preview-particle { width: 3px; height: 3px; border-radius: 50%; background: radial-gradient(circle, #fff6d8 0%, #e8c579 45%, transparent 75%); box-shadow: 0 0 4px rgba(232, 197, 121, 0.9); }
+  @keyframes navAiPreviewSparkFly {
+    0% { opacity: 0; transform: translate(-50%, -50%) translate(0, 0) scale(0.3); }
+    22% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--spark-dx, 0px), var(--spark-dy, 0px)) scale(1); }
+  }
+  .nav-ai-preview-caption { margin: 10px 0 0; text-align: center; color: #f1d78e; font: 600 0.68rem 'Cormorant Garamond', serif; letter-spacing: 0.03em; }
+  @media (prefers-reduced-motion: reduce) {
+    .nav-ai-preview-image--before, .nav-ai-preview-handle { animation: none; left: 50%; clip-path: inset(0 50% 0 0); }
+    .nav-ai-preview-spark, .nav-ai-preview-particle { animation: none; opacity: 0; }
+  }
+  @media (hover: none), (pointer: coarse) {
+    .nav-ai-preview { display: none; }
+  }
+
   /* ── PMU championship distinction ─────────────────────────────────────
      A ceremonial burgundy standard hangs directly from the navigation. The
      enamel medal remains crisp while the fabric moves almost imperceptibly. */
@@ -3926,9 +4051,29 @@
     <img src="public/images/logo/GiGiBeautySchmetterling.png" alt="GiGi Beauty">
   </a>
 
-  <button class="nav-ai-badge" type="button" id="nav-ai-badge">
-    <span class="nav-ai-badge-icon" aria-hidden="true">✦</span><span class="nav-ai-badge-label">Beauty Konfigurator</span>
-  </button>
+  <div class="nav-ai-badge-wrap" id="nav-ai-badge-wrap">
+    <button class="nav-ai-badge" type="button" id="nav-ai-badge">
+      <span class="nav-ai-badge-icon" aria-hidden="true">✦</span><span class="nav-ai-badge-label">Beauty Konfigurator</span>
+    </button>
+    <div class="nav-ai-preview" id="nav-ai-preview" aria-hidden="true">
+      <div class="nav-ai-preview-slider">
+        <img class="nav-ai-preview-image nav-ai-preview-image--after" src="public/Vorher:Nachher/optimized/NailsNachher.jpg" alt="" loading="lazy">
+        <div class="nav-ai-preview-sparkle-field" id="nav-ai-preview-sparkle-field"></div>
+        <img class="nav-ai-preview-image nav-ai-preview-image--before" src="public/Vorher:Nachher/optimized/NailsVorher.jpg" alt="" loading="lazy">
+        <span class="nav-ai-preview-tag nav-ai-preview-tag--before">Vorher</span>
+        <span class="nav-ai-preview-tag nav-ai-preview-tag--after">Nachher</span>
+        <div class="nav-ai-preview-handle">
+          <span class="nav-ai-preview-wing">
+            <span class="nav-ai-preview-wing-fill"></span>
+            <span class="nav-ai-preview-wing-veins"></span>
+          </span>
+          <span class="nav-ai-preview-arrow nav-ai-preview-arrow--left">❮</span>
+          <span class="nav-ai-preview-arrow nav-ai-preview-arrow--right">❯</span>
+        </div>
+      </div>
+      <p class="nav-ai-preview-caption">Teste deinen eigenen Look</p>
+    </div>
+  </div>
 
   <ul class="nav-links" id="nav-links">
     <li><a href="#section-gel-acryl-nails"        onclick="navTo('section-gel-acryl-nails');closeNav();return false;">Gel &amp; Acryl</a></li>
@@ -8095,6 +8240,42 @@
     };
 
     document.getElementById('nav-ai-badge').addEventListener('click', () => window.openBeautyPreview({}));
+
+    // Hover-Vorschau am Nav-Badge: dieselbe Funken-Logik wie startSparkles()
+    // im echten Konfigurator (assets/js/beauty-konfigurator.js), nur mit
+    // weniger Partikeln, da die Box hier viel kleiner ist. Läuft nur, solange
+    // die Vorschau tatsächlich sichtbar ist (Hover/Fokus), nicht dauerhaft im
+    // Hintergrund.
+    (() => {
+      const wrap = document.getElementById('nav-ai-badge-wrap');
+      const preview = document.getElementById('nav-ai-preview');
+      const sparkleField = document.getElementById('nav-ai-preview-sparkle-field');
+      if (!wrap || !preview || !sparkleField) return;
+      function startNavPreviewSparkles() {
+        sparkleField.innerHTML = '';
+        for (let i = 0; i < 16; i++) {
+          const isParticle = Math.random() < 0.4;
+          const el = document.createElement('span');
+          el.className = isParticle ? 'nav-ai-preview-particle' : 'nav-ai-preview-spark';
+          if (!isParticle) el.textContent = '✦';
+          el.style.left = `${6 + Math.random() * 88}%`;
+          el.style.top = `${8 + Math.random() * 84}%`;
+          const angle = Math.random() * Math.PI * 2;
+          const distance = 10 + Math.random() * 30;
+          el.style.setProperty('--spark-dx', `${Math.cos(angle) * distance}px`);
+          el.style.setProperty('--spark-dy', `${Math.sin(angle) * distance}px`);
+          el.style.setProperty('--spark-delay', `${(Math.random() * 2.2).toFixed(2)}s`);
+          if (!isParticle) el.style.fontSize = `${7 + Math.random() * 5}px`;
+          sparkleField.appendChild(el);
+        }
+      }
+      function stopNavPreviewSparkles() { sparkleField.innerHTML = ''; }
+      wrap.addEventListener('mouseenter', startNavPreviewSparkles);
+      wrap.addEventListener('mouseleave', stopNavPreviewSparkles);
+      wrap.addEventListener('focusin', startNavPreviewSparkles);
+      wrap.addEventListener('focusout', event => { if (!wrap.contains(event.relatedTarget)) stopNavPreviewSparkles(); });
+      preview.addEventListener('click', () => window.openBeautyPreview({}));
+    })();
 
     document.querySelectorAll('[data-ai-preview]').forEach(button => {
       button.addEventListener('click', () => window.openBeautyPreview({ serviceType: button.dataset.aiPreview }));
