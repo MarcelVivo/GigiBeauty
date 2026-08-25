@@ -713,14 +713,55 @@
     text-transform: uppercase;
     color: #d4af6a;
     text-decoration: none;
-    padding: 6px 6px;
+    padding: 6px 10px;
     border-radius: 2px;
-    transition: color 0.2s ease, background 0.2s ease;
+    transition: color 0.2s ease;
     white-space: nowrap;
   }
   .nav-links a:hover {
     color: #f5e6c8;
-    background: rgba(212,175,106,0.07);
+  }
+
+  /* Fine separators + underline for the plain treatment links only -- the
+     gold pill buttons (Termin buchen / Über uns / Kundenlogin) keep their
+     own distinct styling below and are excluded here. */
+  .nav-links li:not(.nav-about-li):not(.nav-about-li-mobile):not(.nav-login-li-mobile) {
+    position: relative;
+  }
+  .nav-links li:not(.nav-about-li):not(.nav-about-li-mobile):not(.nav-login-li-mobile)
+    + li:not(.nav-about-li):not(.nav-about-li-mobile):not(.nav-login-li-mobile)::before {
+    content: '';
+    position: absolute;
+    left: -1px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 10px;
+    background: rgba(212, 175, 106, 0.28);
+  }
+  .nav-links a:not(.nav-about-btn):not(.nav-login-btn) {
+    position: relative;
+  }
+  .nav-links a:not(.nav-about-btn):not(.nav-login-btn)::after {
+    content: '';
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 2px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.85;
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.3s ease;
+  }
+  .nav-links a:not(.nav-about-btn):not(.nav-login-btn):hover::after,
+  .nav-links a:not(.nav-about-btn):not(.nav-login-btn):focus-visible::after {
+    transform: scaleX(1);
+  }
+  .nav-links a:focus-visible {
+    outline: none;
+    color: #f5e6c8;
   }
 
   .nav-cta-btn {
@@ -1867,6 +1908,9 @@
       box-shadow: 0 22px 46px rgba(0, 0, 0, 0.42);
     }
     .nav-links li + li { border-top: 1px solid rgba(212, 175, 106, 0.07); }
+    /* The desktop vertical divider dot makes no sense once items stack --
+       the border-top above already separates rows here. */
+    .nav-links li::before { display: none; }
     .nav-links a {
       padding: 12px 14px;
       font-size: 0.84rem;
