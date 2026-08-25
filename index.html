@@ -805,7 +805,7 @@
   /* "Über GiGi Beauty" and "Kundenlogin" live as external .nav-cta-btn /
      .nav-login-btn siblings on desktop; these duplicates keep them reachable
      from the mobile hamburger menu, where the external buttons are hidden. */
-  @media (min-width: 1261px) { .nav-about-li-mobile, .nav-login-li-mobile { display: none; } }
+  @media (min-width: 1301px) { .nav-about-li-mobile, .nav-login-li-mobile { display: none; } }
 
   /* Hamburger (mobile) */
   .nav-hamburger {
@@ -830,7 +830,7 @@
   #top-nav.menu-open .nav-hamburger span:nth-child(2) { opacity: 0; }
   #top-nav.menu-open .nav-hamburger span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-  @media (max-width: 1260px) {
+  @media (max-width: 1300px) {
     .nav-hamburger { display: flex; }
     .nav-cta-btn   { display: none; }   /* moves into hamburger menu */
     #top-nav > .nav-login-btn { display: none; }   /* moves into hamburger menu */
@@ -3926,7 +3926,7 @@
   </a>
 
   <button class="nav-ai-badge" type="button" id="nav-ai-badge">
-    <span class="nav-ai-badge-icon" aria-hidden="true">✦</span><span class="nav-ai-badge-label">AI Preview</span>
+    <span class="nav-ai-badge-icon" aria-hidden="true">✦</span><span class="nav-ai-badge-label">Beauty Konfigurator</span>
   </button>
 
   <ul class="nav-links" id="nav-links">
@@ -4000,7 +4000,7 @@
     if (!standard || !desktopAnchor || !compactAnchor) return;
 
     const alignStandard = () => {
-      const compact = window.matchMedia('(max-width: 1260px)').matches;
+      const compact = window.matchMedia('(max-width: 1300px)').matches;
       const anchor = compact ? compactAnchor : desktopAnchor;
       const anchorBox = anchor.getBoundingClientRect();
       const standardWidth = standard.getBoundingClientRect().width;
@@ -7112,7 +7112,7 @@
 <div class="aip-backdrop" id="aip-backdrop" hidden>
   <section class="aip-modal" role="dialog" aria-modal="true" aria-labelledby="aip-title">
     <button class="aip-close" id="aip-close" type="button" aria-label="Schliessen">×</button>
-    <span class="aip-kicker">GiGi AI Beauty Preview</span>
+    <span class="aip-kicker">GiGi Beauty Konfigurator</span>
     <h2 id="aip-title">Dein Look. Deine Idee.</h2>
     <span class="aip-service-tag" id="aip-service-tag"></span>
 
