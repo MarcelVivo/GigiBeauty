@@ -53,7 +53,6 @@
     calendar: document.getElementById('calendar-content'),
     calendarTitle: document.getElementById('calendar-title'),
     authButton: document.getElementById('auth-button'),
-    authCopy: document.getElementById('auth-copy'),
     authModal: document.getElementById('auth-modal'),
     bookingModal: document.getElementById('booking-modal'),
     accountModal: document.getElementById('account-modal'),
@@ -353,11 +352,11 @@
       state.profile = data;
       const { data: customerRow } = await db.from('customers').select('id').eq('profile_id', user.id).maybeSingle();
       state.customerId = customerRow?.id || null;
-      els.authCopy.innerHTML = `Angemeldet als<strong>${escapeHtml(data?.full_name || user.email)}</strong>`;
       els.authButton.textContent = 'Abmelden';
+      els.authButton.title = `Angemeldet als ${data?.full_name || user.email}`;
       document.getElementById('my-appointments').hidden = false;
     } else {
-      els.authCopy.innerHTML = 'Noch nicht angemeldet<strong>Zum Buchen brauchst du ein Konto</strong>';
+      els.authButton.title = '';
       els.authButton.textContent = 'Anmelden';
       document.getElementById('my-appointments').hidden = true;
     }
