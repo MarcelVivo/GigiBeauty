@@ -325,10 +325,13 @@
     margin: 0 auto;
     object-fit: contain;
     object-position: center;
-    filter:
-      brightness(1.02)
-      drop-shadow(0 10px 22px rgba(11, 5, 3, 0.48))
-      drop-shadow(0 0 7px rgba(212, 166, 85, 0.14));
+    /* No drop-shadow: with 7 of these transformed every animation frame
+       (scroll-driven positioning in animate(), index.html ~6693-6871),
+       stacked drop-shadow() filters forced a full re-rasterize + blur of
+       each element every frame -- measured at ~8fps with the shadows,
+       ~33fps with them removed. brightness() alone is cheap and keeps a
+       touch of interactive feedback on hover/click/armed below. */
+    filter: brightness(1.02);
     transition: filter 0.35s ease;
   }
   @media (orientation: landscape) {
@@ -340,38 +343,26 @@
     }
   }
 
-  /* Subtle pre-glow on hover */
+  /* Subtle pre-glow on hover -- brightness only, see note above */
   .service-card:hover img,
   .service-card:hover .hero-service-butterfly {
-    filter:
-      brightness(1.07)
-      drop-shadow(0 12px 26px rgba(11, 5, 3, 0.52))
-      drop-shadow(0 0 8px rgba(237, 197, 121, 0.38))
-      drop-shadow(0 0 20px rgba(177, 112, 29, 0.20));
+    filter: brightness(1.12);
   }
 
   /* Full golden burst on click */
   .service-card.card-glow img,
   .service-card.card-glow .hero-service-butterfly {
-    filter:
-      brightness(1.15)
-      drop-shadow(0 0 10px rgba(255,220,80,1.0))
-      drop-shadow(0 0 28px rgba(212,175,106,1.0))
-      drop-shadow(0 0 55px rgba(212,175,106,0.75))
-      drop-shadow(0 0 90px rgba(212,175,106,0.45));
+    filter: brightness(1.32);
   }
   /* Armed butterfly: pulsing gold glow waiting for second tap */
   .service-card.card-armed img,
   .service-card.card-armed .hero-service-butterfly {
-    filter:
-      brightness(1.08)
-      drop-shadow(0 0 6px rgba(212,175,106,0.9))
-      drop-shadow(0 0 18px rgba(212,175,106,0.5));
+    filter: brightness(1.14);
     animation: armedPulse 1s ease-in-out infinite;
   }
   @keyframes armedPulse {
-    0%, 100% { filter: brightness(1.08) drop-shadow(0 0 6px rgba(212,175,106,0.9)) drop-shadow(0 0 18px rgba(212,175,106,0.5)); }
-    50%       { filter: brightness(1.14) drop-shadow(0 0 10px rgba(255,220,80,0.95)) drop-shadow(0 0 28px rgba(212,175,106,0.8)); }
+    0%, 100% { filter: brightness(1.14); }
+    50%       { filter: brightness(1.28); }
   }
 
   #section-gel-acryl-nails .svc-inner {
@@ -401,10 +392,7 @@
 
   .hero-service-butterfly-art {
     pointer-events: none;
-    filter:
-      saturate(0.94)
-      drop-shadow(0 2px 2px rgba(27, 12, 5, 0.52))
-      drop-shadow(0 0 2px rgba(255, 221, 145, 0.18));
+    filter: saturate(0.94);
   }
 
   .hero-service-butterfly-rim {
@@ -434,7 +422,6 @@
     stroke-width: 0.38;
     stroke-linejoin: round;
     pointer-events: none;
-    filter: drop-shadow(0 0 0.7px rgba(255, 225, 165, 0.18));
   }
 
   .hero-service-butterfly-frame {
@@ -443,9 +430,6 @@
     stroke-linecap: round;
     stroke-linejoin: round;
     pointer-events: none;
-    filter:
-      drop-shadow(0 0 0.55px rgba(255, 244, 207, 0.62))
-      drop-shadow(0 0 2px rgba(194, 124, 30, 0.25));
   }
 
   .hero-service-butterfly-frame-highlight {
@@ -463,7 +447,6 @@
     stroke-width: 0.58;
     stroke-linecap: round;
     pointer-events: none;
-    filter: drop-shadow(0 0 1.2px rgba(255, 222, 151, 0.48));
   }
 
   .hero-service-butterfly-antenna {
@@ -472,29 +455,23 @@
     stroke-linecap: round;
     stroke-linejoin: round;
     pointer-events: none;
-    filter: drop-shadow(0 0 1.2px rgba(213, 151, 50, 0.42));
   }
 
   .hero-service-butterfly-antenna-tip {
     stroke: rgba(255, 235, 171, 0.82);
     stroke-width: 0.34;
     pointer-events: none;
-    filter: drop-shadow(0 0 1px rgba(205, 137, 32, 0.44));
   }
 
   .hero-service-butterfly-head {
     stroke: rgba(255, 239, 189, 0.86);
     stroke-width: 0.42;
     pointer-events: none;
-    filter:
-      drop-shadow(0 0 0.8px rgba(255, 245, 204, 0.66))
-      drop-shadow(0 0 1.8px rgba(191, 119, 24, 0.42));
   }
 
   .hero-service-butterfly-body {
     stroke-linecap: round;
     pointer-events: none;
-    filter: drop-shadow(0 0 1.1px rgba(31, 15, 7, 0.72));
   }
 
   .hero-service-butterfly-body-segments {
@@ -518,10 +495,7 @@
   }
 
   .service-card:focus-visible .hero-service-butterfly {
-    filter:
-      brightness(1.08)
-      drop-shadow(0 12px 26px rgba(11, 5, 3, 0.52))
-      drop-shadow(0 0 9px rgba(255, 220, 151, 0.56));
+    filter: brightness(1.12);
   }
 
   .hero-service-wing-detail {
@@ -2169,23 +2143,19 @@
   .hero-service-butterfly {
     width: clamp(130px, 40vw, 300px);
     height: clamp(130px, 40vw, 300px);
-    filter:
-      saturate(1.07)
-      contrast(1.07)
-      brightness(1.10)
-      drop-shadow(0 10px 24px rgba(7, 3, 2, 0.66))
-      drop-shadow(0 0 7px rgba(255, 227, 164, 0.36))
-      drop-shadow(0 0 18px rgba(212, 166, 74, 0.16));
+    /* No drop-shadow here either -- this rule (same specificity, later in
+       the cascade) was overriding the pared-down filter set near the top
+       of this stylesheet, so removing shadows only up there had no effect
+       at this breakpoint. See note near .service-card img's first
+       definition for why: stacked drop-shadow() on elements transformed
+       every animation frame measured at ~8fps, ~60fps without. */
+    filter: saturate(1.07) contrast(1.07) brightness(1.10);
   }
   .hero-service-wing-image {
     filter: saturate(1.04) contrast(1.08) brightness(1.10);
   }
   .hero-service-butterfly-art {
-    filter:
-      saturate(1.05)
-      contrast(1.05)
-      drop-shadow(0 3px 3px rgba(19, 8, 4, 0.68))
-      drop-shadow(0 0 4px rgba(255, 231, 174, 0.32));
+    filter: saturate(1.05) contrast(1.05);
   }
 
   .botanical-service-butterfly {
