@@ -125,8 +125,18 @@
 
   window.addEventListener('message', event => {
     if (event.origin !== window.location.origin || event.source !== window.parent) return;
-    if (event.data?.type !== 'gigi-select-booking-service') return;
-    selectServiceBySlug(String(event.data.service || ''));
+    if (event.data?.type === 'gigi-select-booking-service') {
+      selectServiceBySlug(String(event.data.service || ''));
+      return;
+    }
+    // Mirrors the ?auth=1 query-param handling in loadData() below, just
+    // triggered from the homepage's "Kundenlogin" link via postMessage
+    // instead of a URL param, since by the time it's clicked this embedded
+    // document is already loaded (see index.html's booking-calendar-frame
+    // script for the other half of this).
+    if (event.data?.type === 'gigi-open-booking-auth') {
+      if (state.user) openAccount(); else openModal(els.authModal);
+    }
   });
 
   function zonedDateTimeToUtc(key, time, timeZone = TZ) {

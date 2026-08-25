@@ -4062,10 +4062,10 @@
     <li><a href="#section-natural-make-up"         onclick="navTo('section-natural-make-up');closeNav();return false;">Natural Make Up</a></li>
     <li class="nav-about-li"><a href="#section-booking" class="nav-about-btn" onclick="navTo('section-booking');closeNav();return false;">Termin buchen</a></li>
     <li class="nav-about-li-mobile"><a href="ueber-liliane.html" class="nav-about-btn">Über uns</a></li>
-    <li class="nav-login-li-mobile"><a href="pages/booking.html?auth=1" class="nav-login-btn">Kundenlogin</a></li>
+    <li class="nav-login-li-mobile"><a href="#section-booking" class="nav-login-btn" data-open-booking-auth>Kundenlogin</a></li>
   </ul>
 
-  <a class="nav-login-btn" href="pages/booking.html?auth=1" aria-label="Kundenlogin" title="Kundenlogin">
+  <a class="nav-login-btn" href="#section-booking" data-open-booking-auth aria-label="Kundenlogin" title="Kundenlogin">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.2" r="3.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 20c1.2-4 4-6.2 7.5-6.2s6.3 2.2 7.5 6.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
   </a>
   <a class="nav-cta-btn" href="ueber-liliane.html">Über uns</a>
@@ -8339,6 +8339,31 @@
     });
 
     frame.addEventListener('load', sendSelectedService);
+
+    // "Kundenlogin" used to be a full-page link to pages/booking.html?auth=1
+    // -- a separate page with its own nav, when the exact same login/account
+    // system already lives inside this iframe. Now it just scrolls down to
+    // the embedded calendar and asks that already-loaded document to open
+    // its login (or account, if already signed in) modal, the same way
+    // pages/booking.html's own `?auth=1` query param does internally
+    // (assets/js/booking.js loadData()) -- just triggered via postMessage
+    // instead of a URL param, since the iframe is already loaded.
+    let pendingAuthOpen = false;
+    const sendOpenAuth = () => {
+      if (!pendingAuthOpen || !frame.contentWindow) return;
+      pendingAuthOpen = false;
+      frame.contentWindow.postMessage({ type: 'gigi-open-booking-auth' }, window.location.origin);
+    };
+    frame.addEventListener('load', sendOpenAuth);
+    document.querySelectorAll('[data-open-booking-auth]').forEach(link => {
+      link.addEventListener('click', event => {
+        event.preventDefault();
+        pendingAuthOpen = true;
+        sendOpenAuth();
+        bookingSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        closeNav();
+      });
+    });
 
     window.addEventListener('message', event => {
       if (event.origin !== window.location.origin || event.source !== frame.contentWindow) return;
