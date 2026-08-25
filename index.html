@@ -694,7 +694,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    padding: 0 22px;
+    padding: 0 36px 0 22px;
     height: 62px;
     background: rgba(33, 23, 17, 0.90);
     backdrop-filter: blur(16px);
@@ -4004,7 +4004,7 @@
       const anchor = compact ? compactAnchor : desktopAnchor;
       const anchorBox = anchor.getBoundingClientRect();
       const standardWidth = standard.getBoundingClientRect().width;
-      const gutter = compact ? 8 : 24;
+      const gutter = compact ? 8 : 14;
       const idealLeft = anchorBox.left + (anchorBox.width - standardWidth) / 2;
       const safeLeft = Math.max(gutter, Math.min(idealLeft, window.innerWidth - standardWidth - gutter));
       standard.style.left = `${Math.round(safeLeft)}px`;
