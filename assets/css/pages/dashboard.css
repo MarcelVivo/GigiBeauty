@@ -14,6 +14,9 @@ button { cursor: pointer; }
 .nav-item:hover, .nav-item.is-active { color: #fff8ea; background: rgba(221,185,119,.12); }
 .nav-item span:first-child { width: 1.4rem; font-size: 1.05rem; }
 .nav-badge { margin-left: auto; min-width: 1.3rem; height: 1.3rem; padding: 0 .35rem; border-radius: 999px; background: #c23b3b; color: #fff; font-size: .68rem; font-weight: 700; line-height: 1.3rem; text-align: center; }
+.nav-group-label { margin: .55rem 0 -.1rem .95rem; color: rgba(248,238,226,.36); font: 650 .63rem Inter, sans-serif; letter-spacing: .14em; text-transform: uppercase; }
+.nav-group-label:first-of-type { margin-top: 0; }
+.nav-divider { height: 1px; margin: .5rem .9rem; background: rgba(255,255,255,.09); }
 .sidebar-foot { margin-top: auto; padding-top: .8rem; }
 .admin-chip { padding: .9rem; border-top: 1px solid rgba(255,255,255,.1); color: rgba(248,238,226,.6); font-size: .75rem; }
 .admin-chip strong { display: block; color: #f8eee2; font-size: .85rem; margin-bottom: .15rem; }
@@ -412,6 +415,9 @@ tr.is-unread { background: #fdf6e3; font-weight: 650; }
   .sidebar { position: fixed; top: auto; bottom: 0; z-index: 20; width: 100%; height: auto; padding: .45rem; }
   .brand, .sidebar-foot { display: none; }
   .side-nav { display: flex; gap: .1rem; overflow-x: auto; }
+  /* Category headers only make sense in a vertical list -- this scrolling
+     icon strip has no room for them. */
+  .nav-group-label, .nav-divider { display: none; }
   .nav-item { display: grid; flex: 0 0 68px; justify-items: center; gap: .2rem; padding: .45rem .15rem; font-size: .55rem; }
   .nav-item span:first-child { width: auto; }
   .dash-main { padding: 1.3rem 1rem 6rem; }
