@@ -11,7 +11,7 @@ const db = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: f
 
 type OutboxItem = {
   id: string;
-  kind: 'confirmation' | 'reminder' | 'cancellation' | 'rescheduled' | 'invoice' | 'campaign' | 'aftercare' | 'review' | 'rebooking' | 'winback' | 'birthday' | 'waitlist' | 'registration_invite' | 'newsletter_welcome';
+  kind: 'confirmation' | 'reminder' | 'cancellation' | 'rescheduled' | 'invoice' | 'campaign' | 'aftercare' | 'review' | 'rebooking' | 'winback' | 'birthday' | 'waitlist' | 'registration_invite' | 'newsletter_welcome' | 'ai_preview_followup';
   recipient_email: string;
   recipient_name: string | null;
   subject: string;
@@ -67,6 +67,10 @@ function emailHtml(item: OutboxItem) {
     const bookingUrl = esc(trackedLink(item, String(item.payload.booking_url || 'https://www.gigibeauty.ch/pages/booking.html')));
     const appointmentCopy = item.kind === 'waitlist' && date ? `<p><strong>${service}</strong><br>${esc(date)} Uhr</p>` : '';
     content = `<p>${esc(item.payload.content)}</p>${appointmentCopy}<p><a href="${bookingUrl}" style="display:inline-block;padding:13px 20px;background:#6e384c;color:#fff;text-decoration:none;border-radius:7px">Termin auswählen</a></p>`;
+  } else if (item.kind === 'ai_preview_followup') {
+    const bookingUrl = esc(trackedLink(item, String(item.payload.booking_url || 'https://www.gigibeauty.ch/pages/booking.html')));
+    heading = item.subject;
+    content = `<p>${esc(item.payload.content)}</p><p><a href="${bookingUrl}" style="display:inline-block;padding:13px 20px;background:#6e384c;color:#fff;text-decoration:none;border-radius:7px">Termin buchen</a></p>`;
   } else if (item.kind === 'registration_invite') {
     const registrationUrl = esc(String(item.payload.registration_url || 'https://www.gigibeauty.ch/pages/booking.html?register=1'));
     heading = 'Dein persönliches GiGi Beauty Konto';
@@ -76,7 +80,7 @@ function emailHtml(item: OutboxItem) {
     content = `<div style="white-space:pre-line">${esc(item.payload.content)}</div>`;
   }
 
-  const unsubscribeKinds = ['campaign', 'review', 'rebooking', 'winback', 'birthday'];
+  const unsubscribeKinds = ['campaign', 'review', 'rebooking', 'winback', 'birthday', 'ai_preview_followup'];
   const unsubscribeUrl = `${marketingTrackingUrl}?event=unsubscribe&id=${encodeURIComponent(item.id)}`;
   const unsubscribe = unsubscribeKinds.includes(item.kind) ? `<p style="color:#8b7d73;font:12px Arial,sans-serif"><a href="${esc(unsubscribeUrl)}" style="color:#8b7d73">Marketing-E-Mails abbestellen</a></p>` : '';
   const trackingPixel = unsubscribeKinds.includes(item.kind) ? `<img src="${esc(marketingTrackingUrl)}?event=open&id=${encodeURIComponent(item.id)}" width="1" height="1" alt="" style="display:block;border:0"/>` : '';
@@ -89,6 +93,26 @@ async function appointmentStillValid(item: OutboxItem) {
   if (!appointmentId) return false;
   const { data } = await db.from('appointments').select('status, starts_at').eq('id', appointmentId).maybeSingle();
   return data?.status === 'booked' && data.starts_at === item.payload.starts_at;
+}
+
+// Re-checked at send time (not just when queued 24h earlier): if she booked
+// an appointment in the meantime, the nudge is now pointless -- skip it.
+// customer_ref_id (not customer_id, which points at profiles/auth users) is
+// the appointments column that links to customers.id -- see
+// supabase/migrations/202608230002_appointments_customer_link.sql.
+async function alreadyBookedSincePreview(item: OutboxItem) {
+  if (item.kind !== 'ai_preview_followup') return false;
+  const customerId = item.payload.customer_id;
+  const queuedAt = item.payload.queued_at;
+  if (!customerId || !queuedAt) return false;
+  const { data } = await db
+    .from('appointments')
+    .select('id')
+    .eq('customer_ref_id', customerId)
+    .in('status', ['booked', 'completed'])
+    .gte('created_at', String(queuedAt))
+    .limit(1);
+  return Boolean(data && data.length);
 }
 
 Deno.serve(async (request) => {
@@ -107,6 +131,11 @@ Deno.serve(async (request) => {
         results.push({ id: item.id, status: 'skipped' });
         continue;
       }
+      if (await alreadyBookedSincePreview(item)) {
+        await db.from('email_outbox').update({ processed_at: new Date().toISOString(), processing_at: null, last_error: 'Skipped: customer already booked since the preview' }).eq('id', item.id);
+        results.push({ id: item.id, status: 'skipped' });
+        continue;
+      }
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
@@ -115,7 +144,7 @@ Deno.serve(async (request) => {
       if (!response.ok) throw new Error(`Resend ${response.status}: ${await response.text()}`);
       await db.from('email_outbox').update({ processed_at: new Date().toISOString(), processing_at: null, last_error: null }).eq('id', item.id);
       await db.from('customer_communications').update({ status: 'sent', occurred_at: new Date().toISOString() }).eq('email_outbox_id', item.id);
-      if (['campaign', 'review', 'rebooking', 'winback', 'birthday'].includes(item.kind)) {
+      if (['campaign', 'review', 'rebooking', 'winback', 'birthday', 'ai_preview_followup'].includes(item.kind)) {
         const { data: customer } = await db.from('customers').select('id').ilike('email', item.recipient_email).maybeSingle();
         await db.from('marketing_events').insert({ customer_id: customer?.id || null, campaign_id: item.payload.campaign_id || null, event_type: 'sent', source: item.kind, medium: 'email', metadata: { email_outbox_id: item.id } });
       }
