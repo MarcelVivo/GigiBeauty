@@ -484,18 +484,76 @@
       const key = dayKey(date);
       const events = state.appointments.filter(a => dayKey(a.starts_at) === key && a.status !== 'cancelled').map(a => ({ ...a, type: 'appointment' }));
       const blocks = state.blocks.filter(b => dayKey(b.starts_at) === key).map(b => ({ ...b, type: 'block' }));
-      return `<section class="admin-day"><div class="admin-day-head"><strong>${fmt(date, { weekday: 'short' })}</strong><span>${fmt(date, { day: '2-digit', month: '2-digit' })}</span></div>
+      return `<section class="admin-day" data-date="${key}"><div class="admin-day-head"><strong>${fmt(date, { weekday: 'short' })}</strong><span>${fmt(date, { day: '2-digit', month: '2-digit' })}</span></div>
         ${[...events, ...blocks].sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at)).map(event => {
           if (event.type === 'block') {
             return `<button class="calendar-event is-block" type="button" data-delete-block="${event.id}"><time>${fmt(event.starts_at, { hour: '2-digit', minute: '2-digit' })}–${fmt(event.ends_at, { hour: '2-digit', minute: '2-digit' })}</time><strong>Gesperrt</strong><small>${esc(event.reason)}</small></button>`;
           }
           const origin = appointmentOrigin(event);
-          return `<button class="calendar-event ${appointmentOriginClass(origin)}" type="button" data-edit-appointment="${event.id}"><time>${fmt(event.starts_at, { hour: '2-digit', minute: '2-digit' })}–${fmt(event.ends_at, { hour: '2-digit', minute: '2-digit' })}</time><strong>${esc(event.customer_name)}</strong><small>${esc(event.services?.name || 'Privat')}</small><span class="calendar-event-origin">${esc(appointmentOriginLabel(origin))}</span></button>`;
+          return `<button class="calendar-event ${appointmentOriginClass(origin)}" type="button" draggable="true" data-edit-appointment="${event.id}"><time>${fmt(event.starts_at, { hour: '2-digit', minute: '2-digit' })}–${fmt(event.ends_at, { hour: '2-digit', minute: '2-digit' })}</time><strong>${esc(event.customer_name)}</strong><small>${esc(event.services?.name || 'Privat')}</small><span class="calendar-event-origin">${esc(appointmentOriginLabel(origin))}</span></button>`;
         }).join('')}
       </section>`;
     }).join('');
     document.querySelectorAll('[data-edit-appointment]').forEach(button => button.onclick = () => openAppointment(button.dataset.editAppointment));
     document.querySelectorAll('[data-delete-block]').forEach(button => button.onclick = () => removeBlock(button.dataset.deleteBlock));
+    attachCalendarDragHandlers();
+  }
+
+  let draggedAppointmentId = null;
+
+  function attachCalendarDragHandlers() {
+    document.querySelectorAll('.calendar-event[data-edit-appointment]').forEach(button => {
+      button.addEventListener('dragstart', event => {
+        draggedAppointmentId = button.dataset.editAppointment;
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', draggedAppointmentId);
+        button.classList.add('is-dragging');
+      });
+      button.addEventListener('dragend', () => {
+        button.classList.remove('is-dragging');
+        document.querySelectorAll('.admin-day.drop-target').forEach(el => el.classList.remove('drop-target'));
+        draggedAppointmentId = null;
+      });
+    });
+    document.querySelectorAll('.admin-day').forEach(day => {
+      day.addEventListener('dragover', event => {
+        if (!draggedAppointmentId) return;
+        event.preventDefault();
+        day.classList.add('drop-target');
+      });
+      day.addEventListener('dragleave', () => day.classList.remove('drop-target'));
+      day.addEventListener('drop', event => {
+        event.preventDefault();
+        day.classList.remove('drop-target');
+        if (!draggedAppointmentId) return;
+        const id = draggedAppointmentId;
+        draggedAppointmentId = null;
+        rescheduleAppointmentToDay(id, day.dataset.date);
+      });
+    });
+  }
+
+  // Zieht die Kundin/den Termin auf einen anderen Tag: Uhrzeit und Dauer
+  // bleiben erhalten, nur das Datum ändert sich. Kollisionen werden clientseitig
+  // geprüft (dieselbe Formel wie booking.js slotStatus()), die DB-Exclusion-
+  // Constraint appointments_no_overlap bleibt das eigentliche Sicherheitsnetz.
+  async function rescheduleAppointmentToDay(appointmentId, dateKey) {
+    const appointment = state.appointments.find(a => a.id === appointmentId);
+    if (!appointment || !dateKey) return;
+    const oldStart = new Date(appointment.starts_at);
+    const oldEnd = new Date(appointment.ends_at);
+    const newStart = new Date(oldStart);
+    const [year, month, day] = dateKey.split('-').map(Number);
+    newStart.setFullYear(year, month - 1, day);
+    if (dayKey(newStart) === dayKey(oldStart)) return;
+    const newEnd = new Date(newStart.getTime() + (oldEnd - oldStart));
+    const conflict = state.appointments.some(a => a.id !== appointmentId && a.status !== 'cancelled' && newStart < new Date(a.ends_at) && newEnd > new Date(a.starts_at))
+      || state.blocks.some(b => newStart < new Date(b.ends_at) && newEnd > new Date(b.starts_at));
+    if (conflict) { toast('Termin kollidiert mit einem bestehenden Termin oder einer Sperrzeit.'); return; }
+    const result = await db.from('appointments').update({ starts_at: newStart.toISOString(), ends_at: newEnd.toISOString() }).eq('id', appointmentId);
+    if (result.error) { toast(result.error.message); return; }
+    toast('Termin verschoben.');
+    await loadAll();
   }
 
   function taskTypeLabel(type) {
