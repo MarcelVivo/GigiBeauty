@@ -9286,6 +9286,7 @@
          letter instead of just floating level with its top. */
       var titleMidY = titleRect.top - railRect.top + titleRect.height / 2;
       var markerY = titleMidY - markerRect.height / 2 + plan.yJitter;
+      if (plan.sectionId === 'section-gel-acryl-nails') markerY -= markerRect.height / 4;
 
       marker.style.left = markerX.toFixed(2) + 'px';
       marker.style.top = markerY.toFixed(2) + 'px';
