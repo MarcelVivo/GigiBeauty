@@ -384,136 +384,11 @@
 .modal .btn { width: 100%; margin-top: .3rem; }
 .booking-summary { margin: 0 0 1.5rem; padding: 1rem; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
 .booking-summary strong { color: var(--gold); display: block; }
-.account-appointment {
-  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 1rem;
-  padding: 1rem 1.2rem;
-  border: 1px solid var(--line);
-  border-left: 2px solid rgba(212,175,106,.5);
-  border-radius: 12px;
-  background: var(--surface);
-  transition: border-color .2s ease, background .2s ease;
-}
-.account-appointment:hover { background: var(--surface-strong); border-left-color: var(--gold); }
-.account-appointment strong { display: block; color: var(--gold-light); font-weight: 500; }
-.account-appointment span { color: var(--text-muted); font-size: .83rem; }
-.account-empty { padding: 2rem 0; color: var(--text-muted); text-align: center; font-size: .92rem; }
-.account-modal { width: min(96vw, 1360px); }
-.account-subhead { margin: 1.6rem 0 .35rem; color: var(--gold); font-family: var(--font-serif); font-style: italic; font-weight: 400; font-size: 1.15rem; letter-spacing: .01em; }
-.account-subhead:first-of-type { margin-top: 1.2rem; }
-.account-hint { margin: 0 0 .9rem; color: var(--text-muted); font-size: .84rem; line-height: 1.55; }
-#account-past { display: grid; gap: .6rem; }
-
-.account-welcome { text-align: left; margin-bottom: 2rem; display: flex; align-items: center; gap: 1.1rem; }
-.account-welcome-text { display: flex; flex-direction: column; gap: .3rem; }
-.account-avatar {
-  flex: 0 0 auto;
-  width: 58px; height: 58px;
-  display: grid; place-items: center;
-  border-radius: 50%;
-  background: linear-gradient(150deg, rgba(212,175,106,.4), var(--wine-soft));
-  border: 1px solid rgba(212,175,106,.45);
-  color: var(--gold-light);
-  font: 500 1.05rem var(--font-serif);
-  letter-spacing: .04em;
-  box-shadow: 0 12px 30px rgba(0,0,0,.32);
-}
-.account-welcome .section-kicker { display: block; }
-.account-greeting { font-family: var(--font-serif); font-style: italic; font-weight: 400; font-size: clamp(1.5rem, 4vw, 1.95rem); color: var(--gold-light); margin: 0; }
-.account-greeting-name { color: var(--gold); }
-.account-greeting-name:not(:empty)::before { content: ', '; color: var(--gold-light); }
-
-/* Hauptspalte (Hero, Beauty Konfigurator, Chat, Fotos) links -- dort passiert
-   alles, was die Kundin gerade tun will. Seitenspalte (Verlauf, Newsletter,
-   Bewertung) rechts -- Nachschlage-/Einstellungs-Inhalte, die seltener
-   gebraucht werden. Trennung nach Wichtigkeit statt einem langen Stapel. */
-.account-columns { display: grid; grid-template-columns: 1.65fr 1fr; gap: 2.2rem; align-items: start; }
-.account-main, .account-sidebar { display: flex; flex-direction: column; gap: 1.75rem; min-width: 0; }
-
-.account-hero-card, .account-invite {
-  padding: 2rem 2.1rem;
-  border-radius: 20px;
-  text-align: center;
-  background: linear-gradient(160deg, var(--charcoal-soft), rgba(181,101,118,.16));
-  border: 1px solid rgba(212,175,106,.28);
-  box-shadow: 0 25px 60px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.05);
-}
-.account-hero-eyebrow, .account-invite-eyebrow { display: block; color: var(--gold); font: 600 .68rem/1 var(--font-body); letter-spacing: .26em; text-transform: uppercase; margin-bottom: .8rem; }
-.account-hero-service, .account-invite h4 { font-family: var(--font-serif); font-style: italic; font-weight: 400; font-size: clamp(1.4rem, 3.4vw, 1.8rem); color: var(--gold-light); margin: 0 0 .4rem; }
-.account-hero-when { color: var(--text-muted); font-size: .95rem; }
-.account-hero-badge { display: inline-block; margin-top: 1.1rem; padding: .4rem .95rem; border-radius: 999px; background: linear-gradient(135deg, #d4af6a, #c8a06a); color: var(--ink); font: 700 .72rem/1 var(--font-body); letter-spacing: .05em; box-shadow: 0 6px 16px rgba(212,175,106,.3); }
-.account-hero-cancel { display: block; margin: 1.2rem auto 0; padding: 0; border: 0; background: none; color: var(--text-muted); font-size: .78rem; letter-spacing: .01em; text-decoration: underline; text-underline-offset: .2em; cursor: pointer; }
-.account-hero-cancel:hover { color: var(--gold-light); }
-.account-hero-extra { margin-top: 1.1rem; display: grid; gap: .5rem; text-align: left; }
-
-.account-invite p { color: var(--text-muted); font-size: .93rem; margin: 0 auto 1.5rem; max-width: 32rem; line-height: 1.6; }
-.account-invite .btn { width: auto; padding-inline: 1.9rem; }
-.account-invite-secondary { display: block; margin: 1.1rem auto 0; padding: 0; border: 0; background: none; color: var(--text-muted); font-size: .78rem; text-decoration: underline; text-underline-offset: .2em; cursor: pointer; }
-.account-invite-secondary:hover { color: var(--gold-light); }
-
-.account-subhead-row { display: flex; align-items: baseline; justify-content: space-between; gap: .6rem; }
-.account-subhead-row .account-subhead { margin: 1.6rem 0 .35rem; }
-.account-count-badge { color: var(--text-muted); font-size: .78rem; white-space: nowrap; }
-.account-count-badge strong { color: var(--gold); font-weight: 700; }
-
-/* Card-Rahmen für alle Sektionen ausserhalb von Hero/Beauty-Konfigurator --
-   dieselbe Optik (Verlauf, Kartenfarbe, Schatten) wie .account-hero-card,
-   aber linksbündig statt zentriert, da Fliesstext/Listen/Formulare hier
-   drin liegen statt einer einzelnen CTA. */
-.account-card { padding: 1.75rem 1.9rem; border-radius: 20px; text-align: left; background: linear-gradient(160deg, var(--charcoal-soft), rgba(181,101,118,.1)); border: 1px solid rgba(212,175,106,.22); box-shadow: 0 20px 50px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04); }
-.account-card > *:first-child { margin-top: 0; }
-
-.account-chat {
-  display: grid;
-  gap: .65rem;
-  max-height: 280px;
-  overflow-y: auto;
-  padding: .9rem;
-  margin-bottom: .8rem;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: rgba(0,0,0,.16);
-}
-.account-chat-empty { padding: 1rem 0; color: var(--text-muted); text-align: center; font-size: .85rem; }
-.account-chat-bubble { max-width: 82%; padding: .6rem .8rem; border-radius: 14px; font-size: .88rem; line-height: 1.5; }
-.account-chat-bubble.is-customer { justify-self: end; background: linear-gradient(135deg, #c8a06a, #b8903a); color: var(--ink); border-bottom-right-radius: 4px; }
-.account-chat-bubble.is-admin { justify-self: start; background: linear-gradient(135deg, rgba(181,101,118,.28), rgba(181,101,118,.12)); color: var(--gold-light); border: 1px solid rgba(212,175,106,.2); border-bottom-left-radius: 4px; }
-/* Fixed px, not width:100%: inside a non-stretched grid item (justify-self:
-   end/start) a percentage-width image has no stable basis to resolve
-   against and collapses to a sliver -- see .account-chat { display:grid }
-   above. */
-.account-chat-bubble img { display: block; width: 220px; max-width: 100%; height: 200px; object-fit: cover; margin-top: .45rem; border-radius: 10px; cursor: zoom-in; }
-.account-chat-bubble time { display: block; margin-top: .35rem; font-size: .68rem; opacity: .65; }
-
-.account-chat-form textarea {
-  width: 100%;
-  padding: .65rem .8rem;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--surface);
-  color: var(--gold-light);
-  font: inherit;
-  resize: vertical;
-  transition: border-color .2s ease;
-}
-.account-chat-form textarea:focus { border-color: var(--gold); outline: none; }
-.account-chat-actions { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-top: .55rem; }
-.account-chat-attach { position: relative; color: var(--text-muted); font-size: .85rem; cursor: pointer; transition: color .2s ease; }
-.account-chat-attach input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
-.account-chat-attach:hover { color: var(--gold-light); }
-.account-chat-filename { display: block; margin-top: .4rem; color: var(--gold-light); font-size: .78rem; }
-
-.account-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: .65rem; }
-.account-gallery img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); cursor: pointer; transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease; }
-.account-gallery img:hover { transform: scale(1.04); box-shadow: 0 12px 26px rgba(0,0,0,.35); border-color: rgba(212,175,106,.5); }
-
 .toast { position: fixed; z-index: 700; right: 1.5rem; bottom: 1.5rem; max-width: 390px; padding: 1rem 1.2rem; color: var(--gold-light); background: var(--charcoal-soft); border: 1px solid var(--gold); border-radius: 10px; box-shadow: 0 18px 50px rgba(0,0,0,.35); opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(calc(100% + 3rem)); transition: transform .25s ease, opacity .2s ease, visibility 0s linear .25s; }
 .toast.is-visible { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); transition-delay: 0s; }
 
 @media (max-width: 1050px) {
   .service-grid { grid-template-columns: repeat(4, 1fr); }
-}
-@media (max-width: 960px) {
-  .account-columns { grid-template-columns: 1fr; gap: 1.5rem; }
 }
 @media (max-width: 720px) {
   body.booking-page {
@@ -524,10 +399,6 @@
     display: block;
     -webkit-text-size-adjust: 100%;
   }
-  .account-welcome { align-items: flex-start; gap: .8rem; }
-  .account-card { padding: 1.4rem 1.3rem; }
-  .account-hero-card, .account-invite { padding: 1.5rem 1.3rem; }
-  .account-avatar { width: 48px; height: 48px; font-size: .92rem; }
   .booking-page button,
   .booking-page a { touch-action: manipulation; }
   .booking-page #site-footer { display: block; }
@@ -994,4 +865,352 @@ html.booking-embed body.booking-page {
   .booking-embed .day-slots {
     grid-template-columns: 1fr;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   KUNDENCENTER (eingeloggte Ansicht, #account-modal)
+   Ziel: alles auf einen Blick, ohne Scrollen des Modals. Auf Desktop drei
+   Spalten mit fester Höhe; nur Chat und Verlauf scrollen in ihrem eigenen
+   Panel. Haarlinien statt schwerer Karten, Champagner/Rosé statt Goldblöcke.
+════════════════════════════════════════════════════════════════════════════ */
+.modal.account-modal {
+  --acc-champagne: #f4e2c8;
+  --acc-gold: #e2bd73;
+  --acc-rose: #d9a9a7;
+  --acc-rose-soft: rgba(217, 169, 167, .12);
+  --acc-hair: rgba(226, 189, 115, .14);
+  --acc-hair-strong: rgba(226, 189, 115, .32);
+  --acc-panel: rgba(255, 244, 232, .022);
+  --acc-muted: rgba(244, 226, 200, .62);
+  width: min(96vw, 1240px);
+  height: min(calc(100vh - 2rem), 700px);
+  height: min(calc(100dvh - 2rem), 700px);
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: 1.5rem 1.6rem 1.6rem;
+  overflow: hidden;
+  border-radius: 26px;
+  border-color: var(--acc-hair);
+  background:
+    radial-gradient(ellipse 60% 50% at 100% 0%, rgba(217, 169, 167, .10), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 0% 100%, rgba(226, 189, 115, .06), transparent 70%),
+    linear-gradient(170deg, #211c21 0%, #18151a 100%);
+  box-shadow: 0 40px 120px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 244, 232, .05);
+  font-family: var(--font-body);
+  color: var(--acc-champagne);
+}
+.account-modal::before { width: 120px; height: 1px; opacity: .7; }
+.account-modal .modal-close {
+  top: 1.2rem; right: 1.2rem;
+  width: 30px; height: 30px;
+  font-size: 1rem;
+  border-color: var(--acc-hair);
+  background: transparent;
+  color: var(--acc-muted);
+}
+.account-modal .modal-close:hover { color: var(--acc-gold); border-color: var(--acc-hair-strong); background: rgba(226, 189, 115, .06); }
+
+/* Kopfzeile */
+.acc-head { display: flex; align-items: center; gap: .9rem; padding-right: 3rem; }
+.acc-head-text { display: flex; flex-direction: column; gap: .2rem; min-width: 0; }
+.account-avatar {
+  flex: 0 0 auto;
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--acc-hair-strong);
+  background: radial-gradient(circle at 30% 25%, rgba(244, 226, 200, .16), rgba(217, 169, 167, .08) 70%);
+  color: var(--acc-gold);
+  font: italic 400 1rem/1 var(--font-serif);
+  letter-spacing: .06em;
+}
+.acc-kicker {
+  display: block;
+  color: var(--acc-rose);
+  font: 600 .62rem/1.2 var(--font-body);
+  letter-spacing: .3em;
+  text-transform: uppercase;
+}
+.account-modal .account-greeting {
+  margin: 0;
+  color: var(--acc-champagne);
+  font: italic 400 clamp(1.25rem, 2.4vw, 1.55rem)/1.2 var(--font-serif);
+  letter-spacing: .005em;
+}
+.account-greeting-name { color: var(--acc-gold); }
+.account-greeting-name:not(:empty)::before { content: ', '; color: var(--acc-champagne); }
+
+/* Raster */
+.acc-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, .95fr);
+  gap: 1rem;
+}
+.acc-col { display: flex; flex-direction: column; gap: 1rem; min-height: 0; min-width: 0; }
+
+.acc-panel {
+  position: relative;
+  min-width: 0;
+  padding: 1.15rem 1.25rem;
+  border: 1px solid var(--acc-hair);
+  border-radius: 18px;
+  background: var(--acc-panel);
+}
+.acc-panel-head { margin-bottom: .75rem; }
+.acc-panel-head--row { display: flex; align-items: baseline; justify-content: space-between; gap: .6rem; }
+.acc-title {
+  margin: 0;
+  color: var(--acc-champagne);
+  font: italic 400 1.08rem/1.3 var(--font-serif);
+  letter-spacing: .005em;
+}
+.acc-hint { margin: .3rem 0 0; color: var(--acc-muted); font-size: .92rem; line-height: 1.45; }
+
+/* Buttons: fein, Haarlinie, keine Blöcke */
+.acc-cta {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  padding: .55rem 1.25rem;
+  border: 1px solid var(--acc-hair-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--acc-gold);
+  font: 600 .7rem/1 var(--font-body);
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .3s ease, border-color .3s ease, color .3s ease;
+}
+.acc-cta::after { content: '→'; letter-spacing: 0; font-size: .85rem; transition: transform .3s ease; }
+.acc-cta:hover { background: rgba(226, 189, 115, .08); border-color: var(--acc-gold); color: var(--acc-champagne); }
+.acc-cta:hover::after { transform: translateX(3px); }
+.acc-cta--filled { background: linear-gradient(135deg, rgba(226, 189, 115, .22), rgba(217, 169, 167, .16)); color: var(--acc-champagne); }
+.acc-quiet {
+  padding: 0; border: 0; background: none;
+  color: var(--acc-muted);
+  font: 400 .85rem/1.3 var(--font-body);
+  text-decoration: underline;
+  text-decoration-color: rgba(244, 226, 200, .25);
+  text-underline-offset: .22em;
+  cursor: pointer;
+  transition: color .2s ease, text-decoration-color .2s ease;
+}
+.acc-quiet:hover { color: var(--acc-champagne); text-decoration-color: var(--acc-gold); }
+.acc-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .9rem 1.2rem; margin-top: 1rem; }
+
+/* Nächster Termin */
+.account-hero { min-height: 0; flex: 1 1 auto; display: flex; flex-direction: column; }
+.account-hero-card, .account-invite {
+  flex: 1 1 auto;
+  display: flex; flex-direction: column;
+  padding: 1.35rem 1.4rem;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 60% at 100% 0%, var(--acc-rose-soft), transparent 70%),
+    var(--acc-panel);
+}
+.acc-loading { align-items: center; justify-content: center; color: var(--acc-muted); font-size: .9rem; letter-spacing: .08em; }
+.acc-next { display: flex; align-items: center; gap: 1.1rem; margin-top: 1rem; }
+.acc-date {
+  flex: 0 0 auto;
+  width: 64px;
+  padding: .55rem 0 .5rem;
+  display: flex; flex-direction: column; align-items: center; gap: .15rem;
+  border: 1px solid var(--acc-hair-strong);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(226, 189, 115, .08), transparent);
+  text-align: center;
+}
+.acc-date span { color: var(--acc-muted); font: 600 .58rem/1 var(--font-body); letter-spacing: .2em; text-transform: uppercase; }
+.acc-date strong { color: var(--acc-gold); font: 400 1.75rem/1 var(--font-serif); }
+.acc-next-body { min-width: 0; }
+.acc-next-service { margin: 0; color: var(--acc-champagne); font: italic 400 clamp(1.15rem, 1.8vw, 1.4rem)/1.25 var(--font-serif); }
+.account-invite .acc-next-service { margin-top: .8rem; }
+.acc-next-when { margin: .3rem 0 0; color: var(--acc-muted); font-size: .95rem; }
+.acc-countdown {
+  display: inline-block;
+  margin-top: .6rem;
+  padding: .28rem .7rem;
+  border: 1px solid rgba(217, 169, 167, .35);
+  border-radius: 999px;
+  color: var(--acc-rose);
+  font: 600 .64rem/1 var(--font-body);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.acc-next-cancel { align-self: flex-start; margin-top: auto; padding-top: 1rem; }
+.acc-next-extra { margin-top: 1rem; padding-top: .85rem; border-top: 1px solid var(--acc-hair); display: grid; gap: .1rem; }
+.acc-next-extra .acc-kicker { margin-bottom: .35rem; }
+
+/* Konfigurator */
+.acc-konfig { flex: 0 0 auto; }
+.acc-konfig .acc-title { margin-top: .55rem; }
+.acc-konfig .acc-cta { margin-top: .9rem; }
+
+/* Listenzeilen (Verlauf, weitere Termine) */
+.acc-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: .8rem;
+  padding: .55rem 0;
+  border-bottom: 1px solid rgba(226, 189, 115, .08);
+  font-size: .95rem;
+}
+.acc-row:last-child { border-bottom: 0; }
+.acc-row time { color: var(--acc-gold); font: 400 .82rem/1 var(--font-serif); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.acc-row-name { min-width: 0; color: var(--acc-champagne); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acc-row-name small { margin-left: .45rem; color: var(--acc-muted); font-size: .82rem; }
+.acc-row-status { color: var(--acc-muted); font-size: .78rem; letter-spacing: .04em; }
+.acc-row.is-cancelled .acc-row-name, .acc-row.is-no_show .acc-row-name { color: var(--acc-muted); text-decoration: line-through; text-decoration-color: rgba(244, 226, 200, .3); }
+.acc-row.is-completed .acc-row-status { color: var(--acc-rose); }
+.account-empty { padding: 1rem 0; color: var(--acc-muted); font-size: .9rem; font-style: italic; text-align: center; }
+.account-count-badge { color: var(--acc-muted); font-size: .8rem; white-space: nowrap; }
+.account-count-badge strong { color: var(--acc-gold); font: 400 .95rem var(--font-serif); margin-right: .15rem; }
+
+/* Chat */
+.acc-col--chat { display: flex; flex-direction: column; min-height: 0; }
+.account-chat {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex; flex-direction: column; gap: .55rem;
+  overflow-y: auto;
+  padding: .3rem .2rem .3rem 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(226, 189, 115, .2) transparent;
+}
+.account-chat-empty { margin: auto; padding: 1rem; color: var(--acc-muted); font-size: .9rem; font-style: italic; text-align: center; }
+.account-chat-bubble { max-width: 82%; padding: .55rem .8rem; border-radius: 16px; font-size: .95rem; line-height: 1.45; }
+.account-chat-bubble p { margin: 0; }
+.account-chat-bubble.is-customer { align-self: flex-end; background: rgba(226, 189, 115, .12); border: 1px solid rgba(226, 189, 115, .18); color: var(--acc-champagne); border-bottom-right-radius: 5px; }
+.account-chat-bubble.is-admin { align-self: flex-start; background: var(--acc-rose-soft); border: 1px solid rgba(217, 169, 167, .2); color: var(--acc-champagne); border-bottom-left-radius: 5px; }
+.account-chat-bubble img { display: block; width: 150px; max-width: 100%; height: 130px; object-fit: cover; margin-top: .4rem; border-radius: 11px; cursor: zoom-in; }
+.account-chat-bubble time { display: block; margin-top: .25rem; color: var(--acc-muted); font-size: .7rem; letter-spacing: .04em; }
+
+.account-chat-form {
+  flex: 0 0 auto;
+  display: flex; align-items: flex-end; gap: .35rem;
+  margin-top: .75rem;
+  padding: .3rem .3rem .3rem .45rem;
+  border: 1px solid var(--acc-hair);
+  border-radius: 22px;
+  background: rgba(0, 0, 0, .14);
+  transition: border-color .25s ease;
+}
+.account-chat-form:focus-within { border-color: var(--acc-hair-strong); }
+.account-chat-form textarea {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-height: 6.5rem;
+  padding: .5rem .3rem;
+  border: 0;
+  background: transparent;
+  color: var(--acc-champagne);
+  font: 400 .98rem/1.35 var(--font-body);
+  resize: none;
+  outline: none;
+}
+.booking-page .account-chat-form textarea:focus-visible { outline: none; }
+.account-chat-form textarea::placeholder { color: rgba(244, 226, 200, .38); font-style: italic; }
+.account-chat-attach, .account-chat-send {
+  position: relative;
+  flex: 0 0 auto;
+  width: 34px; height: 34px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background .2s ease, color .2s ease;
+}
+.account-chat-attach { color: var(--acc-muted); }
+.account-chat-attach:hover { color: var(--acc-gold); background: rgba(226, 189, 115, .08); }
+.account-chat-attach:focus-within { outline: 2px solid var(--acc-gold); outline-offset: 1px; }
+.account-chat-attach input { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
+.account-chat-send { border: 1px solid var(--acc-hair-strong); background: rgba(226, 189, 115, .1); color: var(--acc-gold); }
+.account-chat-send:hover { background: rgba(226, 189, 115, .2); color: var(--acc-champagne); }
+.account-chat-attach svg, .account-chat-send svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.account-chat-filename { display: block; margin-top: .35rem; padding-left: .6rem; color: var(--acc-gold); font-size: .8rem; font-style: italic; }
+.account-chat-filename:empty, .acc-col--chat .form-message:empty { display: none; }
+.acc-col--chat .form-message { min-height: 0; margin-top: .3rem; padding-left: .6rem; }
+
+/* Seitenspalte */
+.acc-journey { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+.acc-journey-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(226, 189, 115, .2) transparent; }
+.acc-photos { flex: 0 0 auto; }
+.acc-photos .acc-panel-head { margin-bottom: .6rem; }
+.account-gallery { display: flex; gap: .45rem; overflow-x: auto; scrollbar-width: none; }
+.account-gallery::-webkit-scrollbar { display: none; }
+.account-gallery img {
+  flex: 0 0 auto;
+  width: 58px; height: 58px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid var(--acc-hair);
+  cursor: pointer;
+  transition: transform .3s ease, border-color .3s ease;
+}
+.account-gallery img:hover { transform: translateY(-2px); border-color: var(--acc-hair-strong); }
+.account-gallery .account-chat-empty { margin: 0; padding: 0; text-align: left; font-size: .85rem; }
+
+.acc-foot {
+  flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .6rem 1rem;
+  padding: .2rem .35rem 0;
+}
+.acc-switch { position: relative; display: inline-flex; align-items: center; gap: .55rem; color: var(--acc-muted); font-size: .88rem; cursor: pointer; }
+.acc-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.acc-switch-track {
+  position: relative;
+  width: 30px; height: 17px;
+  flex: 0 0 auto;
+  border: 1px solid var(--acc-hair-strong);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, .2);
+  transition: background .25s ease, border-color .25s ease;
+}
+.acc-switch-track::after {
+  content: '';
+  position: absolute; top: 2px; left: 2px;
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  background: var(--acc-muted);
+  transition: transform .25s ease, background .25s ease;
+}
+.acc-switch input:checked + .acc-switch-track { background: rgba(226, 189, 115, .2); border-color: var(--acc-gold); }
+.acc-switch input:checked + .acc-switch-track::after { transform: translateX(13px); background: var(--acc-gold); }
+.acc-switch input:focus-visible + .acc-switch-track { outline: 2px solid var(--acc-gold); outline-offset: 2px; }
+.acc-switch .form-message { min-height: 0; color: var(--acc-gold); font-size: .85rem; }
+.acc-review { color: var(--acc-muted); font-size: .88rem; text-decoration: none; transition: color .2s ease; }
+.acc-review span { color: var(--acc-gold); margin-left: .15rem; }
+.acc-review:hover { color: var(--acc-champagne); }
+
+/* Mittlere Breiten: zwei Spalten, Seitenspalte als Reihe darunter. */
+@media (max-width: 1080px) {
+  .modal.account-modal { height: auto; max-height: calc(100vh - 2rem); max-height: calc(100dvh - 2rem); overflow-y: auto; }
+  .acc-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .acc-col--chat { min-height: 360px; }
+  .acc-col--side { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .acc-journey-list { max-height: 220px; }
+  .acc-foot { grid-column: 1 / -1; }
+  .acc-head, .acc-grid { flex: 0 0 auto; }
+  .acc-col > *, .account-hero > *, .acc-journey { flex: 0 0 auto; }
+}
+/* Niedrige Fenster (z. B. kleines eingebettetes iFrame): lieber scrollen
+   als abschneiden. */
+@media (min-width: 1081px) and (max-height: 560px) {
+  .modal.account-modal { height: auto; max-height: calc(100vh - 2rem); overflow-y: auto; }
+  .acc-col--chat { min-height: 340px; }
+}
+@media (max-width: 720px) {
+  .modal.account-modal { width: 100%; padding: 1.2rem 1rem 1.3rem; border-radius: 22px; gap: .9rem; }
+  .acc-head { gap: .7rem; }
+  .account-avatar { width: 40px; height: 40px; font-size: .92rem; }
+  .acc-grid, .acc-col--side { grid-template-columns: minmax(0, 1fr); display: flex; flex-direction: column; gap: .85rem; }
+  .acc-panel, .account-hero-card, .account-invite { padding: 1rem 1.05rem; }
+  .acc-col--chat { min-height: 340px; max-height: 460px; flex: 0 0 auto; }
+  .acc-grid > * { flex: 0 0 auto; }
+  .acc-date { width: 56px; }
+  .acc-date strong { font-size: 1.5rem; }
 }

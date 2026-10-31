@@ -490,41 +490,59 @@
     }));
   }
 
+  function accountDateTile(date) {
+    return `<div class="acc-date" aria-hidden="true">
+      <span>${formatDate(date, { month: 'short' }).replace('.', '')}</span>
+      <strong>${formatDate(date, { day: 'numeric' }).replace('.', '')}</strong>
+      <span>${formatDate(date, { weekday: 'short' }).replace('.', '')}</span>
+    </div>`;
+  }
+
   function renderAccountHero(upcoming, lastCompleted) {
     const hero = document.getElementById('account-hero');
     if (upcoming.length) {
       const next = upcoming[0];
-      const canCancel = new Date(next.starts_at).getTime() - Date.now() >= 12 * 60 * 60 * 1000;
+      const nextDate = new Date(next.starts_at);
+      const canCancel = nextDate.getTime() - Date.now() >= 12 * 60 * 60 * 1000;
       const extra = upcoming.slice(1).map(item => {
         const itemCanCancel = new Date(item.starts_at).getTime() - Date.now() >= 12 * 60 * 60 * 1000;
-        return `<div class="account-appointment"><div><strong>${escapeHtml(item.services?.name || 'Behandlung')}</strong><span>${formatDate(new Date(item.starts_at), { weekday: 'long', day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' })} Uhr</span></div>${itemCanCancel ? `<button class="small-button" type="button" data-cancel-own="${item.id}">Stornieren</button>` : '<span>Bitte direkt kontaktieren</span>'}</div>`;
+        return `<div class="acc-row"><time>${formatDate(new Date(item.starts_at), { day: '2-digit', month: '2-digit' })}</time><span class="acc-row-name">${escapeHtml(item.services?.name || 'Behandlung')}<small>${formatDate(new Date(item.starts_at), { hour: '2-digit', minute: '2-digit' })} Uhr</small></span>${itemCanCancel ? `<button class="acc-quiet" type="button" data-cancel-own="${item.id}">Stornieren</button>` : '<small class="acc-row-status">Bitte direkt melden</small>'}</div>`;
       }).join('');
-      hero.innerHTML = `<div class="account-hero-card">
-        <span class="account-hero-eyebrow">Deine nächste Behandlung</span>
-        <h4 class="account-hero-service">${escapeHtml(next.services?.name || 'Behandlung')}</h4>
-        <p class="account-hero-when">${formatDate(new Date(next.starts_at), { weekday: 'long', day: '2-digit', month: 'long', hour: '2-digit', minute: '2-digit' })} Uhr</p>
-        <span class="account-hero-badge">${appointmentCountdown(next.starts_at)}</span>
-        ${canCancel ? `<button class="account-hero-cancel" type="button" data-cancel-own="${next.id}">Termin stornieren</button>` : '<p class="account-hero-when">Bitte kurzfristige Änderungen direkt mit Liliane besprechen.</p>'}
-        ${extra ? `<div class="account-hero-extra">${extra}</div>` : ''}
+      hero.innerHTML = `<div class="acc-panel account-hero-card">
+        <span class="acc-kicker">Deine nächste Behandlung</span>
+        <div class="acc-next">
+          ${accountDateTile(nextDate)}
+          <div class="acc-next-body">
+            <h3 class="acc-next-service">${escapeHtml(next.services?.name || 'Behandlung')}</h3>
+            <p class="acc-next-when">${formatDate(nextDate, { weekday: 'long', day: 'numeric', month: 'long' })} · ${formatDate(nextDate, { hour: '2-digit', minute: '2-digit' })} Uhr</p>
+            <span class="acc-countdown">${appointmentCountdown(next.starts_at)}</span>
+          </div>
+        </div>
+        ${canCancel ? `<button class="acc-quiet acc-next-cancel" type="button" data-cancel-own="${next.id}">Termin stornieren</button>` : '<p class="acc-hint acc-next-cancel">Kurzfristige Änderungen bitte direkt mit Liliane besprechen.</p>'}
+        ${extra ? `<div class="acc-next-extra"><span class="acc-kicker">Weitere Termine</span>${extra}</div>` : ''}
       </div>`;
       hero.querySelectorAll('[data-cancel-own]').forEach(button => button.addEventListener('click', () => cancelOwnAppointment(button.dataset.cancelOwn)));
     } else if (lastCompleted) {
       const name = escapeHtml(lastCompleted.services?.name || 'Behandlung');
       const slug = escapeHtml(lastCompleted.services?.slug || '');
-      hero.innerHTML = `<div class="account-invite">
-        <span class="account-invite-eyebrow">Zeit für dich</span>
-        <h4>Bereit für deine nächste ${name}-Behandlung?</h4>
-        <p>Gönn dir wieder eine kleine Auszeit bei GiGi Beauty — wir freuen uns schon auf dich.</p>
-        <button class="btn" type="button" data-book-service="${slug}">Jetzt ${name} buchen</button>
-        <button class="account-invite-secondary" type="button" data-book-generic>Oder eine andere Behandlung entdecken</button>
+      hero.innerHTML = `<div class="acc-panel account-invite">
+        <span class="acc-kicker">Zeit für dich</span>
+        <h3 class="acc-next-service">Bereit für deine nächste ${name}?</h3>
+        <p class="acc-hint">Gönn dir wieder eine kleine Auszeit. Wir freuen uns auf dich.</p>
+        <div class="acc-actions">
+          <button class="acc-cta acc-cta--filled" type="button" data-book-service="${slug}">${name} buchen</button>
+          <button class="acc-quiet" type="button" data-book-generic>Andere Behandlung</button>
+        </div>
       </div>`;
       wireAccountBookingButtons(hero);
     } else {
-      hero.innerHTML = `<div class="account-invite">
-        <span class="account-invite-eyebrow">Deine erste Auszeit</span>
-        <h4>Bereit für deine erste Behandlung?</h4>
-        <p>Wähle deine Wunschbehandlung und sichere dir deinen Termin bei GiGi Beauty.</p>
-        <button class="btn" type="button" data-book-generic>Behandlung entdecken</button>
+      hero.innerHTML = `<div class="acc-panel account-invite">
+        <span class="acc-kicker">Deine erste Auszeit</span>
+        <h3 class="acc-next-service">Bereit für deine erste Behandlung?</h3>
+        <p class="acc-hint">Wähle deine Wunschbehandlung und sichere dir deinen Termin.</p>
+        <div class="acc-actions">
+          <button class="acc-cta acc-cta--filled" type="button" data-book-generic>Behandlung entdecken</button>
+        </div>
       </div>`;
       wireAccountBookingButtons(hero);
     }
@@ -534,7 +552,7 @@
     const hero = document.getElementById('account-hero');
     const pastList = document.getElementById('account-past');
     const countBadge = document.getElementById('account-count-badge');
-    hero.innerHTML = '<div class="calendar-loading" style="min-height:120px">Termine werden geladen.</div>';
+    hero.innerHTML = '<div class="acc-panel account-hero-card acc-loading">Termine werden geladen …</div>';
     pastList.innerHTML = '';
     countBadge.textContent = '';
     const fullName = state.profile?.full_name || '';
@@ -554,18 +572,18 @@
     if (state.customerId) ownConditions.push(`customer_ref_id.eq.${state.customerId}`);
     if (state.profile?.email) ownConditions.push(`customer_email.ilike.${state.profile.email}`);
     const { data, error } = await db.from('appointments').select('id, starts_at, status, services(name, slug)').eq('is_private', false).or(ownConditions.join(',')).order('starts_at', { ascending: false });
-    if (error) { hero.innerHTML = `<div class="account-empty">${escapeHtml(error.message)}</div>`; return; }
+    if (error) { hero.innerHTML = `<div class="acc-panel account-hero-card acc-loading">${escapeHtml(error.message)}</div>`; return; }
     const now = Date.now();
     const upcoming = (data || []).filter(item => item.status === 'booked' && new Date(item.starts_at).getTime() >= now).sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
     const past = (data || []).filter(item => item.status !== 'booked' || new Date(item.starts_at).getTime() < now);
     const completedPast = past.filter(item => item.status === 'completed').sort((a, b) => new Date(b.starts_at) - new Date(a.starts_at));
 
     renderAccountHero(upcoming, completedPast[0] || null);
-    if (completedPast.length) countBadge.innerHTML = `<strong>${completedPast.length}</strong> Behandlung${completedPast.length === 1 ? '' : 'en'} genossen`;
+    if (completedPast.length) countBadge.innerHTML = `<strong>${completedPast.length}</strong> genossen`;
 
     pastList.innerHTML = past.length ? past.map(item => {
-      return `<div class="account-appointment"><div><strong>${escapeHtml(item.services?.name || 'Behandlung')}</strong><span>${formatDate(new Date(item.starts_at), { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span></div><span>${escapeHtml(APPOINTMENT_STATUS_LABEL[item.status] || item.status)}</span></div>`;
-    }).join('') : '<div class="account-empty">Noch keine vergangenen Termine — deine Reise beginnt mit deiner ersten Behandlung.</div>';
+      return `<div class="acc-row is-${escapeHtml(item.status)}"><time>${formatDate(new Date(item.starts_at), { day: '2-digit', month: '2-digit', year: '2-digit' })}</time><span class="acc-row-name">${escapeHtml(item.services?.name || 'Behandlung')}</span><small class="acc-row-status">${escapeHtml(APPOINTMENT_STATUS_LABEL[item.status] || item.status)}</small></div>`;
+    }).join('') : '<div class="account-empty">Deine Reise beginnt mit deiner ersten Behandlung.</div>';
 
     loadCustomerMedia();
   }
@@ -655,12 +673,12 @@
   async function saveNewsletterConsent() {
     const message = document.getElementById('account-newsletter-message');
     const checked = document.getElementById('account-newsletter').checked;
-    message.textContent = 'Wird gespeichert.';
+    message.textContent = '…';
     const { error } = await db.from('profiles').update({ marketing_consent: checked }).eq('id', state.user.id);
     if (error) { message.textContent = error.message; return; }
     if (state.profile) state.profile.marketing_consent = checked;
-    message.textContent = 'Gespeichert.';
-    setTimeout(() => { message.textContent = ''; }, 3000);
+    message.textContent = '✓';
+    setTimeout(() => { message.textContent = ''; }, 2000);
   }
 
   async function cancelOwnAppointment(id) {
@@ -709,8 +727,21 @@
     else openModal(els.authModal);
   });
   document.getElementById('my-appointments').addEventListener('click', openAccount);
-  document.getElementById('account-newsletter-save').addEventListener('click', saveNewsletterConsent);
+  document.getElementById('account-newsletter').addEventListener('change', saveNewsletterConsent);
   document.getElementById('account-chat-form').addEventListener('submit', sendChatMessage);
+  (() => {
+    const chatText = document.getElementById('account-chat-text');
+    const chatForm = document.getElementById('account-chat-form');
+    const grow = () => { chatText.style.height = 'auto'; chatText.style.height = `${chatText.scrollHeight}px`; };
+    chatText.addEventListener('input', grow);
+    chatForm.addEventListener('reset', () => setTimeout(grow, 0));
+    chatText.addEventListener('keydown', event => {
+      if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+        event.preventDefault();
+        chatForm.requestSubmit();
+      }
+    });
+  })();
   document.getElementById('account-chat-photo').addEventListener('change', function () {
     document.getElementById('account-chat-filename').textContent = this.files[0]?.name || '';
   });

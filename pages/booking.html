@@ -14,7 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/global.css">
   <link rel="stylesheet" href="../assets/css/pages/nav.css">
-  <link rel="stylesheet" href="../assets/css/pages/booking.css?v=20260811-4">
+  <link rel="stylesheet" href="../assets/css/pages/booking.css?v=20261031-1">
   <link rel="stylesheet" href="../assets/css/pages/beauty-konfigurator.css">
 </head>
 <body class="booking-page">
@@ -136,72 +136,72 @@
     <section class="modal account-modal" role="dialog" aria-modal="true" aria-labelledby="account-title">
       <button class="modal-close" type="button" data-close-modal aria-label="Schliessen">×</button>
 
-      <div class="account-welcome">
+      <header class="acc-head">
         <div class="account-avatar" id="account-avatar" aria-hidden="true"></div>
-        <div class="account-welcome-text">
-          <span class="section-kicker">Willkommen zurück</span>
+        <div class="acc-head-text">
+          <span class="acc-kicker">Mein GiGi Beauty</span>
           <h2 id="account-title" class="account-greeting">Schön, dich zu sehen<span class="account-greeting-name" id="account-greeting-name"></span></h2>
         </div>
-      </div>
+      </header>
 
-      <div class="account-columns">
-        <div class="account-main">
+      <div class="acc-grid">
+        <div class="acc-col acc-col--focus">
           <div class="account-hero" id="account-hero"></div>
 
-          <div class="account-invite">
-            <span class="account-invite-eyebrow">✦ Beauty Konfigurator</span>
-            <h4>Wie würde dein neuer Look aussehen?</h4>
-            <p>Lade ein Foto hoch und probiere Nägel, Lashes, Permanent Make-up und mehr virtuell an – bevor du deinen Termin buchst.</p>
-            <button class="btn" type="button" data-ai-preview="">Jetzt ausprobieren</button>
-          </div>
-
-          <div class="account-card">
-            <h3 class="account-subhead">Fotos &amp; Wünsche</h3>
-            <p class="account-hint">Ein Foto gesehen, das dir gefällt? Schick es Liliane zusammen mit deinem Wunsch.</p>
-            <div class="account-chat" id="account-chat"></div>
-            <form class="account-chat-form" id="account-chat-form">
-              <textarea id="account-chat-text" rows="2" placeholder="z. B. Hallo Liliane, diese Nägel möchte ich beim nächsten Mal ..."></textarea>
-              <div class="account-chat-actions">
-                <label class="account-chat-attach">
-                  <input type="file" id="account-chat-photo" accept="image/*">
-                  <span>📎 Foto anhängen</span>
-                </label>
-                <button class="small-button" type="submit">Senden</button>
-              </div>
-              <span class="account-chat-filename" id="account-chat-filename"></span>
-            </form>
-            <div class="form-message" id="account-chat-message"></div>
-          </div>
-
-          <div class="account-card">
-            <h3 class="account-subhead">Meine Behandlungsfotos</h3>
-            <p class="account-hint">Von Liliane nach deinen Behandlungen festgehalten.</p>
-            <div class="account-gallery" id="account-gallery"></div>
+          <div class="acc-panel acc-konfig">
+            <span class="acc-kicker">✦ Beauty Konfigurator</span>
+            <h3 class="acc-title">Dein neuer Look, virtuell</h3>
+            <p class="acc-hint">Probiere Nägel, Lashes oder Permanent Make-up an deinem eigenen Foto an.</p>
+            <button class="acc-cta" type="button" data-ai-preview="">Ausprobieren</button>
           </div>
         </div>
 
-        <aside class="account-sidebar">
-          <div class="account-card">
-            <div class="account-subhead-row">
-              <h3 class="account-subhead">Deine Reise</h3>
+        <div class="acc-panel acc-col--chat">
+          <div class="acc-panel-head">
+            <h3 class="acc-title">Fotos &amp; Wünsche</h3>
+            <p class="acc-hint">Schick Liliane ein Foto, das dir gefällt, zusammen mit deinem Wunsch.</p>
+          </div>
+          <div class="account-chat" id="account-chat"></div>
+          <form class="account-chat-form" id="account-chat-form">
+            <label class="account-chat-attach" title="Foto anhängen">
+              <input type="file" id="account-chat-photo" accept="image/*" aria-label="Foto anhängen">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5l-8.6 8.6a5 5 0 01-7.1-7.1l8.6-8.6a3.3 3.3 0 014.7 4.7l-8.6 8.6a1.7 1.7 0 01-2.4-2.4l7.9-7.9"/></svg>
+            </label>
+            <textarea id="account-chat-text" rows="1" placeholder="Deine Nachricht an Liliane …" aria-label="Nachricht an Liliane"></textarea>
+            <button class="account-chat-send" type="submit" aria-label="Senden">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+            </button>
+          </form>
+          <span class="account-chat-filename" id="account-chat-filename"></span>
+          <div class="form-message" id="account-chat-message"></div>
+        </div>
+
+        <div class="acc-col acc-col--side">
+          <div class="acc-panel acc-journey">
+            <div class="acc-panel-head acc-panel-head--row">
+              <h3 class="acc-title">Deine Reise</h3>
               <span class="account-count-badge" id="account-count-badge"></span>
             </div>
-            <div class="slot-list" id="account-past"></div>
+            <div class="acc-journey-list" id="account-past"></div>
           </div>
 
-          <div class="account-card">
-            <h3 class="account-subhead">Newsletter</h3>
-            <label class="checkbox"><input id="account-newsletter" type="checkbox"> Ich möchte Neuigkeiten und Angebote von GiGi Beauty per E-Mail erhalten.</label>
-            <button class="small-button" type="button" id="account-newsletter-save" style="margin-top:.6rem">Speichern</button>
-            <span class="form-message" id="account-newsletter-message"></span>
+          <div class="acc-panel acc-photos">
+            <div class="acc-panel-head">
+              <h3 class="acc-title">Behandlungsfotos</h3>
+            </div>
+            <div class="account-gallery" id="account-gallery"></div>
           </div>
 
-          <div class="account-card">
-            <h3 class="account-subhead">Wie war dein Besuch?</h3>
-            <p class="account-hint">Wir freuen uns über deine Bewertung auf Google.</p>
-            <a class="btn btn-outline" href="https://share.google/fqi3emL8ITxyLjpff" target="_blank" rel="noopener">GiGi Beauty bewerten</a>
+          <div class="acc-foot">
+            <label class="acc-switch">
+              <input id="account-newsletter" type="checkbox">
+              <span class="acc-switch-track" aria-hidden="true"></span>
+              <span class="acc-switch-label">Newsletter &amp; Angebote</span>
+              <span class="form-message" id="account-newsletter-message"></span>
+            </label>
+            <a class="acc-review" href="https://share.google/fqi3emL8ITxyLjpff" target="_blank" rel="noopener">GiGi Beauty bewerten <span aria-hidden="true">★</span></a>
           </div>
-        </aside>
+        </div>
       </div>
     </section>
   </div>
@@ -285,7 +285,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../assets/js/supabase-config.js"></script>
   <script src="../assets/js/main.js"></script>
-  <script src="../assets/js/booking.js?v=20260811-2"></script>
+  <script src="../assets/js/booking.js?v=20261031-1"></script>
   <script src="../assets/js/beauty-konfigurator.js"></script>
   <script src="../assets/js/password-toggle.js"></script>
   <script>
