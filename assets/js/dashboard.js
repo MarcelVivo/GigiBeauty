@@ -1248,15 +1248,35 @@
     $('waitlist-from').value = localInput(nextRoundedSlot());
     $('waitlist-until').value = localInput(addDays(nextRoundedSlot(), 30));
     $('waitlist-message').textContent = '';
+    setPickerCustomer('waitlist', null);
     openModal('waitlist-modal');
+  }
+
+  // Wartelisten-Eintrag einer Kundin zuordnen: gewählte Kundin, sonst
+  // E-Mail, Telefon (letzte 9 Ziffern) oder eindeutiger exakter Name --
+  // gleiche Reihenfolge wie sync_appointment_customer(). Sonst neue Kundin.
+  async function resolveWaitlistCustomer(name, email, phone) {
+    const chosen = $('waitlist-customer-ref').value;
+    if (chosen) return chosen;
+    const byEmail = email && state.customers.find(c => c.email?.toLowerCase() === email);
+    if (byEmail) return byEmail.id;
+    const byPhone = phoneKey(phone).length === 9 ? state.customers.filter(c => phoneKey(c.phone) === phoneKey(phone)) : [];
+    if (byPhone.length === 1) return byPhone[0].id;
+    const byName = state.customers.filter(c => String(c.full_name || '').trim().toLowerCase() === name.toLowerCase());
+    if (byName.length === 1) return byName[0].id;
+    const { data, error } = await db.from('customers').insert({ full_name: name, email, phone, source: 'Warteliste' }).select('id').single();
+    if (error) throw error;
+    return data.id;
   }
 
   async function saveWaitlist(event) {
     event.preventDefault();
     const email = $('waitlist-email').value.trim().toLowerCase() || null;
     const phone = $('waitlist-phone').value.trim() || null;
-    const customer = state.customers.find(item => (email && item.email?.toLowerCase() === email) || (phone && item.phone === phone));
-    const payload = { customer_id: customer?.id || null, service_id: $('waitlist-service').value || null, customer_name: $('waitlist-name').value.trim(), email, phone, preferred_from: $('waitlist-from').value ? new Date($('waitlist-from').value).toISOString() : null, preferred_until: $('waitlist-until').value ? new Date($('waitlist-until').value).toISOString() : null, flexible: $('waitlist-flexible').checked, priority: Number($('waitlist-priority').value), notes: $('waitlist-notes').value.trim() || null, created_by: state.user.id };
+    let customerId;
+    try { customerId = await resolveWaitlistCustomer($('waitlist-name').value.trim(), email, phone); }
+    catch (error) { return $('waitlist-message').textContent = error.message; }
+    const payload = { customer_id: customerId, service_id: $('waitlist-service').value || null, customer_name: $('waitlist-name').value.trim(), email, phone, preferred_from: $('waitlist-from').value ? new Date($('waitlist-from').value).toISOString() : null, preferred_until: $('waitlist-until').value ? new Date($('waitlist-until').value).toISOString() : null, flexible: $('waitlist-flexible').checked, priority: Number($('waitlist-priority').value), notes: $('waitlist-notes').value.trim() || null, created_by: state.user.id };
     const { error } = await db.from('waitlist_entries').insert(payload);
     if (error) return $('waitlist-message').textContent = error.message;
     closeModal('waitlist-modal'); toast('Wunsch wurde auf die Warteliste gesetzt.'); await loadAll();
@@ -1871,14 +1891,17 @@
   function searchCustomers(query) {
     const text = query.trim().toLowerCase();
     if (!text) return [];
-    const digits = text.replace(/\D/g, '');
+    // Telefon ohne Landes-/Ortsvorwahl-Präfix vergleichen: 079…, +41 79…
+    // und 0041 79… sind dieselbe Nummer.
+    const phoneCore = value => String(value || '').replace(/\D/g, '').replace(/^(00)?41/, '').replace(/^0/, '');
+    const digits = phoneCore(text);
     const words = text.split(/\s+/);
     return state.customers
       .map(customer => {
         const name = String(customer.full_name || '').toLowerCase();
         const email = String(customer.email || '').toLowerCase();
         const nameHit = words.every(word => name.includes(word));
-        const hit = nameHit || email.includes(text) || (digits.length >= 3 && phoneKey(customer.phone).includes(digits.slice(-9)));
+        const hit = nameHit || email.includes(text) || (digits.length >= 3 && /^[\d\s+()/-]+$/.test(text) && phoneCore(customer.phone).includes(digits));
         return hit ? { customer, rank: name.startsWith(text) ? 0 : nameHit ? 1 : 2 } : null;
       })
       .filter(Boolean)
@@ -1887,11 +1910,14 @@
       .map(entry => entry.customer);
   }
 
+  // Kundensuche mit Auswahlfeld, wiederverwendet im Termin- und im
+  // Wartelisten-Dialog. prefix = ID-Präfix der Elemente
+  // (<prefix>-customer-search/-list/-chip/-ref …, <prefix>-name/-email/-phone).
   let customerPickerIndex = -1;
-  function renderCustomerPicker() {
-    const query = $('appointment-customer-search').value;
-    const list = $('appointment-customer-list');
-    if (!query.trim()) { list.hidden = true; $('appointment-customer-search').setAttribute('aria-expanded', 'false'); return; }
+  function renderCustomerPicker(prefix) {
+    const query = $(`${prefix}-customer-search`).value;
+    const list = $(`${prefix}-customer-list`);
+    if (!query.trim()) { list.hidden = true; $(`${prefix}-customer-search`).setAttribute('aria-expanded', 'false'); return; }
     const matches = searchCustomers(query);
     customerPickerIndex = matches.length ? 0 : -1;
     list.innerHTML = matches.map((customer, index) => {
@@ -1901,47 +1927,66 @@
       return `<button type="button" role="option" class="customer-picker-option${index === 0 ? ' is-active' : ''}" data-pick-customer="${customer.id}"><strong>${esc(customer.full_name)}</strong><span>${meta}</span><small>${visits}</small></button>`;
     }).join('') + `<button type="button" role="option" class="customer-picker-option is-new" data-pick-new><strong>+ Neue Kundin «${esc(query.trim())}»</strong></button>`;
     list.hidden = false;
-    $('appointment-customer-search').setAttribute('aria-expanded', 'true');
-    list.querySelectorAll('[data-pick-customer]').forEach(button => button.onmousedown = event => { event.preventDefault(); selectAppointmentCustomer(button.dataset.pickCustomer); });
-    list.querySelector('[data-pick-new]').onmousedown = event => { event.preventDefault(); startNewAppointmentCustomer(); };
+    $(`${prefix}-customer-search`).setAttribute('aria-expanded', 'true');
+    list.querySelectorAll('[data-pick-customer]').forEach(button => button.onmousedown = event => { event.preventDefault(); selectPickerCustomer(prefix, button.dataset.pickCustomer); });
+    list.querySelector('[data-pick-new]').onmousedown = event => { event.preventDefault(); startNewPickerCustomer(prefix); };
   }
 
-  function moveCustomerPicker(step) {
-    const options = [...$('appointment-customer-list').querySelectorAll('.customer-picker-option')];
+  function moveCustomerPicker(prefix, step) {
+    const options = [...$(`${prefix}-customer-list`).querySelectorAll('.customer-picker-option')];
     if (!options.length) return;
     customerPickerIndex = (customerPickerIndex + step + options.length) % options.length;
     options.forEach((option, index) => option.classList.toggle('is-active', index === customerPickerIndex));
     options[customerPickerIndex].scrollIntoView({ block: 'nearest' });
   }
 
-  function setAppointmentCustomer(customer) {
-    $('appointment-customer-ref').value = customer?.id || '';
-    $('appointment-customer-chip').hidden = !customer;
-    $('appointment-customer-picker').hidden = !!customer;
-    $('appointment-customer-hint').hidden = !!customer;
-    $('appointment-customer-list').hidden = true;
-    $('appointment-customer-search').value = '';
-    if (customer) $('appointment-customer-chip-text').innerHTML = `<strong>${esc(customer.full_name)}</strong>${[customer.phone, customer.email].filter(Boolean).map(value => ` · ${esc(value)}`).join('')}`;
+  function setPickerCustomer(prefix, customer) {
+    $(`${prefix}-customer-ref`).value = customer?.id || '';
+    $(`${prefix}-customer-chip`).hidden = !customer;
+    $(`${prefix}-customer-picker`).hidden = !!customer;
+    $(`${prefix}-customer-hint`).hidden = !!customer;
+    $(`${prefix}-customer-list`).hidden = true;
+    $(`${prefix}-customer-search`).value = '';
+    if (customer) $(`${prefix}-customer-chip-text`).innerHTML = `<strong>${esc(customer.full_name)}</strong>${[customer.phone, customer.email].filter(Boolean).map(value => ` · ${esc(value)}`).join('')}`;
   }
 
-  function selectAppointmentCustomer(customerId) {
+  function selectPickerCustomer(prefix, customerId) {
     const customer = state.customers.find(c => c.id === customerId);
     if (!customer) return;
-    setAppointmentCustomer(customer);
-    $('appointment-name').value = customer.full_name || '';
-    $('appointment-email').value = customer.email || '';
-    $('appointment-phone').value = customer.phone || '';
+    setPickerCustomer(prefix, customer);
+    $(`${prefix}-name`).value = customer.full_name || '';
+    $(`${prefix}-email`).value = customer.email || '';
+    $(`${prefix}-phone`).value = customer.phone || '';
   }
 
   // Keine bestehende Kundin: Name übernehmen, E-Mail/Telefon erfassen --
-  // beim Speichern legt sync_appointment_customer() das Profil an.
-  function startNewAppointmentCustomer() {
-    const name = $('appointment-customer-search').value.trim();
-    setAppointmentCustomer(null);
-    $('appointment-name').value = name;
-    $('appointment-email').value = '';
-    $('appointment-phone').value = '';
-    $('appointment-phone').focus();
+  // das Profil entsteht beim Speichern (Termin: sync_appointment_customer(),
+  // Warteliste: resolveWaitlistCustomer()).
+  function startNewPickerCustomer(prefix) {
+    const name = $(`${prefix}-customer-search`).value.trim();
+    setPickerCustomer(prefix, null);
+    $(`${prefix}-name`).value = name;
+    $(`${prefix}-email`).value = '';
+    $(`${prefix}-phone`).value = '';
+    $(`${prefix}-phone`).focus();
+  }
+
+  function bindCustomerPicker(prefix, modalId) {
+    const search = $(`${prefix}-customer-search`), list = $(`${prefix}-customer-list`);
+    search.oninput = () => renderCustomerPicker(prefix);
+    search.onkeydown = event => {
+      if (list.hidden) return;
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); moveCustomerPicker(prefix, event.key === 'ArrowDown' ? 1 : -1); }
+      else if (event.key === 'Enter') {
+        event.preventDefault();
+        const active = list.querySelectorAll('.customer-picker-option')[customerPickerIndex];
+        if (active?.dataset.pickCustomer) selectPickerCustomer(prefix, active.dataset.pickCustomer);
+        else if (active) startNewPickerCustomer(prefix);
+      } else if (event.key === 'Escape') { event.stopPropagation(); list.hidden = true; }
+    };
+    search.onblur = () => setTimeout(() => { list.hidden = true; }, 120);
+    $(`${prefix}-customer-clear`).onclick = () => { setPickerCustomer(prefix, null); search.focus(); };
+    $(`${prefix}-customer-open`).onclick = () => { const ref = $(`${prefix}-customer-ref`).value; if (ref) { closeModal(modalId); openCustomer(ref); } };
   }
 
   function openAppointment(id = null, preset = null) {
@@ -1962,8 +2007,8 @@
     $('appointment-phone').value = item?.customer_phone || '';
     $('appointment-notes').value = item?.notes || '';
     const linkedCustomer = state.customers.find(c => c.id === (item?.customer_ref_id || preset?.customerId));
-    setAppointmentCustomer(linkedCustomer || null);
-    if (!item && linkedCustomer) selectAppointmentCustomer(linkedCustomer.id);
+    setPickerCustomer('appointment', linkedCustomer || null);
+    if (!item && linkedCustomer) selectPickerCustomer('appointment', linkedCustomer.id);
     $('delete-appointment').hidden = !item || item.status === 'cancelled';
     $('appointment-message').textContent = '';
     togglePrivateFields();
@@ -2497,20 +2542,8 @@
   });
   $('admin-calendar').addEventListener('scroll', closeGapMenu);
   $('appointment-form').onsubmit = saveAppointment;
-  $('appointment-customer-search').oninput = renderCustomerPicker;
-  $('appointment-customer-search').onkeydown = event => {
-    if ($('appointment-customer-list').hidden) return;
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); moveCustomerPicker(event.key === 'ArrowDown' ? 1 : -1); }
-    else if (event.key === 'Enter') {
-      event.preventDefault();
-      const active = $('appointment-customer-list').querySelectorAll('.customer-picker-option')[customerPickerIndex];
-      if (active?.dataset.pickCustomer) selectAppointmentCustomer(active.dataset.pickCustomer);
-      else if (active) startNewAppointmentCustomer();
-    } else if (event.key === 'Escape') { event.stopPropagation(); $('appointment-customer-list').hidden = true; }
-  };
-  $('appointment-customer-search').onblur = () => setTimeout(() => { $('appointment-customer-list').hidden = true; }, 120);
-  $('appointment-customer-clear').onclick = () => { setAppointmentCustomer(null); $('appointment-customer-search').focus(); };
-  $('appointment-customer-open').onclick = () => { const ref = $('appointment-customer-ref').value; if (ref) { closeModal('appointment-modal'); openCustomer(ref); } };
+  bindCustomerPicker('appointment', 'appointment-modal');
+  bindCustomerPicker('waitlist', 'waitlist-modal');
   $('customer-delete').onclick = openCustomerDelete;
   $('customer-delete-form').onsubmit = deleteCustomerPermanently;
   $('customer-delete-confirm').oninput = event => {

@@ -298,7 +298,15 @@
 
   <div class="modal-backdrop" id="waitlist-modal" hidden><form class="modal" id="waitlist-form">
     <button class="modal-close" type="button" data-close>×</button><h2>Wunsch auf Warteliste</h2>
-    <div class="form-grid"><div class="field"><label for="waitlist-name">Name</label><input id="waitlist-name" required></div><div class="field"><label for="waitlist-service">Behandlung</label><select id="waitlist-service"></select></div><div class="field"><label for="waitlist-email">E-Mail</label><input id="waitlist-email" type="email"></div><div class="field"><label for="waitlist-phone">Telefon</label><input id="waitlist-phone" type="tel"></div><div class="field"><label for="waitlist-from">Frühestens</label><input id="waitlist-from" type="datetime-local"></div><div class="field"><label for="waitlist-until">Spätestens</label><input id="waitlist-until" type="datetime-local"></div><div class="field"><label for="waitlist-priority">Priorität</label><select id="waitlist-priority"><option value="0">Normal</option><option value="1">Hoch</option><option value="2">VIP / dringend</option></select></div><div class="field"><label><input id="waitlist-flexible" type="checkbox" checked> Zeitlich flexibel</label></div><div class="field full"><label for="waitlist-notes">Notizen</label><textarea id="waitlist-notes" rows="3"></textarea></div></div>
+    <div class="form-grid"><div class="field full"><label for="waitlist-customer-search">Kundin</label>
+        <div class="customer-picker" id="waitlist-customer-picker">
+          <input id="waitlist-customer-search" type="search" autocomplete="off" placeholder="Name, Telefon oder E-Mail suchen" role="combobox" aria-expanded="false" aria-controls="waitlist-customer-list">
+          <div class="customer-picker-list" id="waitlist-customer-list" role="listbox" hidden></div>
+        </div>
+        <div class="customer-picker-chip" id="waitlist-customer-chip" hidden><span class="customer-picker-chip-text" id="waitlist-customer-chip-text"></span><button class="link-button" type="button" id="waitlist-customer-open">Profil</button><button class="link-button" type="button" id="waitlist-customer-clear">Ändern</button></div>
+        <small class="customer-picker-hint" id="waitlist-customer-hint">Keine Kundin ausgewählt: Beim Speichern wird über E-Mail, Telefon oder eindeutigen Namen zugeordnet, sonst eine neue Kundin angelegt.</small>
+        <input type="hidden" id="waitlist-customer-ref">
+      </div><div class="field"><label for="waitlist-name">Name</label><input id="waitlist-name" required></div><div class="field"><label for="waitlist-service">Behandlung</label><select id="waitlist-service"></select></div><div class="field"><label for="waitlist-email">E-Mail</label><input id="waitlist-email" type="email"></div><div class="field"><label for="waitlist-phone">Telefon</label><input id="waitlist-phone" type="tel"></div><div class="field"><label for="waitlist-from">Frühestens</label><input id="waitlist-from" type="datetime-local"></div><div class="field"><label for="waitlist-until">Spätestens</label><input id="waitlist-until" type="datetime-local"></div><div class="field"><label for="waitlist-priority">Priorität</label><select id="waitlist-priority"><option value="0">Normal</option><option value="1">Hoch</option><option value="2">VIP / dringend</option></select></div><div class="field"><label><input id="waitlist-flexible" type="checkbox" checked> Zeitlich flexibel</label></div><div class="field full"><label for="waitlist-notes">Notizen</label><textarea id="waitlist-notes" rows="3"></textarea></div></div>
     <div class="form-message" id="waitlist-message"></div><div class="modal-actions"><div></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit">Eintragen</button></div></div>
   </form></div>
 
@@ -409,7 +417,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../assets/js/supabase-config.js?v=20260808-1"></script>
-  <script src="../assets/js/dashboard.js?v=20261101-8"></script>
+  <script src="../assets/js/dashboard.js?v=20261101-9"></script>
   <script src="../assets/js/password-toggle.js"></script>
 </body>
 </html>
