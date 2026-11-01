@@ -29,7 +29,14 @@
     message.textContent = 'Passwort wird gespeichert.';
     const { error } = await db.auth.updateUser({ password });
     submit.disabled = false;
-    if (error) { message.textContent = error.message; return; }
+    if (error) {
+      const text = String(error.message || '').toLowerCase();
+      message.textContent = error.code === 'same_password' || text.includes('should be different') ? 'Das neue Passwort muss sich vom bisherigen unterscheiden.'
+        : error.code === 'weak_password' || text.includes('password should be') ? 'Das Passwort ist zu schwach. Bitte mindestens 8 Zeichen mit Buchstaben und Zahlen verwenden.'
+        : text.includes('expired') || text.includes('invalid') ? 'Dieser Link ist ungültig oder abgelaufen. Bitte erneut «Passwort vergessen?» anfordern.'
+        : error.message;
+      return;
+    }
     message.textContent = 'Passwort gespeichert. Du kannst dich jetzt anmelden.';
     await db.auth.signOut();
     setTimeout(() => { location.href = './'; }, 2000);

@@ -11,7 +11,7 @@ const db = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: f
 
 type OutboxItem = {
   id: string;
-  kind: 'confirmation' | 'reminder' | 'cancellation' | 'rescheduled' | 'invoice' | 'campaign' | 'aftercare' | 'review' | 'rebooking' | 'winback' | 'birthday' | 'waitlist' | 'registration_invite' | 'newsletter_welcome' | 'ai_preview_followup' | 'owner_notice';
+  kind: 'confirmation' | 'reminder' | 'cancellation' | 'rescheduled' | 'invoice' | 'campaign' | 'aftercare' | 'review' | 'rebooking' | 'winback' | 'birthday' | 'waitlist' | 'registration_invite' | 'newsletter_welcome' | 'ai_preview_followup' | 'owner_notice' | 'newsletter_confirm';
   recipient_email: string;
   recipient_name: string | null;
   subject: string;
@@ -105,6 +105,10 @@ function emailHtml(item: OutboxItem) {
     const bookingUrl = esc(trackedLink(item, String(item.payload.booking_url || 'https://www.gigibeauty.ch/pages/booking.html')));
     heading = item.subject;
     content = `<p>${esc(item.payload.content)}</p><p><a href="${bookingUrl}" style="display:inline-block;padding:13px 20px;background:#6e384c;color:#fff;text-decoration:none;border-radius:7px">Termin buchen</a></p>`;
+  } else if (item.kind === 'newsletter_confirm') {
+    heading = 'Bitte bestätige deine Anmeldung';
+    const confirmUrl = `${marketingTrackingUrl}?event=confirm&id=${encodeURIComponent(item.id)}`;
+    content = `<p>${esc(item.payload.content)}</p><p><a href="${esc(confirmUrl)}" style="display:inline-block;padding:13px 20px;background:#6e384c;color:#fff;text-decoration:none;border-radius:7px">Anmeldung bestätigen</a></p>`;
   } else if (item.kind === 'registration_invite') {
     const registrationUrl = esc(String(item.payload.registration_url || 'https://www.gigibeauty.ch/pages/booking.html?register=1'));
     heading = 'Dein persönliches GiGi Beauty Konto';

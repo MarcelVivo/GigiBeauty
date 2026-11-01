@@ -7248,7 +7248,7 @@
         <iframe
           class="booking-calendar-frame"
           id="booking-calendar-frame"
-          src="pages/booking.html?embed=1&amp;v=20261101-3"
+          src="pages/booking.html?embed=1&amp;v=20261101-5"
           title="Online-Terminbuchung bei GiGi Beauty"
           loading="eager"
         >
@@ -9943,7 +9943,9 @@
           return;
         }
         message.className = 'footer-newsletter-message is-success';
-        message.textContent = 'Danke, du bist angemeldet!';
+        message.textContent = result.data === 'already'
+          ? 'Du bist bereits angemeldet. Danke!'
+          : 'Fast geschafft! Bitte bestätige deine Anmeldung über den Link in der E-Mail, die wir dir gerade geschickt haben.';
         newsletterForm.reset();
       });
     });

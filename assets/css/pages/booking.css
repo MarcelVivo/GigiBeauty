@@ -261,6 +261,8 @@
 .slot:hover { background: rgba(84, 140, 90, .24); border-color: rgba(128,184,133,.55); }
 .slot.is-unavailable { color: rgba(245,230,200,.25); border-color: rgba(255,255,255,.05); background: rgba(255,255,255,.025); cursor: not-allowed; text-decoration: line-through; }
 .slot.is-past { opacity: .25; cursor: not-allowed; }
+.slot.is-soon, .slot.is-later { opacity: .4; cursor: not-allowed; }
+.price-item-pill.is-soon { opacity: .45; cursor: not-allowed; }
 .closed-day { padding: 1rem .25rem; text-align: center; color: rgba(245,230,200,.28); font-size: .8rem; }
 
 .day-view { height: 100%; max-width: 760px; margin: 0 auto; }

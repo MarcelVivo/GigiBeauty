@@ -7,7 +7,7 @@
   <title>GiGi Beauty | Admin Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261101-21">
+  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261101-22">
 <meta name="theme-color" content="#261b17">
 <!-- PWA / App -->
 <link rel="manifest" href="/dashboard/manifest.webmanifest">
@@ -233,6 +233,7 @@
       <div class="field"><label for="appointment-email">E-Mail</label><input id="appointment-email" type="email"></div>
       <div class="field"><label for="appointment-phone">Telefon</label><input id="appointment-phone" type="tel"></div>
       <div class="field full"><label for="appointment-notes">Notizen</label><textarea id="appointment-notes" rows="3"></textarea></div>
+      <div class="field full notify-field" id="appointment-notify-field"><label class="notify-label"><input type="checkbox" id="appointment-notify"> Kundin per E-Mail benachrichtigen</label><small class="muted" id="appointment-notify-hint"></small></div>
     </div>
     <div class="move-panel" id="move-panel" hidden>
       <div class="move-head"><strong>Neue Zeit wählen</strong><span id="move-duration"></span></div>
@@ -440,7 +441,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../assets/js/supabase-config.js?v=20260808-1"></script>
-  <script src="../assets/js/dashboard.js?v=20261101-20"></script>
+  <script src="../assets/js/dashboard.js?v=20261101-21"></script>
   <script src="../assets/js/password-toggle.js"></script>
 </body>
 </html>

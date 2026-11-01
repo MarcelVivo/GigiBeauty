@@ -183,7 +183,11 @@
   }
 
   function slotStatus(slot) {
-    if (slot.start <= new Date()) return 'past';
+    const now = new Date();
+    if (slot.start <= now) return 'past';
+    const rules = state.rules || { minLeadHours: 2, maxAdvanceDays: 90 };
+    if (slot.start < new Date(now.getTime() + rules.minLeadHours * 3600000)) return 'soon';
+    if (slot.start > new Date(now.getTime() + rules.maxAdvanceDays * 86400000)) return 'later';
     const busy = state.unavailable.some(item => slot.start < new Date(item.ends_at) && slot.end > new Date(item.starts_at));
     return busy ? 'unavailable' : 'available';
   }
@@ -206,6 +210,8 @@
     state.services = services?.length ? services : fallbackServices;
     state.priceItems = priceItems || [];
     state.hours = settings?.opening_hours || defaultHours;
+    // Gleiche Regeln wie book_appointment() in der Datenbank.
+    state.rules = { minLeadHours: Number(settings?.min_lead_hours ?? 2), maxAdvanceDays: Number(settings?.max_advance_days ?? 90) };
     state.selectedService = initialService();
     pendingServiceSlug = null;
     renderServices();
@@ -254,16 +260,18 @@
       return;
     }
 
-    if (!state.selectedPriceItem || !items.some(item => item.id === state.selectedPriceItem.id)) {
-      state.selectedPriceItem = items[0];
+    const bookable = items.filter(item => item.price_chf != null);
+    if (!state.selectedPriceItem || !bookable.some(item => item.id === state.selectedPriceItem.id)) {
+      state.selectedPriceItem = bookable[0] || null;
     }
 
     els.priceItemPicker.hidden = false;
     els.priceItemList.innerHTML = items.map(item => {
       const priceText = item.price_chf != null ? `CHF ${Number(item.price_chf).toFixed(0)}` : (item.price_label || '');
       const duration = Number(item.duration_minutes) > 0 ? Number(item.duration_minutes) : Number(state.selectedService?.duration_minutes) || SLOT_MINUTES;
-      return `<button class="price-item-pill${state.selectedPriceItem?.id === item.id ? ' is-selected' : ''}" type="button" data-price-item-id="${escapeHtml(item.id)}" aria-pressed="${state.selectedPriceItem?.id === item.id}">
-        ${escapeHtml(item.name)}<small>${duration} Min.${priceText ? ' · ' + escapeHtml(priceText) : ''}</small>
+      const soon = item.price_chf == null;
+      return `<button class="price-item-pill${state.selectedPriceItem?.id === item.id ? ' is-selected' : ''}${soon ? ' is-soon' : ''}" type="button" data-price-item-id="${escapeHtml(item.id)}" aria-pressed="${state.selectedPriceItem?.id === item.id}" ${soon ? 'disabled' : ''}>
+        ${escapeHtml(item.name)}<small>${soon ? 'Demnächst online buchbar' : `${duration} Min.${priceText ? ' · ' + escapeHtml(priceText) : ''}`}</small>
       </button>`;
     }).join('');
     els.priceItemList.querySelectorAll('[data-price-item-id]').forEach(button => button.addEventListener('click', () => {
@@ -297,7 +305,7 @@
     const status = slotStatus(slot);
     const disabled = status !== 'available';
     return `<button class="slot is-${status}" type="button" data-slot="${slot.start.toISOString()}" ${disabled ? 'disabled' : ''}>
-      <span>${slot.label}</span><span>${status === 'available' ? 'frei' : status === 'past' ? 'vorbei' : 'belegt'}</span>
+      <span>${slot.label}</span><span>${({ available: 'frei', past: 'vorbei', soon: 'kurzfristig', later: 'noch nicht buchbar' })[status] || 'belegt'}</span>
     </button>`;
   }
 
@@ -343,9 +351,10 @@
         const slots = createSlots(day);
         const free = slots.filter(s => slotStatus(s) === 'available').length;
         const outside = day.getMonth() !== first.getMonth();
+        const tooLate = slots.length > 0 && slots.every(s => slotStatus(s) === 'later');
         return `<button class="month-day${outside ? ' is-outside' : ''}${dateKey(day) === today ? ' is-today' : ''}" type="button" data-day="${dateKey(day)}" ${!slots.length || day < startOfDay(new Date()) ? 'disabled' : ''}>
           <span class="day-number">${day.getDate()}</span>
-          <span class="availability-badge${free ? '' : ' is-full'}" data-count="${day < startOfDay(new Date()) ? 'vorbei' : !slots.length ? 'zu' : free ? `${free} frei` : 'voll'}">${day < startOfDay(new Date()) ? 'vorbei' : !slots.length ? 'geschlossen' : free ? `${free} freie Termine` : 'ausgebucht'}</span>
+          <span class="availability-badge${free ? '' : ' is-full'}" data-count="${day < startOfDay(new Date()) ? 'vorbei' : !slots.length ? 'zu' : free ? `${free} frei` : tooLate ? 'später' : 'voll'}">${day < startOfDay(new Date()) ? 'vorbei' : !slots.length ? 'geschlossen' : free ? `${free} freie Termine` : tooLate ? 'noch nicht buchbar' : 'ausgebucht'}</span>
         </button>`;
       }).join('')}</div>`;
     els.calendar.querySelectorAll('[data-day]').forEach(button => button.addEventListener('click', () => {
@@ -436,7 +445,7 @@
         email, password,
         options: { emailRedirectTo: new URL('booking.html', location.href).href, data: { full_name: fullName, phone: document.getElementById('auth-phone').value.trim(), marketing_consent: document.getElementById('auth-marketing').checked } }
       });
-      if (error) { message.textContent = error.message; return; }
+      if (error) { message.textContent = friendlyError(error); return; }
       if (!data.session) {
         message.className = 'form-message success';
         message.textContent = 'Bitte bestätige dein Konto über den Link in deiner E-Mail.';
@@ -447,16 +456,38 @@
       }
     } else {
       const { error } = await db.auth.signInWithPassword({ email, password });
-      if (error) { message.textContent = error.message; return; }
+      if (error) { message.textContent = friendlyError(error); return; }
       closeModal(els.authModal);
       showToast('Erfolgreich angemeldet.');
       if (state.selectedSlot) openBookingModal();
     }
   }
 
+  // Supabase liefert Login-/Registrierungsfehler auf Englisch; die
+  // häufigen Fälle hier auf Deutsch. Datenbankfehler (book_appointment usw.)
+  // sind bereits deutsch und werden durchgereicht.
+  function friendlyError(error) {
+    const code = String(error?.code || '').toLowerCase();
+    const text = String(error?.message || error || '');
+    const lower = text.toLowerCase();
+    if (code === 'invalid_credentials' || lower.includes('invalid login credentials')) return 'E-Mail-Adresse oder Passwort ist nicht korrekt.';
+    if (code === 'email_not_confirmed' || lower.includes('email not confirmed')) return 'Bitte bestätige zuerst dein Konto über den Link in der E-Mail. Keine E-Mail erhalten? Prüfe den Spam-Ordner oder nutze «Passwort vergessen?».';
+    if (code === 'user_already_exists' || lower.includes('already registered') || lower.includes('already exists')) return 'Für diese E-Mail-Adresse besteht bereits ein Konto. Bitte melde dich an oder nutze «Passwort vergessen?».';
+    if (code === 'weak_password' || lower.includes('password should be') || lower.includes('weak password')) return 'Das Passwort ist zu schwach. Bitte mindestens 8 Zeichen mit Buchstaben und Zahlen verwenden.';
+    if (code === 'over_email_send_rate_limit' || lower.includes('rate limit') || lower.includes('too many requests')) return 'Zu viele Versuche in kurzer Zeit. Bitte warte ein paar Minuten und versuche es erneut.';
+    if (code === 'email_address_invalid' || lower.includes('invalid email') || lower.includes('unable to validate email')) return 'Bitte gib eine gültige E-Mail-Adresse ein.';
+    if (code === 'same_password' || lower.includes('should be different')) return 'Das neue Passwort muss sich vom bisherigen unterscheiden.';
+    if (lower.includes('failed to fetch') || lower.includes('network')) return 'Keine Verbindung. Bitte prüfe deine Internetverbindung.';
+    if (lower.includes('exclusion constraint') || lower.includes('appointments_no_overlap') || lower.includes('conflicting key')) return 'Dieser Termin wurde gerade vergeben. Bitte wähle eine andere Zeit.';
+    return text;
+  }
+
   async function submitBooking(event) {
     event.preventDefault();
     const message = document.getElementById('booking-message');
+    const submitButton = event.submitter || document.querySelector('#booking-form [type="submit"]');
+    if (submitButton?.disabled) return;
+    if (submitButton) submitButton.disabled = true;
     message.textContent = 'Wir reservieren deinen Termin.';
     const { data: appointmentId, error } = await db.rpc('book_appointment', {
       requested_service_id: state.selectedService.id,
@@ -465,7 +496,8 @@
       requested_notes: document.getElementById('booking-notes').value.trim() || null,
       requested_price_item_id: state.selectedPriceItem?.id || null
     });
-    if (error) { message.textContent = error.message; await refreshCalendar(); return; }
+    if (submitButton) submitButton.disabled = false;
+    if (error) { message.textContent = friendlyError(error); await refreshCalendar(); return; }
     const attribution = bookingAttribution();
     if (appointmentId && (attribution.source || attribution.medium || attribution.campaign)) {
       await db.rpc('record_booking_attribution', { requested_appointment_id: appointmentId, requested_source: attribution.source || null, requested_medium: attribution.medium || null, requested_campaign: attribution.campaign || null });
@@ -724,7 +756,7 @@
     message.className = 'form-message';
     message.textContent = 'Der Link wird verschickt.';
     const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo: new URL('reset-password.html', location.href).href });
-    if (error) { message.textContent = error.message; return; }
+    if (error) { message.textContent = friendlyError(error); return; }
     message.className = 'form-message success';
     message.textContent = 'Falls ein Konto mit dieser E-Mail-Adresse besteht, wurde ein Link zum Zurücksetzen verschickt. Bitte auch den Spam-Ordner prüfen.';
   });

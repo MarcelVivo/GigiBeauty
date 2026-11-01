@@ -1496,8 +1496,17 @@
     $('package-table').innerHTML = state.packages.length ? state.packages.slice(0, 12).map(item => `<tr><td><strong>${esc(item.customers?.full_name || '–')}</strong></td><td>${esc(item.name)}<br><span class="muted">${esc(item.services?.name || '')}</span></td><td>${item.sessions_remaining} / ${item.sessions_total}</td><td>${esc(({ active: 'Aktiv', used: 'Aufgebraucht', expired: 'Abgelaufen', cancelled: 'Storniert' })[item.status] || item.status)}</td></tr>`).join('') : '<tr><td colspan="4" class="empty">Noch keine Pakete.</td></tr>';
     $('invoice-table').innerHTML = state.invoices.length ? state.invoices.map(invoice => `<tr>
       <td>#${String(invoice.invoice_number).padStart(5, '0')}</td><td><strong>${esc(invoice.customer_name)}</strong><br><span class="muted">${esc(invoice.customer_email || '')}</span></td><td>${esc(invoice.reason)}</td><td>${money(invoice.amount_chf)}</td><td>${fmt(`${invoice.due_at}T12:00:00`, { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
-      <td><select data-invoice-status="${invoice.id}"><option value="draft" ${invoice.status === 'draft' ? 'selected' : ''}>Entwurf</option><option value="sent" ${invoice.status === 'sent' ? 'selected' : ''}>Gesendet</option><option value="paid" ${invoice.status === 'paid' ? 'selected' : ''}>Bezahlt</option><option value="void" ${invoice.status === 'void' ? 'selected' : ''}>Storniert</option></select></td></tr>`).join('') : '<tr><td colspan="6" class="empty">Noch keine Rechnungen.</td></tr>';
+      <td>${invoice.status === 'draft' && invoice.customer_email ? `<button class="primary small" type="button" data-send-invoice="${invoice.id}">Senden</button> ` : ''}<select data-invoice-status="${invoice.id}"><option value="draft" ${invoice.status === 'draft' ? 'selected' : ''}>Entwurf</option><option value="sent" ${invoice.status === 'sent' ? 'selected' : ''}>Gesendet</option><option value="paid" ${invoice.status === 'paid' ? 'selected' : ''}>Bezahlt</option><option value="void" ${invoice.status === 'void' ? 'selected' : ''}>Storniert</option></select></td></tr>`).join('') : '<tr><td colspan="6" class="empty">Noch keine Rechnungen.</td></tr>';
     document.querySelectorAll('[data-invoice-status]').forEach(select => select.onchange = () => updateInvoice(select.dataset.invoiceStatus, select.value));
+    document.querySelectorAll('[data-send-invoice]').forEach(button => button.onclick = async () => {
+      const invoice = state.invoices.find(item => item.id === button.dataset.sendInvoice);
+      if (!invoice || !confirm(`Rechnung #${String(invoice.invoice_number).padStart(5, '0')} über ${money(invoice.amount_chf)} jetzt an ${invoice.customer_email} senden?`)) return;
+      button.disabled = true;
+      const { error } = await db.rpc('send_invoice', { requested_invoice_id: invoice.id });
+      if (error) { button.disabled = false; toast(error.message); return; }
+      toast('Rechnung wird in der nächsten Minute verschickt.');
+      await loadAll();
+    });
   }
 
   function renderInventory() {
@@ -2046,11 +2055,15 @@
     toast('Position hinzugefügt.'); await loadAll();
   }
 
+  // Wird bei jeder Aktualisierung (auch Live-Updates im Hintergrund)
+  // aufgerufen -- gewählte Werte offener Formulare bleiben erhalten.
   function fillServiceSelect() {
     const options = state.services.filter(service => service.active).map(service => `<option value="${service.id}">${esc(service.name)}</option>`).join('');
+    const keep = ['appointment-service', 'waitlist-service', 'customer-preferred-service'].map(id => [id, $(id).value]);
     $('appointment-service').innerHTML = options;
     $('waitlist-service').innerHTML = `<option value="">Alle Behandlungen</option>${options}`;
     $('customer-preferred-service').innerHTML = `<option value="">Nicht festgelegt</option>${options}`;
+    keep.forEach(([id, value]) => { if (value && [...$(id).options].some(option => option.value === value)) $(id).value = value; });
   }
 
   function fillPriceItemSelect(serviceId, selectedItemId = '') {
@@ -2281,12 +2294,32 @@
     setPickerCustomer('appointment', linkedCustomer || null);
     if (!item && linkedCustomer) selectPickerCustomer('appointment', linkedCustomer.id);
     $('delete-appointment').hidden = !item || item.status === 'cancelled';
+    updateNotifyField(item);
     $('move-appointment').hidden = !item || item.status !== 'booked';
     $('move-panel').hidden = true;
     moveAppointmentId = null;
     $('appointment-message').textContent = '';
     togglePrivateFields();
     openModal('appointment-modal');
+  }
+
+  // Kundinnen-Mails zu Dashboard-Terminen: neu -> Bestätigung + Erinnerung
+  // (nur für künftige Termine), bestehend -> Absage bei Stornierung.
+  // Ausgewertet von queue_appointment_emails() über notify_customer.
+  function updateNotifyField(item = state.appointments.find(a => a.id === $('appointment-id').value)) {
+    const privateEntry = $('appointment-kind').value === 'private';
+    const start = new Date($('appointment-start').value);
+    const future = !Number.isNaN(start.getTime()) && start > new Date();
+    $('appointment-notify-field').hidden = privateEntry;
+    if (!item) {
+      $('appointment-notify').checked = future;
+      $('appointment-notify').disabled = !future;
+      $('appointment-notify-hint').textContent = future ? 'Bestätigung jetzt, Erinnerung vor dem Termin.' : 'Für vergangene Termine werden keine E-Mails verschickt.';
+    } else {
+      $('appointment-notify').disabled = false;
+      $('appointment-notify').checked = item.notify_customer !== false;
+      $('appointment-notify-hint').textContent = 'Gilt für Erinnerung und eine allfällige Stornierung.';
+    }
   }
 
   function nextRoundedSlot() { const d = new Date(); d.setSeconds(0, 0); d.setMinutes(d.getMinutes() < 30 ? 30 : 0); if (d.getMinutes() === 0) d.setHours(d.getHours() + 1); return d; }
@@ -2320,6 +2353,7 @@
     const durationMinutes = Number($('appointment-duration').value) || defaultDurationMinutes($('appointment-service').value, priceItemId);
     const customerRef = privateEntry ? null : ($('appointment-customer-ref').value || null);
     const payload = {
+      notify_customer: !privateEntry && $('appointment-notify').checked,
       customer_ref_id: customerRef,
       service_id: privateEntry ? null : $('appointment-service').value,
       price_item_id: privateEntry ? null : (priceItemId || null),
@@ -2342,6 +2376,7 @@
     const result = id ? await db.from('appointments').update(payload).eq('id', id) : await db.from('appointments').insert(payload);
     if (result.error) { $('appointment-message').textContent = result.error.message; return; }
     closeModal('appointment-modal'); await loadAll();
+    if (payload.status === 'no_show' && existing?.status !== 'no_show') { toast('Rechnungsentwurf erstellt. Versand unter Finanzen → Rechnungen → «Senden».'); return; }
     if (existing && new Date(existing.starts_at).getTime() !== start.getTime()) {
       pulseAppointment(id);
       const canEmail = !privateEntry && payload.status === 'booked' && !!payload.customer_email;
@@ -2353,8 +2388,9 @@
 
   async function cancelAppointment() {
     const id = $('appointment-id').value;
-    if (!id || !confirm('Diesen Termin wirklich stornieren? Der Verlauf bleibt erhalten.')) return;
-    const { error } = await db.from('appointments').update({ status: 'cancelled', cancelled_at: new Date().toISOString() }).eq('id', id);
+    const notify = $('appointment-notify').checked && !$('appointment-notify-field').hidden;
+    if (!id || !confirm(`Diesen Termin wirklich stornieren? Der Verlauf bleibt erhalten.${notify ? ' Die Kundin erhält eine Absage per E-Mail.' : ' Die Kundin wird nicht per E-Mail informiert.'}`)) return;
+    const { error } = await db.from('appointments').update({ status: 'cancelled', cancelled_at: new Date().toISOString(), notify_customer: notify }).eq('id', id);
     if (error) return $('appointment-message').textContent = error.message;
     closeModal('appointment-modal'); toast('Termin storniert.'); await loadAll();
   }
@@ -2863,7 +2899,8 @@
       if (state.user && width && Math.abs(width - lastChartWidth) > 40) { lastChartWidth = width; renderOverview(); }
     }, 200);
   });
-  $('appointment-kind').onchange = togglePrivateFields;
+  $('appointment-kind').onchange = () => { togglePrivateFields(); updateNotifyField(); };
+  $('appointment-start').addEventListener('change', () => { if (!$('appointment-id').value) updateNotifyField(null); });
   $('appointment-service').onchange = () => { fillPriceItemSelect($('appointment-service').value); fillDurationSelect(defaultDurationMinutes($('appointment-service').value, '')); };
   $('appointment-price-item').onchange = () => fillDurationSelect(defaultDurationMinutes($('appointment-service').value, $('appointment-price-item').value));
   $('resize-confirm-modal').addEventListener('click', event => { if (event.target === event.currentTarget) renderCalendar(); });

@@ -641,6 +641,9 @@ tr.is-unread { background: #fdf6e3; font-weight: 650; }
 .admin-calendar.is-day-view .admin-day-head { display: none; }
 .admin-calendar.is-day-view .admin-time-gutter { padding-top: 0; }
 
+.notify-label { display: flex; align-items: center; gap: .5rem; font-weight: 600; }
+.notify-field small { display: block; margin-top: .25rem; }
+
 /* Kalender-Ansichten Tag | Woche | Monat */
 .cal-view-switch { display: inline-flex; margin-bottom: .7rem; padding: 3px; border: 1px solid var(--dash-line); border-radius: 10px; background: white; }
 .cal-view-switch button { min-height: 36px; padding: .3rem 1rem; border: 0; border-radius: 7px; background: transparent; color: var(--dash-muted); font-weight: 700; font-size: .82rem; }
