@@ -10,7 +10,12 @@ function safeRedirect(value: string | null) {
   try {
     const url = new URL(value);
     const host = url.hostname.toLowerCase();
-    if (url.protocol !== 'https:' || !(host === 'gigibeauty.ch' || host.endsWith('.gigibeauty.ch') || host === 'g.page' || host === 'google.com' || host.endsWith('.google.com'))) return null;
+    const own = host === 'gigibeauty.ch' || host.endsWith('.gigibeauty.ch');
+    // Google nur für Bewertungs-/Karten-Links (sonst ein offener Redirect
+    // auf beliebige Google-Dienste, z. B. Sites/Docs mit Fremdinhalten).
+    const googleReview = host === 'g.page' || host === 'maps.app.goo.gl' || host === 'goo.gl' || ((host === 'www.google.com' || host === 'google.com' || host === 'maps.google.com' || host === 'search.google.com')
+      && /^\/(maps|local\/writereview|search)/.test(url.pathname));
+    if (url.protocol !== 'https:' || !(own || googleReview)) return null;
     return url.toString();
   } catch {
     return null;

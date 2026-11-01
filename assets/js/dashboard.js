@@ -69,8 +69,10 @@
       return;
     }
     if (adminResult.error || adminResult.data !== true) {
-      await db.auth.signOut();
-      $('login-message').textContent = adminResult.error ? `Admin-Prüfung fehlgeschlagen: ${adminResult.error.message}` : 'Dieses Konto hat keine Admin-Berechtigung.';
+      // Nicht abmelden: im selben Browser angemeldete Kundinnen (oder
+      // Liliane als Testkundin) blieben sonst auch im Kundenkonto draussen.
+      // Eine Admin-Anmeldung im Formular ersetzt die Sitzung ohnehin.
+      $('login-message').textContent = adminResult.error ? `Admin-Prüfung fehlgeschlagen: ${adminResult.error.message}` : `Angemeldet als ${user.email} (Kundenkonto). Für das Dashboard bitte mit dem Admin-Konto anmelden.`;
       return;
     }
     const profile = {
@@ -88,25 +90,53 @@
     await db.rpc('generate_daily_crm_tasks');
     await loadAll();
     subscribeRealtime();
+    watchSession();
   }
 
   // Live updates: new bookings and new customer messages/photos (chat +
   // AI-preview requests) appear without needing a manual page reload.
   // Requires the tables to be added to the `supabase_realtime` publication
   // -- see supabase/migrations/202608250001_dashboard_realtime.sql.
+  // Abgelaufene oder anderswo beendete Sitzung nicht stillschweigend als
+  // leeren Kalender zeigen; beim Zurückkehren zum Tab Daten auffrischen.
+  let sessionWatched = false;
+  function watchSession() {
+    if (sessionWatched || !db) return;
+    sessionWatched = true;
+    db.auth.onAuthStateChange(event => {
+      if (event === 'SIGNED_OUT' && state.user) { toast('Sitzung beendet. Bitte neu anmelden.'); setTimeout(() => location.reload(), 1500); }
+    });
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState !== 'visible' || !state.user) return;
+      const { data } = await db.auth.getSession();
+      if (!data.session) { location.reload(); return; }
+      if (![...document.querySelectorAll('.modal-backdrop')].some(m => !m.hidden)) loadAll();
+    });
+  }
+
   let realtimeChannel = null;
   function subscribeRealtime() {
     if (!db || realtimeChannel) return;
     let reloadTimer = null;
+    // Neu laden baut Listen, Editoren und Auswahlfelder neu auf. Solange
+    // Liliane in einem Fenster oder Eingabefeld arbeitet, wird verschoben,
+    // damit nichts Ungespeichertes verloren geht.
+    const busyEditing = () => [...document.querySelectorAll('.modal-backdrop')].some(m => !m.hidden)
+      || (document.activeElement && document.activeElement.matches('input, textarea, select, [contenteditable]') && document.activeElement.closest('.dash-main'));
     const scheduleReload = () => {
       clearTimeout(reloadTimer);
-      reloadTimer = setTimeout(() => { loadAll(); }, 700);
+      reloadTimer = setTimeout(function attempt() {
+        if (busyEditing()) { reloadTimer = setTimeout(attempt, 4000); return; }
+        loadAll();
+      }, 700);
     };
     realtimeChannel = db.channel('dashboard-live')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'appointments' }, () => {
-        toast('Neuer Termin eingegangen.');
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, payload => {
+        if (payload.eventType === 'INSERT') toast('Neuer Termin eingegangen.');
+        else if (payload.eventType === 'UPDATE' && payload.new?.status === 'cancelled' && payload.old?.status !== 'cancelled') toast('Ein Termin wurde storniert.');
         scheduleReload();
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'blocked_times' }, scheduleReload)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'customer_media' }, payload => {
         if (payload.new?.sender === 'customer') toast('Neue Nachricht oder Foto von einer Kundin.');
         scheduleReload();
@@ -118,6 +148,18 @@
       .subscribe();
   }
 
+  // Supabase liefert pro Abfrage höchstens 1000 Zeilen -- wachsende Tabellen
+  // seitenweise vollständig laden (stabile Sortierung über id).
+  async function fetchAll(makeQuery, pageSize = 1000) {
+    const rows = [];
+    for (let from = 0; ; from += pageSize) {
+      const { data, error } = await makeQuery().order('id').range(from, from + pageSize - 1);
+      if (error) return { data: null, error };
+      rows.push(...(data || []));
+      if (!data || data.length < pageSize) return { data: rows, error: null };
+    }
+  }
+
   async function loadAll() {
     let results;
     try {
@@ -126,30 +168,30 @@
           db.from('services').select('*').order('sort_order'),
           db.from('business_settings').select('*').maybeSingle(),
           db.from('profiles').select('*').order('full_name'),
-          db.from('customers').select('*').order('full_name'),
-          db.from('appointments').select('*, services(name, price_chf)').order('starts_at'),
+          fetchAll(() => db.from('customers').select('*').order('full_name')),
+          fetchAll(() => db.from('appointments').select('*, services(name, price_chf)').order('starts_at')),
           db.from('blocked_times').select('*').order('starts_at'),
           db.from('invoices').select('*').order('created_at', { ascending: false }),
           db.from('marketing_campaigns').select('*').order('created_at', { ascending: false }),
-          db.from('payments').select('*, appointments(customer_name, customer_email, starts_at), customers(full_name)').order('paid_at', { ascending: false }),
+          fetchAll(() => db.from('payments').select('*, appointments(customer_name, customer_email, starts_at), customers(full_name)').order('paid_at', { ascending: false })),
           db.from('expenses').select('*').order('expense_date', { ascending: false }),
           db.from('inventory_items').select('*').order('name'),
           db.from('service_inventory').select('*'),
           db.from('waitlist_entries').select('*, services(name)').order('priority', { ascending: false }).order('created_at'),
-          db.from('crm_tasks').select('*, customers(full_name, email, phone)').order('due_at'),
-          db.from('customer_communications').select('*').order('occurred_at', { ascending: false }),
+          fetchAll(() => db.from('crm_tasks').select('*, customers(full_name, email, phone)').order('due_at')),
+          fetchAll(() => db.from('customer_communications').select('*').order('occurred_at', { ascending: false })),
           db.from('automation_rules').select('*').order('name'),
-          db.from('marketing_events').select('*').order('occurred_at', { ascending: false }),
+          fetchAll(() => db.from('marketing_events').select('*').order('occurred_at', { ascending: false })),
           db.from('customer_packages').select('*, customers(full_name), services(name)').order('purchased_at', { ascending: false }),
           db.from('gift_cards').select('*').order('created_at', { ascending: false }),
           db.from('audit_log').select('*').order('changed_at', { ascending: false }).limit(50),
           db.from('service_price_items').select('*').order('sort_order'),
           db.from('site_content_blocks').select('*').order('sort_order'),
           db.from('testimonials').select('*').order('sort_order'),
-          db.from('customer_media').select('*, customers(full_name)').eq('category', 'chat').order('created_at', { ascending: false }),
+          fetchAll(() => db.from('customer_media').select('*, customers(full_name)').eq('category', 'chat').order('created_at', { ascending: false })),
           db.from('ai_preview_requests').select('*').order('created_at', { ascending: false }).limit(200)
         ]),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Dashboard data timeout')), 20000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Dashboard data timeout')), 30000))
       ]);
     } catch (error) {
       toast('Dashboard-Daten konnten nicht rechtzeitig geladen werden. Bitte Seite neu laden.');
@@ -700,7 +742,8 @@
     });
     if (min === null) { min = 9 * 60; max = 18 * 60; }
     const keys = new Set(days.map(dayKey));
-    [...state.appointments, ...state.blocks].forEach(item => {
+    // Mehrtägige Sperren (Ferien) würden das Raster auf 0–24 Uhr ausdehnen.
+    [...state.appointments, ...state.blocks.filter(b => dayKey(b.starts_at) === dayKey(b.ends_at))].forEach(item => {
       if (item.status === 'cancelled' || !keys.has(dayKey(item.starts_at))) return;
       const s = new Date(item.starts_at), e = new Date(item.ends_at);
       min = Math.min(min, s.getHours() * 60 + s.getMinutes());
@@ -749,13 +792,13 @@
     const time = `${fmt(item.starts_at, { hour: '2-digit', minute: '2-digit' })}–${fmt(item.ends_at, { hour: '2-digit', minute: '2-digit' })}`;
     if (item.type === 'block') return `<button type="button" class="agenda-item is-block" data-delete-block="${item.id}"><time>${time}</time><span><strong>Gesperrt</strong><small>${esc(item.reason || '')}</small></span></button>`;
     const origin = appointmentOrigin(item);
-    return `<button type="button" class="agenda-item ${appointmentOriginClass(origin)}" data-edit-appointment="${item.id}"><time>${time}</time><span><strong>${esc(item.customer_name)}</strong><small>${esc(item.services?.name || 'Privat')}</small></span></button>`;
+    return `<button type="button" class="agenda-item ${appointmentOriginClass(origin)} status-${item.status}" title="${esc(labelStatus(item.status))}" data-edit-appointment="${item.id}"><time>${time}</time><span><strong>${esc(item.customer_name)}</strong><small>${esc(item.services?.name || 'Privat')}</small></span></button>`;
   }
 
   function dayItems(key) {
     return [
       ...state.appointments.filter(a => a.status !== 'cancelled' && dayKey(a.starts_at) === key).map(a => ({ ...a, type: 'appointment' })),
-      ...state.blocks.filter(b => dayKey(b.starts_at) === key).map(b => ({ ...b, type: 'block' }))
+      ...blocksOnDay(key)
     ].sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
   }
 
@@ -831,13 +874,17 @@
     const dayCols = days.map(date => {
       const key = dayKey(date);
       const events = state.appointments.filter(a => dayKey(a.starts_at) === key && a.status !== 'cancelled').map(a => ({ ...a, type: 'appointment' }));
-      const blocks = state.blocks.filter(b => dayKey(b.starts_at) === key).map(b => ({ ...b, type: 'block' }));
+      const blocks = blocksOnDay(key);
       const body = [...events, ...blocks].sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at)).map(event => {
         const s = new Date(event.starts_at), e = new Date(event.ends_at);
-        const top = Math.max(0, (s.getHours() * 60 + s.getMinutes() - min) * CAL_PX_PER_MIN);
-        const height = Math.max(28, (e.getHours() * 60 + e.getMinutes() - (s.getHours() * 60 + s.getMinutes())) * CAL_PX_PER_MIN);
+        const startMin = event.type === 'block' ? Math.max(event.dayStartMin, min) : s.getHours() * 60 + s.getMinutes();
+        const endMin = event.type === 'block' ? Math.min(event.dayEndMin, max) : e.getHours() * 60 + e.getMinutes();
+        const top = Math.max(0, (startMin - min) * CAL_PX_PER_MIN);
+        const height = Math.max(28, (endMin - startMin) * CAL_PX_PER_MIN);
         const style = `top:${top}px;height:${height}px`;
-        const time = `<time>${fmt(event.starts_at, { hour: '2-digit', minute: '2-digit' })}–${fmt(event.ends_at, { hour: '2-digit', minute: '2-digit' })}</time>`;
+        const time = event.multiDay
+          ? `<time>${fmt(event.starts_at, { day: '2-digit', month: '2-digit' })}–${fmt(new Date(e - 1), { day: '2-digit', month: '2-digit' })}</time>`
+          : `<time>${fmt(event.starts_at, { hour: '2-digit', minute: '2-digit' })}–${fmt(event.ends_at, { hour: '2-digit', minute: '2-digit' })}</time>`;
         // Kurze Termine (< ~75 Min., < 96px hoch) haben keinen Platz für alle
         // vier Zeilen -- Service/Herkunfts-Badge würden abgeschnitten. Statt
         // Text zu verstecken (der User weiss dann nicht, was fehlt), zeigen
@@ -851,7 +898,7 @@
         const origin = appointmentOrigin(event);
         const detail = compact ? '' : `<small>${esc(event.services?.name || 'Privat')}</small><span class="calendar-event-origin">${esc(appointmentOriginLabel(origin))}</span>`;
         const handles = event.status === 'booked' ? '<span class="cal-resize is-top" data-resize="top" title="Ziehen zum Verlängern/Verkürzen"></span><span class="cal-resize is-bottom" data-resize="bottom" title="Ziehen zum Verlängern/Verkürzen"></span>' : '';
-        return `<button class="calendar-event ${appointmentOriginClass(origin)}" type="button" draggable="${isTouchDevice() ? 'false' : 'true'}" style="${style}" data-edit-appointment="${event.id}">${time}<strong>${esc(event.customer_name)}</strong>${detail}${handles}</button>`;
+        return `<button class="calendar-event ${appointmentOriginClass(origin)} status-${event.status}" title="${esc(labelStatus(event.status))}" type="button" draggable="${isTouchDevice() ? 'false' : 'true'}" style="${style}" data-edit-appointment="${event.id}">${time}<strong>${esc(event.customer_name)}</strong>${detail}${handles}</button>`;
       }).join('');
       return `<section class="admin-day" data-date="${key}"><div class="admin-day-head"><strong>${fmt(date, { weekday: 'short' })}</strong><span>${fmt(date, { day: '2-digit', month: '2-digit' })}</span></div><div class="admin-day-body" style="height:${gridHeight}px">${body}</div></section>`;
     }).join('');
@@ -864,15 +911,27 @@
     attachCalendarGapHandlers(min, max);
   }
 
+  // Sperrzeiten, die einen Tag berühren -- auch mehrtägige (Ferien), auf
+  // den Tag zugeschnitten (Minuten ab Mitternacht, Tagesende = 1440).
+  function blocksOnDay(key) {
+    const [y, m, d] = key.split('-').map(Number);
+    const dayStart = new Date(y, m - 1, d), dayEnd = addDays(dayStart, 1);
+    return state.blocks.filter(b => new Date(b.starts_at) < dayEnd && new Date(b.ends_at) > dayStart).map(b => {
+      const s = new Date(Math.max(new Date(b.starts_at), dayStart)), e = new Date(Math.min(new Date(b.ends_at), dayEnd));
+      return { ...b, type: 'block', dayStartMin: s.getHours() * 60 + s.getMinutes(), dayEndMin: e >= dayEnd ? 24 * 60 : e.getHours() * 60 + e.getMinutes(), multiDay: dayKey(b.starts_at) !== dayKey(new Date(new Date(b.ends_at) - 1)) };
+    });
+  }
+
   // Belegte Minuten-Intervalle eines Tages (Minuten ab Mitternacht, wie beim
   // Rendern), optional ohne einen bestimmten Termin -- Grundlage für die
   // Grenzen beim Verlängern/Verkürzen und für freie Lücken.
   function busyRangesOfDay(key, excludeId = null) {
     const toMin = value => { const d = new Date(value); return d.getHours() * 60 + d.getMinutes(); };
     return [
-      ...state.appointments.filter(a => a.id !== excludeId && a.status !== 'cancelled' && dayKey(a.starts_at) === key),
-      ...state.blocks.filter(b => dayKey(b.starts_at) === key)
-    ].map(item => ({ start: toMin(item.starts_at), end: dayKey(item.ends_at) === key ? toMin(item.ends_at) : 24 * 60 }));
+      ...state.appointments.filter(a => a.id !== excludeId && a.status !== 'cancelled' && dayKey(a.starts_at) === key)
+        .map(item => ({ start: toMin(item.starts_at), end: dayKey(item.ends_at) === key ? toMin(item.ends_at) : 24 * 60 })),
+      ...blocksOnDay(key).map(b => ({ start: b.dayStartMin, end: b.dayEndMin }))
+    ];
   }
 
   function durationLabel(minutes) {
@@ -1209,7 +1268,7 @@
     flyout.hidden = false;
     requestAnimationFrame(() => flyout.classList.add('is-visible'));
     clearTimeout(rescheduleFlyoutTimer);
-    rescheduleFlyoutTimer = setTimeout(hideRescheduleFlyout, 14000);
+    rescheduleFlyoutTimer = setTimeout(hideRescheduleFlyout, 45000);
     $('reschedule-flyout-send').onclick = async () => {
       hideRescheduleFlyout();
       const { error } = await db.rpc('queue_reschedule_email', { requested_appointment_id: appointmentId });
@@ -2364,9 +2423,11 @@
       ends_at: new Date(start.getTime() + durationMinutes * 60000).toISOString(),
       status: $('appointment-status').value,
       is_private: privateEntry,
-      notes: $('appointment-notes').value.trim() || null,
-      created_by: state.user.id
+      notes: $('appointment-notes').value.trim() || null
     };
+    // Ersteller nur beim Anlegen setzen -- sonst wird eine bearbeitete
+    // Online-Buchung als «von Liliane erfasst» angezeigt.
+    if (!id) payload.created_by = state.user.id;
     // Andere Kundin gewählt: Konto-Verknüpfung (customer_id -> profiles,
     // steuert die Sicht im Kundenkonto) mitziehen. Unverändert = nicht
     // anfassen, damit Online-Buchungen ihr Konto behalten.
@@ -2429,7 +2490,15 @@
   async function saveCampaign(event) {
     event.preventDefault();
     const scheduled = $('campaign-date').value ? new Date($('campaign-date').value).toISOString() : null;
-    const { error } = await db.from('marketing_campaigns').insert({ title: $('campaign-title').value.trim(), subject: $('campaign-subject').value.trim(), content: $('campaign-content').value.trim(), scheduled_at: scheduled, status: scheduled ? 'scheduled' : 'draft', created_by: state.user.id });
+    // Gespeichert wird als Entwurf; mit Versandzeit wird direkt eingeplant
+    // (queue_marketing_campaign legt die Mails mit scheduled_for an) --
+    // vorher blieb eine «geplante» Kampagne für immer liegen.
+    const { data: created, error } = await db.from('marketing_campaigns').insert({ title: $('campaign-title').value.trim(), subject: $('campaign-subject').value.trim(), content: $('campaign-content').value.trim(), scheduled_at: scheduled, status: 'draft', created_by: state.user.id }).select('id').single();
+    if (!error && scheduled && created?.id && confirm(`Kampagne für ${fmt(scheduled, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })} an alle Kundinnen mit Marketing-Einwilligung einplanen?`)) {
+      const { data: count, error: queueError } = await db.rpc('queue_marketing_campaign', { requested_campaign_id: created.id });
+      if (queueError) { $('campaign-message').textContent = queueError.message; return; }
+      closeModal('campaign-modal'); toast(`${count} E-Mails eingeplant.`); await loadAll(); return;
+    }
     if (error) return $('campaign-message').textContent = error.message;
     closeModal('campaign-modal'); $('campaign-form').reset(); toast('Kampagne gespeichert.'); await loadAll();
   }
@@ -2541,7 +2610,16 @@
         if (url) html += `<a href="${esc(url)}" target="_blank" rel="noopener"><img src="${esc(url)}" alt="" loading="lazy"></a>`;
       }
       html += `<time>${esc(fmt(row.created_at, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }))}${row.category === 'result' ? ' · Behandlungsfoto' : ''}</time>`;
+      html += `<button class="link-button chat-delete" type="button" data-delete-media="${row.id}">Löschen</button>`;
       bubble.innerHTML = html;
+      bubble.querySelector('[data-delete-media]').onclick = async () => {
+        if (!confirm(row.photo_path ? 'Diese Nachricht inklusive Foto endgültig löschen?' : 'Diese Nachricht endgültig löschen?')) return;
+        if (row.photo_path) await db.storage.from('customer-photos').remove([row.photo_path]);
+        const { error: deleteError } = await db.from('customer_media').delete().eq('id', row.id);
+        if (deleteError) return toast(deleteError.message);
+        toast('Gelöscht.');
+        loadCustomerChat(customerId);
+      };
       chatEl.appendChild(bubble);
     }
     chatEl.scrollTop = chatEl.scrollHeight;
@@ -2555,6 +2633,9 @@
     const category = $('customer-chat-category').value;
     const file = $('customer-chat-photo').files[0];
     if (!text && !file) { message.textContent = 'Bitte einen Text oder ein Foto angeben.'; return; }
+    if ($('customer-chat-send').disabled) return;
+    $('customer-chat-send').disabled = true;
+    setTimeout(() => { $('customer-chat-send').disabled = false; }, 1500);
     message.textContent = 'Wird gesendet ...';
 
     let photo_path = null;
@@ -2775,7 +2856,17 @@
       });
     });
 
-    const records = [...recordsByKey.values()];
+    // Bestehende Profile: Name, Notizen und Einwilligung von Liliane haben
+    // Vorrang -- der Import ergänzt nur (Notizen werden angehängt, eine
+    // Einwilligung nie entzogen, «Nicht kontaktieren» nie aufgehoben).
+    const records = [...recordsByKey.values()].map(record => {
+      const existing = state.customers.find(c => (record.email && c.email?.toLowerCase() === record.email) || (record.external_reference && c.external_reference === record.external_reference));
+      if (!existing) return record;
+      const notes = existing.notes && record.notes && !existing.notes.includes(record.notes) ? `${existing.notes}\n${record.notes}` : (existing.notes || record.notes);
+      return { ...record, full_name: existing.full_name || record.full_name, notes, phone: existing.phone || record.phone,
+        marketing_consent: existing.do_not_contact ? existing.marketing_consent : (existing.marketing_consent || record.marketing_consent),
+        legacy_booking_count: Math.max(Number(existing.legacy_booking_count || 0), Number(record.legacy_booking_count || 0)) };
+    });
     if (!records.length) return toast('Keine gültigen Kundenzeilen mit Name gefunden.');
     const withEmail = records.filter(row => row.email);
     const withoutEmail = records.filter(row => !row.email);
@@ -2912,8 +3003,10 @@
   document.addEventListener('pointerdown', event => { if (!$('gap-menu').hidden && !$('gap-menu').contains(event.target)) closeGapMenu(); });
   document.addEventListener('keydown', event => {
     if (event.key !== 'Escape') return;
-    if (!$('gap-menu').hidden) closeGapMenu();
-    if (!$('resize-confirm-modal').hidden) cancelResize();
+    if (!$('gap-menu').hidden) { closeGapMenu(); return; }
+    if (!$('resize-confirm-modal').hidden) { cancelResize(); return; }
+    const open = [...document.querySelectorAll('.modal-backdrop')].filter(m => !m.hidden);
+    if (open.length) closeModal(open[open.length - 1].id);
   });
   $('admin-calendar').addEventListener('scroll', closeGapMenu);
   $('appointment-form').onsubmit = saveAppointment;

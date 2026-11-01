@@ -1,0 +1,28 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    { "source": "/kontakt", "destination": "/#main-footer", "permanent": true },
+    { "source": "/kontakt/", "destination": "/#main-footer", "permanent": true },
+    { "source": "/kontakt.html", "destination": "/#main-footer", "permanent": true },
+    { "source": "/pages/kontakt.html", "destination": "/#main-footer", "permanent": true },
+    { "source": "/(termin|termine|buchen|booking|online-buchen|termin-buchen)/?", "destination": "/pages/booking.html", "permanent": true },
+    { "source": "/(preise|preisliste|angebot|angebote|behandlungen|leistungen|services)/?", "destination": "/#section-gel-acryl-nails", "permanent": true },
+    { "source": "/(nails|naegel|nagelstudio|gel-acryl-nails)/?", "destination": "/#section-gel-acryl-nails", "permanent": true },
+    { "source": "/(permanent-make-up|permanent-makeup|pmu)/?", "destination": "/#section-permanent-make-up", "permanent": true },
+    { "source": "/(pedicure|fusspflege|kosmetische-pedicure)/?", "destination": "/#section-kosmetische-pedicure", "permanent": true },
+    { "source": "/(fillers|filler)/?", "destination": "/#section-fillers", "permanent": true },
+    { "source": "/(lashes|wimpern|wimpernverlaengerung)/?", "destination": "/#section-lashes", "permanent": true },
+    { "source": "/(korean-cosmetics|kosmetik|gesichtsbehandlung)/?", "destination": "/#section-korean-cosmetics", "permanent": true },
+    { "source": "/(make-up|makeup|natural-make-up)/?", "destination": "/#section-natural-make-up", "permanent": true },
+    { "source": "/(about|ueber-mich|ueber-uns|uber-uns|team|liliane)/?", "destination": "/ueber-liliane.html", "permanent": true },
+    { "source": "/(impressum|datenschutz|agb|faq)/", "destination": "/$1.html", "permanent": true },
+    { "source": "/(impressum|datenschutz|agb|faq)", "destination": "/$1.html", "permanent": true },
+    { "source": "/(datenschutzerklaerung|privacy-policy)/?", "destination": "/datenschutz.html", "permanent": true },
+    { "source": "/(wp-admin|wp-content|wp-includes|wp-json)/:path*", "destination": "/", "permanent": true },
+    { "source": "/(wp-login.php|xmlrpc.php|feed|feed/)", "destination": "/", "permanent": true }
+  ],
+  "headers": [
+    { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+    { "source": "/(.*).webmanifest", "headers": [{ "key": "Content-Type", "value": "application/manifest+json" }] }
+  ]
+}

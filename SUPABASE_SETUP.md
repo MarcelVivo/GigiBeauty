@@ -1,77 +1,96 @@
 # GiGi Beauty · Supabase-Inbetriebnahme
 
-Die Website enthält keine geheimen Schlüssel. Vor dem Livegang sind diese einmaligen Schritte nötig.
+Stand: 1. November 2026 (live unter https://www.gigibeauty.ch, Projekt `itathbojgaofnjntbowu`).
+Die Website enthält keine geheimen Schlüssel. Diese Anleitung beschreibt, wie das Backend von Grund auf eingerichtet wird, etwa für ein neues Projekt oder eine Testumgebung.
 
 ## 1. Projekt und Datenbank
 
-1. Ein Supabase-Projekt anlegen und als Region eine für GiGi Beauty passende Region wählen.
-2. Die Migrationen in `supabase/migrations/` in aufsteigender Reihenfolge mit der Supabase CLI (`supabase db push`) oder jeweils einmalig im SQL Editor ausführen:
-   - `202608070001_booking_crm.sql`
-   - `202608080002_customer_csv_import.sql`
-   - `202608080003_high_end_business_suite.sql`
-   - `202608080004_customer_registration_invites.sql`
-   - `202608080005_crm_task_workflow.sql`
-3. In `assets/js/supabase-config.js` die Project URL und den öffentlichen `anon`/Publishable Key einsetzen. Niemals den `service_role` Key in eine Website-Datei schreiben.
+1. Ein Supabase-Projekt anlegen, Region `eu-west-1` oder eine andere EU-Region.
+2. Alle Migrationen in `supabase/migrations/` in aufsteigender Reihenfolge einspielen (derzeit 46 Dateien):
 
-## 2. Anmeldung konfigurieren
+   ```sh
+   supabase link --project-ref PROJECT-REF
+   supabase db push
+   ```
 
-Unter Authentication → URL Configuration:
+   Alternativ jede Datei einmalig per `supabase db query --linked -f <datei>` ausführen.
+   Einmalige Datenbereinigungen mit echten Kundendaten sind bewusst **nicht** im Repository (siehe Kommentar in `202611010005_merge_customers_fix.sql`).
+3. In `assets/js/supabase-config.js` die Project URL und den öffentlichen Publishable Key eintragen. Niemals den `service_role` Key in eine Website-Datei schreiben.
+
+## 2. Anmeldung (Authentication)
+
+**URL Configuration**
 
 - Site URL: `https://www.gigibeauty.ch`
-- Redirect URLs: `https://www.gigibeauty.ch/pages/booking.html` und `https://www.gigibeauty.ch/dashboard/reset-password.html` (für „Passwort vergessen?" im Dashboard-Login; bis zur Domain-Umstellung zusätzlich `https://marcelvivo.github.io/GigiBeauty/dashboard/reset-password.html` eintragen)
+- Redirect URLs:
+  - `https://www.gigibeauty.ch/pages/booking.html` (Bestätigungslink nach der Registrierung)
+  - `https://www.gigibeauty.ch/pages/reset-password.html` (Passwort vergessen, Kundinnen)
+  - `https://www.gigibeauty.ch/dashboard/reset-password.html` (Passwort vergessen, Dashboard)
 
-E-Mail/Passwort und „Confirm email“ aktivieren. Danach über die Buchungsseite ein Konto für Liliane anlegen und im SQL Editor einmalig zur Administratorin machen:
+**Providers → Email:** aktiv, «Confirm email» eingeschaltet. Kundenkonten werden erst **nach** der E-Mail-Bestätigung mit der Kundenkartei verknüpft (`link_profile_to_customer()`, Trigger `on_auth_user_confirmed`).
+
+**SMTP (Pflicht im Betrieb):** Custom SMTP über Resend: Host `smtp.resend.com`, Port `465`, Benutzer `resend`, Passwort = Resend-API-Key, Absender `termine@gigibeauty.ch`. Danach unter Rate Limits das E-Mail-Limit auf etwa 100 pro Stunde erhöhen.
+
+**Admin-Zugang:** Liliane registriert sich über die Buchungsseite, danach einmalig:
 
 ```sql
-update public.profiles
-set role = 'admin'
-where email = 'info@gigibeauty.ch';
+update public.profiles set role = 'admin' where email = 'ADRESSE-VON-LILIANE';
 ```
 
-Das Dashboard ist danach unter `https://www.gigibeauty.ch/dashboard/` erreichbar. Nur Profile mit `role = 'admin'` erhalten Zugriff; die Prüfung erfolgt zusätzlich in der Datenbank über Row-Level Security.
+## 3. Edge Functions und Secrets
 
-## 3. Bestätigungen, Erinnerungen und Rechnungs-E-Mails
-
-Die Edge Function verarbeitet Bestätigungen sofort, Erinnerungen standardmässig vier Stunden vorher, Stornierungen, Verschiebungen, No-Show-Rechnungen, Kampagnen sowie Pflege-, Bewertungs-, Wiederbuchungs-, Win-back- und Wartelisten-Nachrichten.
-
-1. Domain `gigibeauty.ch` bei Resend verifizieren und einen API Key erstellen.
-2. Secrets setzen:
+| Function | JWT-Prüfung | Zweck |
+|---|---|---|
+| `process-booking-emails` | ja | verschickt alles aus `email_outbox` über Resend |
+| `track-marketing` | **nein** (`--no-verify-jwt`) | Öffnungen/Klicks, Abmelden und Newsletter-Bestätigung (beides per Knopf/POST) |
+| `beauty-ai-preview` | ja | KI-Vorschau über OpenAI, nur von `AIP_ALLOWED_ORIGIN`, max. 10 Bilder/Stunde/IP |
 
 ```sh
-supabase secrets set RESEND_API_KEY=... PROCESS_EMAIL_SECRET=... BOOKING_FROM_EMAIL="GiGi Beauty <termine@gigibeauty.ch>" GOOGLE_REVIEW_URL="https://g.page/r/DEIN-LINK/review" MARKETING_TRACKING_URL="https://PROJECT-REF.supabase.co/functions/v1/track-marketing"
+supabase secrets set \
+  RESEND_API_KEY=... \
+  PROCESS_EMAIL_SECRET=... \
+  BOOKING_FROM_EMAIL="GiGi Beauty <termine@gigibeauty.ch>" \
+  GOOGLE_REVIEW_URL="https://g.page/r/DEIN-LINK/review" \
+  OPENAI_API_KEY=... \
+  AIP_ALLOWED_ORIGIN="https://www.gigibeauty.ch"
+
+supabase functions deploy process-booking-emails --use-api
+supabase functions deploy track-marketing --use-api --no-verify-jwt
+supabase functions deploy beauty-ai-preview --use-api
 ```
 
-3. Function deployen:
+Im OpenAI-Konto ein Monatsbudget mit Warnung setzen.
 
-```sh
-supabase functions deploy process-booking-emails
-supabase functions deploy track-marketing --no-verify-jwt
-```
+## 4. Zeitgesteuerte Jobs (pg_cron)
 
-4. In Supabase Cron einen Job alle fünf Minuten einrichten, der per `POST` folgende URL aufruft:
+| Job | Zeitplan | Aufgabe |
+|---|---|---|
+| `process-booking-emails-every-5-min` | jede Minute (`* * * * *`) | POST an `/functions/v1/process-booking-emails` mit `Authorization: Bearer PUBLISHABLE_KEY` und `x-process-secret: PROCESS_EMAIL_SECRET` (im Dashboard unter Integrations → Cron anlegen; enthält das Secret und ist deshalb nicht in einer Migration) |
+| `daily-crm-tasks` | täglich 05:00 UTC | `select public.generate_daily_crm_tasks()` (Migration `202611010013`) |
 
-```text
-https://PROJECT-REF.supabase.co/functions/v1/process-booking-emails
-```
+Fehlgeschlagene Mails werden höchstens fünfmal versucht; Fehler stehen in `email_outbox.last_error`.
 
-Header:
+## 5. Wichtige Einstellungen (`business_settings`)
 
-```text
-Authorization: Bearer PUBLIC_ANON_KEY
-x-process-secret: DER_WERT_VON_PROCESS_EMAIL_SECRET
-Content-Type: application/json
-```
+| Spalte | Live-Wert | Bedeutung |
+|---|---|---|
+| `cancellation_hours` | 24 | kostenlose Online-Stornierung bis so viele Stunden vorher |
+| `reminder_hours` | 4 | Erinnerung so viele Stunden vorher |
+| `min_lead_hours` | 2 | Online-Buchung frühestens so viele Stunden im Voraus |
+| `max_advance_days` | 90 | Online-Buchung höchstens so viele Tage im Voraus |
+| `max_open_bookings` | 3 | höchstens so viele offene Online-Termine pro Konto |
+| `admin_email` | l.serrano@gmx.ch | Empfängerin der Info-Mails (Buchung, Storno, Verschiebung, Dauer) |
 
-Der Mail-Prozessor versucht fehlgeschlagene Nachrichten höchstens fünfmal. Fehler bleiben mit `last_error` in `email_outbox` sichtbar.
+Rechnungen (`invoices.due_at`) sind standardmässig innert 7 Tagen zahlbar.
 
-## 4. Vor dem Livegang prüfen
+## 6. Hosting
 
-- Sieben Preise unter Table Editor → `services` kontrollieren; diese Preise werden bei No-Show berechnet.
-- Im Dashboard unter „Kunden“ den bestehenden Export `GiGi Beauty Kundenexport 03.07.2026 (1).csv` über „CSV importieren“ einlesen. Marketing-Einwilligungen werden nur bei einem eindeutig positiven Exportwert übernommen.
-- Öffnungszeiten, 12-Stunden-Frist und Erinnerungszeit in `business_settings` kontrollieren.
-- Eine Testkundin registrieren, E-Mail bestätigen und einen freien Termin buchen.
-- Prüfen, dass der Termin im Dashboard mit Name, Zeit und Behandlung erscheint und öffentlich ausgegraut ist.
-- Termin verschieben, sperren, stornieren und testweise als „Nicht erschienen“ markieren.
-- E-Mail-Absender, Rechnungstext und Marketing-Abmeldung mit den tatsächlichen Geschäftsprozessen abstimmen.
-- AGB und Datenschutzerklärung vor Veröffentlichung rechtlich prüfen lassen.
-- Unter Database → Backups die Wiederherstellungsstrategie prüfen und regelmässig einen externen logischen Export testen.
+Statische Website auf Vercel (Projekt `gigi-beauty`, Output-Verzeichnis = Repository-Wurzel), Domain bei Hoststar: `@` A-Record und `www` CNAME auf Vercel, Mail-Einträge (MX `mail.gigibeauty.ch`, SPF, DKIM/Resend, DMARC) bleiben bei Hoststar. Weiterleitungen alter WordPress-Adressen stehen in `vercel.json`. Die PWA besteht aus `manifest.webmanifest`, `dashboard/manifest.webmanifest`, `sw.js` und `offline.html`.
+
+## 7. Nach jeder grösseren Änderung prüfen
+
+- Testkundin registrieren, Bestätigungsmail anklicken, Termin buchen, Bestätigung und Info-Mail an `admin_email` prüfen.
+- Termin im Dashboard verschieben, verlängern, stornieren (mit und ohne «Kundin benachrichtigen»).
+- «Nicht erschienen» setzen: es entsteht nur ein Rechnungsentwurf; Versand unter Finanzen → Rechnungen → «Senden».
+- Newsletter-Anmeldung auf der Startseite: Bestätigungsmail, Knopf «Anmeldung bestätigen», Willkommensmail.
+- Unter Database → Backups die Wiederherstellung prüfen.

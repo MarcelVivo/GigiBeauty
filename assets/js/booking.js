@@ -697,6 +697,9 @@
     const fileInput = document.getElementById('account-chat-photo');
     const file = fileInput.files[0];
     if (!text && !file) { message.textContent = 'Bitte einen Text oder ein Foto angeben.'; return; }
+    const sendButton = document.querySelector('#account-chat-form .account-chat-send');
+    if (sendButton?.disabled) return;
+    if (sendButton) { sendButton.disabled = true; setTimeout(() => { sendButton.disabled = false; }, 1500); }
     message.textContent = 'Wird gesendet ...';
 
     let photo_path = null;
@@ -750,6 +753,12 @@
     setTimeout(() => modal.querySelector('input, button')?.focus(), 0);
   }
   function closeModal(modal) { modal.hidden = true; document.body.style.overflow = ''; }
+  // Escape schliesst das oberste offene Fenster (Buchung, Login, Konto).
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape') return;
+    const open = [...document.querySelectorAll('.modal-backdrop')].filter(m => !m.hidden);
+    if (open.length) closeModal(open[open.length - 1]);
+  });
   let toastTimer;
   function showToast(text) { els.toast.textContent = text; els.toast.classList.add('is-visible'); clearTimeout(toastTimer); toastTimer = setTimeout(() => els.toast.classList.remove('is-visible'), 5000); }
 

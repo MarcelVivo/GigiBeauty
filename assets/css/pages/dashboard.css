@@ -644,6 +644,13 @@ tr.is-unread { background: #fdf6e3; font-weight: 650; }
 .notify-label { display: flex; align-items: center; gap: .5rem; font-weight: 600; }
 .notify-field small { display: block; margin-top: .25rem; }
 
+/* Termin-Status im Kalender unterscheidbar */
+.calendar-event.status-completed, .agenda-item.status-completed { opacity: .72; }
+.calendar-event.status-completed strong::before, .agenda-item.status-completed strong::before { content: '✓ '; color: #4f8273; }
+.calendar-event.status-no_show, .agenda-item.status-no_show { border-left-color: #a65353; background: repeating-linear-gradient(135deg, #fbeeee 0 6px, #f6e1e1 6px 12px); }
+.calendar-event.status-no_show strong::after, .agenda-item.status-no_show strong::after { content: ' · nicht erschienen'; color: #a65353; font-weight: 600; }
+.chat-delete { display: block; margin-top: .2rem; padding: 0; color: var(--dash-muted); font-size: .72rem; }
+
 /* Kalender-Ansichten Tag | Woche | Monat */
 .cal-view-switch { display: inline-flex; margin-bottom: .7rem; padding: 3px; border: 1px solid var(--dash-line); border-radius: 10px; background: white; }
 .cal-view-switch button { min-height: 36px; padding: .3rem 1rem; border: 0; border-radius: 7px; background: transparent; color: var(--dash-muted); font-weight: 700; font-size: .82rem; }
