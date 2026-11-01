@@ -3,7 +3,7 @@
 
   <!-- Hauptseite -->
   <url>
-    <loc>https://marcelvivo.github.io/GigiBeauty/</loc>
+    <loc>https://www.gigibeauty.ch/</loc>
     <lastmod>2026-06-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
@@ -35,7 +35,7 @@
 
   <!-- Über GiGi Beauty -->
   <url>
-    <loc>https://marcelvivo.github.io/GigiBeauty/ueber-liliane.html</loc>
+    <loc>https://www.gigibeauty.ch/ueber-liliane.html</loc>
     <lastmod>2026-06-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -43,7 +43,7 @@
 
   <!-- Impressum -->
   <url>
-    <loc>https://marcelvivo.github.io/GigiBeauty/impressum.html</loc>
+    <loc>https://www.gigibeauty.ch/impressum.html</loc>
     <lastmod>2026-06-30</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
