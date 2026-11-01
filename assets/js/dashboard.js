@@ -239,8 +239,87 @@
     return { text: `${change > 0 ? '+' : ''}${change}%`, className: change === 0 ? 'neutral' : good ? 'up' : 'down' };
   }
 
-  function metricCard(label, value, detail, change = null) {
-    return `<article class="metric"><span>${esc(label)}</span><strong>${esc(value)}</strong><div class="metric-foot"><small>${esc(detail)}</small>${change ? `<em class="trend ${change.className}">${esc(change.text)}</em>` : ''}</div></article>`;
+  function metricCard(label, value, detail, change = null, attrs = '') {
+    return `<article class="metric${attrs ? ' is-interactive' : ''}"${attrs}><span>${esc(label)}</span><strong>${esc(value)}</strong><div class="metric-foot"><small>${esc(detail)}</small>${change ? `<em class="trend ${change.className}">${esc(change.text)}</em>` : ''}</div></article>`;
+  }
+
+  // Interaktive Übersicht: jedes anklickbare Diagramm-Element trägt
+  // data-action (Schlüssel in overviewActions, bei jedem renderOverview()
+  // neu befüllt) und optional data-tip-value/-label für den Tooltip. Ein
+  // delegierter Listener auf dem Übersichts-Panel bedient alle Grafiken.
+  let overviewActions = new Map();
+  function interactive(action, tipValue = null, tipLabel = '') {
+    const key = String(overviewActions.size + 1);
+    overviewActions.set(key, action);
+    const tip = tipValue == null ? '' : ` data-tip-value="${esc(tipValue)}" data-tip-label="${esc(tipLabel)}"`;
+    return ` data-action="${key}" tabindex="0" role="button"${tip}`;
+  }
+  function tipOnly(tipValue, tipLabel = '') { return ` data-tip-value="${esc(tipValue)}" data-tip-label="${esc(tipLabel)}"`; }
+
+  function showChartTip(target, x, y) {
+    const tip = $('chart-tooltip');
+    $('chart-tooltip-value').textContent = target.dataset.tipValue;
+    $('chart-tooltip-label').textContent = target.dataset.tipLabel || '';
+    $('chart-tooltip-label').hidden = !target.dataset.tipLabel;
+    tip.hidden = false;
+    const rect = tip.getBoundingClientRect();
+    tip.style.left = `${Math.max(8, Math.min(x + 14, window.innerWidth - rect.width - 8))}px`;
+    tip.style.top = `${Math.max(8, y - rect.height - 12 < 8 ? y + 18 : y - rect.height - 12)}px`;
+  }
+  function hideChartTip() { $('chart-tooltip').hidden = true; }
+
+  function bindOverviewInteractions() {
+    const panel = document.querySelector('[data-view-panel="overview"]');
+    panel.addEventListener('pointermove', event => {
+      const target = event.target.closest('[data-tip-value]');
+      if (target && panel.contains(target)) showChartTip(target, event.clientX, event.clientY); else hideChartTip();
+    });
+    panel.addEventListener('pointerleave', hideChartTip);
+    window.addEventListener('scroll', hideChartTip, { capture: true, passive: true });
+    panel.addEventListener('focusin', event => {
+      const target = event.target.closest('[data-tip-value]');
+      if (!target) return;
+      const rect = target.getBoundingClientRect();
+      showChartTip(target, rect.left + rect.width / 2, rect.top);
+    });
+    panel.addEventListener('focusout', hideChartTip);
+    const run = event => {
+      const target = event.target.closest('[data-action]');
+      if (!target || !panel.contains(target)) return false;
+      const action = overviewActions.get(target.dataset.action);
+      if (!action) return false;
+      hideChartTip();
+      action();
+      return true;
+    };
+    panel.addEventListener('click', run);
+    panel.addEventListener('keydown', event => {
+      if ((event.key === 'Enter' || event.key === ' ') && event.target.matches('[data-action]:not(button)') && run(event)) event.preventDefault();
+    });
+  }
+
+  // Detailfenster hinter einer Grafik: Liste der Termine oder Kundinnen, je
+  // ein Klick öffnet den Termin bzw. das Kundenprofil.
+  function openInsight({ title, subtitle = '', appointments = null, customers = null }) {
+    $('insight-title').textContent = title;
+    let rows = '';
+    if (appointments) {
+      const list = [...appointments].sort((a, b) => new Date(b.starts_at) - new Date(a.starts_at));
+      const revenue = list.reduce((sum, a) => sum + appointmentRevenue(a), 0);
+      $('insight-subtitle').textContent = subtitle || `${list.length} Termin${list.length === 1 ? '' : 'e'}${revenue ? ` · ${money(revenue)} Umsatz` : ''}`;
+      rows = list.map(a => {
+        const amount = a.status === 'completed' ? money(appointmentRevenue(a)) : a.status === 'booked' ? money(Number(a.amount_chf ?? a.services?.price_chf ?? 0)) : '';
+        return `<button class="insight-row" type="button" data-insight-appointment="${a.id}"><time>${esc(fmt(a.starts_at, { weekday: 'short', day: '2-digit', month: '2-digit', year: '2-digit' }))} · ${esc(fmt(a.starts_at, { hour: '2-digit', minute: '2-digit' }))}</time><span class="insight-main"><strong>${esc(a.customer_name)}</strong><small>${esc(a.services?.name || 'Privat')}</small></span>${statusPill(a.status)}<b>${esc(amount)}</b></button>`;
+      }).join('');
+    } else if (customers) {
+      const list = customers.map(customer => ({ customer, stats: customerStats(customer) })).sort((a, b) => b.stats.totalBookings - a.stats.totalBookings || String(a.customer.full_name).localeCompare(String(b.customer.full_name), 'de'));
+      $('insight-subtitle').textContent = subtitle || `${list.length} Kundin${list.length === 1 ? '' : 'nen'}`;
+      rows = list.map(({ customer, stats }) => `<button class="insight-row" type="button" data-insight-customer="${customer.id}"><span class="insight-main"><strong>${esc(customer.full_name)}</strong><small>${esc([customer.phone, customer.email].filter(Boolean).join(' · ') || 'Keine Kontaktdaten')}</small></span><span class="segment segment-${stats.segment.key}">${esc(stats.segment.label)}</span><b>${stats.totalBookings} Termin${stats.totalBookings === 1 ? '' : 'e'}</b></button>`).join('');
+    }
+    $('insight-list').innerHTML = rows || '<div class="empty">Keine Einträge in diesem Bereich.</div>';
+    $('insight-list').querySelectorAll('[data-insight-appointment]').forEach(button => button.onclick = () => { closeModal('insight-modal'); openAppointment(button.dataset.insightAppointment); });
+    $('insight-list').querySelectorAll('[data-insight-customer]').forEach(button => button.onclick = () => { closeModal('insight-modal'); openCustomer(button.dataset.insightCustomer); });
+    openModal('insight-modal');
   }
 
   // Gewählter Auswertungszeitraum der Übersicht: ein Kalendermonat oder ein
@@ -275,7 +354,7 @@
 
   // Tageswerte eines Monats als Balken (eine Linie mit vielen Nulltagen
   // wirkt wie Zacken); gleiche Achsen und Klassen wie revenueChart().
-  function revenueBarChart(series) {
+  function revenueBarChart(series, attrsFor = () => '') {
     const width = 760, height = 235, left = 48, right = 12, top = 12, bottom = 32;
     const plotWidth = width - left - right, plotHeight = height - top - bottom;
     const maximum = Math.max(100, ...series.map(item => item.revenue));
@@ -286,16 +365,18 @@
       const value = maximum * (1 - index / 4);
       return `<line class="chart-grid-line" x1="${left}" y1="${lineY}" x2="${width - right}" y2="${lineY}"/><text class="chart-axis-label" x="${left - 7}" y="${lineY + 3}" text-anchor="end">${esc(compactMoney(value))}</text>`;
     }).join('');
+    const peak = series.reduce((best, item, index) => item.revenue > (series[best]?.revenue || 0) ? index : best, -1);
     const bars = series.map((item, index) => {
       const barHeight = (item.revenue / maximum) * plotHeight;
       const x = left + slot * index + (slot - barWidth) / 2;
-      return `<rect class="chart-bar" x="${x}" y="${top + plotHeight - barHeight}" width="${barWidth}" height="${Math.max(item.revenue ? 2 : 0, barHeight)}" rx="2" fill="#6e384c"><title>${esc(item.title || item.label)}: ${esc(money(item.revenue))} · ${item.completed} Behandlungen</title></rect>`;
+      const label = index === peak ? `<text class="chart-value-label" x="${x + barWidth / 2}" y="${top + plotHeight - barHeight - 5}" text-anchor="middle">${esc(compactMoney(item.revenue))}</text>` : '';
+      return `<g class="chart-hit"${attrsFor(item, index)}><rect class="chart-hit-area" x="${left + slot * index}" y="${top}" width="${slot}" height="${plotHeight}"/><rect class="chart-bar" x="${x}" y="${top + plotHeight - barHeight}" width="${barWidth}" height="${Math.max(item.revenue ? 2 : 0, barHeight)}" rx="2" fill="#6e384c"/>${label}</g>`;
     }).join('');
     const labels = series.map((item, index) => index % 5 === 0 || index === series.length - 1 ? `<text class="chart-axis-label" x="${left + slot * (index + .5)}" y="${height - 8}" text-anchor="middle">${esc(item.label)}</text>` : '').join('');
     return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Umsatz pro Tag">${grid}${bars}${labels}</svg>`;
   }
 
-  function revenueChart(series) {
+  function revenueChart(series, attrsFor = () => '') {
     const width = 760, height = 235, left = 48, right = 12, top = 12, bottom = 32;
     const plotWidth = width - left - right, plotHeight = height - top - bottom;
     const maximum = Math.max(100, ...series.map(item => item.revenue));
@@ -310,22 +391,29 @@
       return `<line class="chart-grid-line" x1="${left}" y1="${lineY}" x2="${width - right}" y2="${lineY}"/><text class="chart-axis-label" x="${left - 7}" y="${lineY + 3}" text-anchor="end">${esc(compactMoney(value))}</text>`;
     }).join('');
     const labels = series.map((item, index) => index % labelStep === 0 || index === series.length - 1 ? `<text class="chart-axis-label" x="${x(index)}" y="${height - 8}" text-anchor="middle">${esc(item.label)}</text>` : '').join('');
-    const dots = series.map((item, index) => `<circle class="chart-point" cx="${x(index)}" cy="${y(item.revenue)}" r="3.5" data-chart-index="${index}"><title>${esc(item.title || item.label)}: ${esc(money(item.revenue))} · ${item.completed} Behandlungen</title></circle>`).join('');
+    const peak = series.reduce((best, item, index) => item.revenue > (series[best]?.revenue || 0) ? index : best, -1);
+    const dots = series.map((item, index) => `<g class="chart-hit"${attrsFor(item, index)}><circle class="chart-hit-area" cx="${x(index)}" cy="${y(item.revenue)}" r="16"/><circle class="chart-point" cx="${x(index)}" cy="${y(item.revenue)}" r="4"/>${index === peak ? `<text class="chart-value-label" x="${x(index)}" y="${y(item.revenue) - 10}" text-anchor="middle">${esc(compactMoney(item.revenue))}</text>` : ''}</g>`).join('');
     return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Umsatzentwicklung">${grid}<defs><linearGradient id="revenue-area" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#6e384c" stop-opacity=".24"/><stop offset="1" stop-color="#6e384c" stop-opacity=".02"/></linearGradient></defs><path d="${area}" fill="url(#revenue-area)"/><polyline points="${points}" fill="none" stroke="#6e384c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${dots}${labels}</svg>`;
   }
 
+  // Donut als SVG-Ring: jedes Segment ist ein eigener Kreisbogen (Hover +
+  // Klick), die Legende daneben ist dieselbe Aktion als Zeile mit Anteil.
   function renderDonut(chartId, legendId, segments, centerValue, centerLabel) {
     const total = segments.reduce((sum, segment) => sum + segment.value, 0);
-    let cursor = 0;
-    const slices = total ? segments.map(segment => {
-      const start = cursor;
-      cursor += (segment.value / total) * 100;
-      return `${segment.color} ${start}% ${cursor}%`;
-    }).join(', ') : '#eee9e3 0 100%';
+    const radius = 54, circumference = 2 * Math.PI * radius, gap = total && segments.filter(s => s.value).length > 1 ? 2 : 0;
+    let offset = 0;
+    const arcs = total ? segments.map(segment => {
+      if (!segment.value) return '';
+      const length = (segment.value / total) * circumference;
+      const arc = `<circle class="donut-seg" cx="67.5" cy="67.5" r="${radius}" stroke="${segment.color}" stroke-dasharray="${Math.max(0, length - gap)} ${circumference}" stroke-dashoffset="${-offset}"${segment.attrs || ''}/>`;
+      offset += length;
+      return arc;
+    }).join('') : '';
     const chart = $(chartId);
-    chart.style.background = `conic-gradient(${slices})`;
-    chart.innerHTML = `<div class="donut-center"><strong>${esc(centerValue)}</strong><span>${esc(centerLabel)}</span></div>`;
-    $(legendId).innerHTML = segments.map(segment => `<div class="legend-row"><i class="legend-dot" style="background:${segment.color}"></i><span>${esc(segment.label)}</span><strong>${segment.value}</strong></div>`).join('');
+    chart.classList.add('is-svg');
+    chart.style.background = '';
+    chart.innerHTML = `<svg viewBox="0 0 135 135" aria-hidden="false"><circle cx="67.5" cy="67.5" r="${radius}" fill="none" stroke="#eee9e3" stroke-width="22"/><g transform="rotate(-90 67.5 67.5)">${arcs}</g></svg><div class="donut-center"><strong>${esc(centerValue)}</strong><span>${esc(centerLabel)}</span></div>`;
+    $(legendId).innerHTML = segments.map(segment => `<div class="legend-row${segment.attrs ? ' is-interactive' : ''}"${segment.attrs || ''}><i class="legend-dot" style="background:${segment.color}"></i><span>${esc(segment.label)}</span><strong>${segment.value}<small>${percent(segment.value, total)}%</small></strong></div>`).join('');
   }
 
   function availableSlots(from, to) {
@@ -360,6 +448,7 @@
   }
 
   function renderOverview() {
+    overviewActions = new Map();
     const now = new Date();
     const today = dayKey(now);
     const currentMonth = monthStart(now);
@@ -388,74 +477,90 @@
     document.querySelectorAll('[data-period-mode]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.periodMode === state.period.mode)));
     $('period-next').disabled = range.end > now;
     $('period-today').hidden = range.start <= now && now < range.end;
+    const completedInRange = currentMonthAppointments.filter(a => a.status === 'completed');
+    const bookedNext30 = booked.filter(a => !a.is_private && new Date(a.starts_at) >= startOfDay(now) && new Date(a.starts_at) < capacityEnd);
     $('metrics').innerHTML = [
-      metricCard(`Umsatz ${range.label}`, money(currentRevenue), 'abgeschlossene Behandlungen', trend(currentRevenue, previousRevenue)),
-      metricCard(`Termine ${range.label}`, currentMonthAppointments.length, `${currentMonthAppointments.filter(a => a.status === 'completed').length} abgeschlossen`, trend(currentMonthAppointments.length, previousMonthAppointments.length)),
-      metricCard('Auslastung 30 Tage', `${percent(occupied, capacity)}%`, `${occupied} von ${capacity} Zeitfenstern`),
-      metricCard('Kundenbindung', `${percent(repeatCustomers, customersWithHistory.length)}%`, `${repeatCustomers} Wiederkehrende`),
-      metricCard('Marketing-Reichweite', `${percent(reachableCustomers, customersWithEmail)}%`, `${reachableCustomers} von ${customersWithEmail} per E-Mail`),
-      metricCard('Offene Forderungen', money(openInvoiceTotal), `${openInvoices.length} Rechnungen`)
+      metricCard(`Umsatz ${range.label}`, money(currentRevenue), 'abgeschlossene Behandlungen', trend(currentRevenue, previousRevenue),
+        interactive(() => openInsight({ title: `Umsatz ${range.label}`, appointments: completedInRange }), money(currentRevenue), `${range.previousLabel}: ${money(previousRevenue)} · Klick für Details`)),
+      metricCard(`Termine ${range.label}`, currentMonthAppointments.length, `${completedInRange.length} abgeschlossen`, trend(currentMonthAppointments.length, previousMonthAppointments.length),
+        interactive(() => openInsight({ title: `Termine ${range.label}`, appointments: currentMonthAppointments }), `${currentMonthAppointments.length} Termine`, `${range.previousLabel}: ${previousMonthAppointments.length} · Klick für Details`)),
+      metricCard('Auslastung 30 Tage', `${percent(occupied, capacity)}%`, `${occupied} von ${capacity} Zeitfenstern`, null,
+        interactive(() => openInsight({ title: 'Gebucht in den nächsten 30 Tagen', appointments: bookedNext30 }), `${bookedNext30.length} gebuchte Termine`, `${Math.max(0, capacity - occupied)} Zeitfenster frei · Klick für Details`)),
+      metricCard('Kundenbindung', `${percent(repeatCustomers, customersWithHistory.length)}%`, `${repeatCustomers} Wiederkehrende`, null,
+        interactive(() => openInsight({ title: 'Wiederkehrende Kundinnen', customers: customerAnalytics.filter(item => item.stats.totalBookings >= 2).map(item => item.customer) }), `${repeatCustomers} von ${customersWithHistory.length}`, 'Kundinnen mit 2+ Terminen · Klick für Liste')),
+      metricCard('Marketing-Reichweite', `${percent(reachableCustomers, customersWithEmail)}%`, `${reachableCustomers} von ${customersWithEmail} per E-Mail`, null,
+        interactive(() => openInsight({ title: 'Per E-Mail-Marketing erreichbar', customers: state.customers.filter(customer => customer.email && customer.marketing_consent && !customer.do_not_contact) }), `${reachableCustomers} erreichbar`, 'mit E-Mail und Einwilligung · Klick für Liste')),
+      metricCard('Offene Forderungen', money(openInvoiceTotal), `${openInvoices.length} Rechnungen`, null,
+        interactive(() => showPanel('invoices'), money(openInvoiceTotal), 'Klick öffnet Rechnungen'))
     ].join('');
 
     const series = periodRevenueSeries(range);
     const periodRevenue = series.reduce((sum, item) => sum + item.revenue, 0);
     const periodCompleted = series.reduce((sum, item) => sum + item.completed, 0);
-    $('revenue-chart').innerHTML = state.period.mode === 'year' ? revenueChart(series) : revenueBarChart(series);
+    const dayAppointments = item => state.appointments.filter(a => !a.is_private && a.status !== 'cancelled' && new Date(a.starts_at) >= item.start && new Date(a.starts_at) < item.end);
+    $('revenue-chart').innerHTML = state.period.mode === 'year'
+      ? revenueChart(series, item => interactive(() => { state.period = { mode: 'month', start: item.start }; renderOverview(); }, money(item.revenue), `${item.title} · ${item.completed} Behandlungen · Klick öffnet Monat`))
+      : revenueBarChart(series, item => interactive(() => openInsight({ title: `Termine ${item.title}`, appointments: dayAppointments(item) }), money(item.revenue), `${item.title} · ${item.completed} Behandlungen`));
     $('revenue-chart-summary').innerHTML = `<strong>${esc(money(periodRevenue))}</strong><span>${periodCompleted} Behandlungen · ${esc(range.label)}</span>`;
-    // In der Jahresansicht springt ein Klick auf einen Monatspunkt in diesen Monat.
-    if (state.period.mode === 'year') {
-      $('revenue-chart').querySelectorAll('[data-chart-index]').forEach(point => {
-        point.classList.add('is-clickable');
-        point.onclick = () => { state.period = { mode: 'month', start: series[Number(point.dataset.chartIndex)].start }; renderOverview(); };
-      });
-    }
 
     const yearStart = new Date(now.getFullYear(), 0, 1);
     const selectedYearStart = new Date(range.start.getFullYear(), 0, 1);
     const yearRevenue = state.appointments.filter(a => new Date(a.starts_at) >= selectedYearStart && new Date(a.starts_at) < new Date(range.start.getFullYear() + 1, 0, 1)).reduce((sum, appointment) => sum + appointmentRevenue(appointment), 0);
     const averageTicket = periodCompleted ? periodRevenue / periodCompleted : 0;
     const paidInvoices = state.invoices.filter(invoice => invoice.status === 'paid').reduce((sum, invoice) => sum + Number(invoice.amount_chf || 0), 0);
+    const selectedYear = range.start.getFullYear();
     $('finance-summary').innerHTML = [
-      [range.start.getFullYear() === now.getFullYear() ? 'Umsatz laufendes Jahr' : `Umsatz ${range.start.getFullYear()}`, money(yearRevenue), ''],
-      ['Ø Behandlung', money(averageTicket), ''],
-      ['Bezahlte No-Show-Rechnungen', money(paidInvoices), ''],
-      ['Noch ausstehend', money(openInvoiceTotal), openInvoiceTotal ? 'is-warning' : '']
-    ].map(([label, value, className]) => `<div class="finance-row ${className}"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('');
+      [selectedYear === now.getFullYear() ? 'Umsatz laufendes Jahr' : `Umsatz ${selectedYear}`, money(yearRevenue), '',
+        interactive(() => { state.period = { mode: 'year', start: new Date(selectedYear, 0, 1) }; renderOverview(); }, money(yearRevenue), `Klick zeigt Jahresansicht ${selectedYear}`)],
+      ['Ø Behandlung', money(averageTicket), '',
+        interactive(() => openInsight({ title: `Abgeschlossene Behandlungen ${range.label}`, appointments: completedInRange }), money(averageTicket), `${periodCompleted} Behandlungen · Klick für Details`)],
+      ['Bezahlte No-Show-Rechnungen', money(paidInvoices), '', interactive(() => showPanel('invoices'), money(paidInvoices), 'Klick öffnet Rechnungen')],
+      ['Noch ausstehend', money(openInvoiceTotal), openInvoiceTotal ? 'is-warning' : '', interactive(() => showPanel('invoices'), money(openInvoiceTotal), 'Klick öffnet Rechnungen')]
+    ].map(([label, value, className, attrs]) => `<div class="finance-row is-interactive ${className}"${attrs}><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('');
 
     const pipelineToday = bookedPotential(startOfDay(now), addDays(startOfDay(now), 1));
     const pipelineWeek = bookedPotential(startOfWeek(now), addDays(startOfWeek(now), 7));
     const pipelineMonth = bookedPotential(currentMonth, nextMonth);
     const pipelineYear = bookedPotential(yearStart, new Date(now.getFullYear() + 1, 0, 1));
+    const bookedBetween = (start, end) => booked.filter(a => !a.is_private && new Date(a.starts_at) >= start && new Date(a.starts_at) < end);
     $('booking-pipeline').innerHTML = [
-      ['Heute', pipelineToday],
-      ['Diese Woche', pipelineWeek],
-      ['Diesen Monat', pipelineMonth],
-      ['Dieses Jahr', pipelineYear]
-    ].map(([label, value]) => metricCard(label, money(value), 'gebucht, noch nicht durchgeführt')).join('');
+      ['Heute', pipelineToday, bookedBetween(startOfDay(now), addDays(startOfDay(now), 1))],
+      ['Diese Woche', pipelineWeek, bookedBetween(startOfWeek(now), addDays(startOfWeek(now), 7))],
+      ['Diesen Monat', pipelineMonth, bookedBetween(currentMonth, nextMonth)],
+      ['Dieses Jahr', pipelineYear, bookedBetween(yearStart, new Date(now.getFullYear() + 1, 0, 1))]
+    ].map(([label, value, list]) => metricCard(label, money(value), `${list.length} gebuchte Termine`, null,
+      interactive(() => openInsight({ title: `Gebucht: ${label}`, appointments: list }), money(value), `${list.length} Termine · Klick für Details`))).join('');
 
     const periodAppointments = state.appointments.filter(a => new Date(a.starts_at) >= periodStart && new Date(a.starts_at) < range.end && new Date(a.starts_at) <= now && !a.is_private);
     const serviceRows = state.services.map(service => {
       const appointments = periodAppointments.filter(a => a.service_id === service.id && a.status === 'completed');
       const revenue = appointments.reduce((sum, appointment) => sum + appointmentRevenue(appointment), 0);
-      return { name: service.name, count: appointments.length, revenue, margin: revenue - appointments.length * Number(service.material_cost_chf || 0) };
+      return { name: service.name, count: appointments.length, revenue, margin: revenue - appointments.length * Number(service.material_cost_chf || 0), appointments };
     }).sort((a, b) => b.revenue - a.revenue || b.count - a.count).slice(0, 6);
     const serviceMaximum = Math.max(1, ...serviceRows.map(row => row.revenue || row.count));
-    $('service-performance').innerHTML = serviceRows.length ? serviceRows.map(row => `<div class="bar-row"><div class="bar-row-head"><span>${esc(row.name)}</span><strong>${esc(money(row.revenue))} · DB ${esc(money(row.margin))} · ${row.count}</strong></div><div class="bar-track"><div class="bar-fill" style="width:${Math.max(2, ((row.revenue || row.count) / serviceMaximum) * 100)}%"></div></div></div>`).join('') : '<div class="empty">Noch keine Behandlungsdaten.</div>';
+    $('service-performance').innerHTML = serviceRows.length ? serviceRows.map(row => `<div class="bar-row is-interactive"${interactive(() => openInsight({ title: `${row.name} · ${range.label}`, appointments: row.appointments }), money(row.revenue), `${row.count} Behandlungen · Deckungsbeitrag ${money(row.margin)}`)}><div class="bar-row-head"><span>${esc(row.name)}</span><strong>${esc(money(row.revenue))} · DB ${esc(money(row.margin))} · ${row.count}</strong></div><div class="bar-track"><div class="bar-fill" style="width:${Math.max(2, ((row.revenue || row.count) / serviceMaximum) * 100)}%"></div></div></div>`).join('') : '<div class="empty">Noch keine Behandlungsdaten.</div>';
 
+    const customersIn = keys => customerAnalytics.filter(item => keys.includes(item.stats.segment.key)).map(item => item.customer);
     const retentionSegments = [
-      { label: 'VIP (10+)', value: customerAnalytics.filter(item => item.stats.segment.key === 'vip').length, color: '#c7973f' },
-      { label: 'Stammkundinnen', value: customerAnalytics.filter(item => item.stats.segment.key === 'loyal').length, color: '#6e384c' },
-      { label: 'Wiederkehrend', value: customerAnalytics.filter(item => item.stats.segment.key === 'repeat').length, color: '#4f8273' },
-      { label: 'Neu / Kontakt', value: customerAnalytics.filter(item => ['new', 'lead'].includes(item.stats.segment.key)).length, color: '#9aa7b8' }
-    ];
+      { label: 'VIP (10+)', keys: ['vip'], color: '#c7973f' },
+      { label: 'Stammkundinnen', keys: ['loyal'], color: '#6e384c' },
+      { label: 'Wiederkehrend', keys: ['repeat'], color: '#4f8273' },
+      { label: 'Neu / Kontakt', keys: ['new', 'lead'], color: '#9aa7b8' }
+    ].map(segment => {
+      const list = customersIn(segment.keys);
+      return { ...segment, value: list.length, attrs: interactive(() => openInsight({ title: segment.label, customers: list }), `${list.length} Kundinnen`, `${segment.label} · ${percent(list.length, state.customers.length)}%`) };
+    });
     renderDonut('retention-chart', 'retention-legend', retentionSegments, state.customers.length, 'Kundinnen');
 
     const statusSegments = [
-      { label: 'Abgeschlossen', value: periodAppointments.filter(a => a.status === 'completed').length, color: '#4f8273' },
-      { label: 'Gebucht', value: periodAppointments.filter(a => a.status === 'booked').length, color: '#6d83a1' },
-      { label: 'Storniert', value: periodAppointments.filter(a => a.status === 'cancelled').length, color: '#afa59e' },
-      { label: 'No-Show', value: periodAppointments.filter(a => a.status === 'no_show').length, color: '#a65353' }
-    ];
+      { label: 'Abgeschlossen', status: 'completed', color: '#4f8273' },
+      { label: 'Gebucht', status: 'booked', color: '#6d83a1' },
+      { label: 'Storniert', status: 'cancelled', color: '#afa59e' },
+      { label: 'No-Show', status: 'no_show', color: '#a65353' }
+    ].map(segment => {
+      const list = periodAppointments.filter(a => a.status === segment.status);
+      return { ...segment, value: list.length, attrs: interactive(() => openInsight({ title: `${segment.label} · ${range.label}`, appointments: list }), `${list.length} Termine`, segment.label) };
+    });
     const completedOrLost = statusSegments.reduce((sum, item) => sum + item.value, 0);
     renderDonut('appointment-status-chart', 'appointment-status-legend', statusSegments, `${percent(statusSegments[0].value, completedOrLost)}%`, 'Abschlussquote');
 
@@ -467,25 +572,25 @@
     const birthdays = state.customers.filter(customer => upcomingBirthday(customer)).length;
     const inactive = customerAnalytics.filter(item => item.stats.last && new Date(item.stats.last) < addDays(now, -180) && !item.stats.next).length;
     $('customer-opportunities').innerHTML = [
-      ['@', 'E-Mail ergänzen', 'Für Login, Bestätigung und Erinnerung', missingEmail],
-      ['☎', 'Telefon ergänzen', 'Für Rückfragen und Profilabgleich', missingPhone],
-      ['✦', 'Geburtstage in 30 Tagen', 'Persönliche Nachricht vorbereiten', birthdays],
-      ['↻', 'Reaktivierung', 'Seit über 180 Tagen ohne Besuch', inactive]
-    ].map(([icon, title, detail, value]) => `<div class="opportunity"><span class="opportunity-icon">${icon}</span><span><strong>${esc(title)}</strong><span>${esc(detail)}</span></span><b>${value}</b></div>`).join('');
+      ['@', 'E-Mail ergänzen', 'Für Login, Bestätigung und Erinnerung', missingEmail, state.customers.filter(customer => !customer.email)],
+      ['☎', 'Telefon ergänzen', 'Für Rückfragen und Profilabgleich', missingPhone, state.customers.filter(customer => !customer.phone)],
+      ['✦', 'Geburtstage in 30 Tagen', 'Persönliche Nachricht vorbereiten', birthdays, state.customers.filter(customer => upcomingBirthday(customer))],
+      ['↻', 'Reaktivierung', 'Seit über 180 Tagen ohne Besuch', inactive, customerAnalytics.filter(item => item.stats.last && new Date(item.stats.last) < addDays(now, -180) && !item.stats.next).map(item => item.customer)]
+    ].map(([icon, title, detail, value, list]) => `<div class="opportunity is-interactive"${interactive(() => openInsight({ title, customers: list }), `${value} Kundinnen`, 'Klick für Liste')}><span class="opportunity-icon">${icon}</span><span><strong>${esc(title)}</strong><span>${esc(detail)}</span></span><b>${value}</b></div>`).join('');
 
-    const newCustomers = state.customers.filter(customer => new Date(customer.created_at) >= periodStart && new Date(customer.created_at) < range.end).length;
     const funnelRows = [
-      ['Alle Kontakte', state.customers.length],
-      ['Mit E-Mail erreichbar', customersWithEmail],
-      ['Marketing-Einwilligung', reachableCustomers],
-      [`Neu ${range.label}`, newCustomers]
+      ['Alle Kontakte', state.customers],
+      ['Mit E-Mail erreichbar', state.customers.filter(customer => customer.email)],
+      ['Marketing-Einwilligung', state.customers.filter(customer => customer.email && customer.marketing_consent && !customer.do_not_contact)],
+      [`Neu ${range.label}`, state.customers.filter(customer => new Date(customer.created_at) >= periodStart && new Date(customer.created_at) < range.end)]
     ];
-    $('marketing-funnel').innerHTML = funnelRows.map(([label, value]) => `<div class="funnel-row"><div class="funnel-fill" style="width:${percent(value, state.customers.length)}%"></div><div class="funnel-copy"><span>${esc(label)}</span><strong>${value}</strong></div></div>`).join('');
+    $('marketing-funnel').innerHTML = funnelRows.map(([label, list]) => `<div class="funnel-row is-interactive"${interactive(() => openInsight({ title: label, customers: list }), `${list.length} Kontakte`, `${percent(list.length, state.customers.length)}% aller Kontakte · Klick für Liste`)}><div class="funnel-fill" style="width:${percent(list.length, state.customers.length)}%"></div><div class="funnel-copy"><span>${esc(label)}</span><strong>${list.length}<small>${percent(list.length, state.customers.length)}%</small></strong></div></div>`).join('');
 
     const weekdays = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'].map((label, day) => ({ label, day, value: periodAppointments.filter(a => a.status !== 'cancelled' && new Date(a.starts_at).getDay() === day).length }));
     const orderedWeekdays = [...weekdays.slice(1), weekdays[0]];
     const weekdayMaximum = Math.max(1, ...orderedWeekdays.map(item => item.value));
-    $('weekday-chart').innerHTML = orderedWeekdays.map(item => `<div class="weekday-column"><div class="weekday-bar-wrap"><div class="weekday-bar" style="height:${Math.max(3, (item.value / weekdayMaximum) * 100)}%"></div></div><strong>${esc(item.label)}</strong><span>${item.value}</span></div>`).join('');
+    const weekdayNames = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+    $('weekday-chart').innerHTML = orderedWeekdays.map(item => `<div class="weekday-column is-interactive"${interactive(() => openInsight({ title: `${weekdayNames[item.day]}e · ${range.label}`, appointments: periodAppointments.filter(a => a.status !== 'cancelled' && new Date(a.starts_at).getDay() === item.day) }), `${item.value} Termine`, `${weekdayNames[item.day]} · ${range.label}`)}><div class="weekday-bar-wrap"><div class="weekday-bar" style="height:${Math.max(3, (item.value / weekdayMaximum) * 100)}%"></div></div><strong>${esc(item.label)}</strong><span>${item.value}</span></div>`).join('');
 
     const upcoming = booked.filter(a => new Date(a.starts_at) >= now).sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at)).slice(0, 7);
     $('upcoming').innerHTML = upcoming.length ? upcoming.map(a => `<button class="upcoming-item" type="button" data-edit-appointment="${a.id}" style="width:100%;background:transparent;text-align:left;cursor:pointer"><span class="upcoming-time">${fmt(a.starts_at, { hour: '2-digit', minute: '2-digit' })}</span><span><strong>${esc(a.customer_name)}</strong><small>${esc(a.services?.name || 'Privat')} · ${fmt(a.starts_at, { weekday: 'short', day: '2-digit', month: '2-digit' })}</small><span class="calendar-event-origin">${esc(appointmentOriginLabel(appointmentOrigin(a)))}</span></span>${statusPill(a.status)}</button>`).join('') : '<div class="empty">Keine kommenden Termine.</div>';
@@ -2376,6 +2481,7 @@
   $('week-next').onclick = () => { state.week = addDays(state.week, 7); renderCalendar(); };
   $('week-today').onclick = () => { state.week = startOfWeek(new Date()); renderCalendar(); };
   bindWeekDragToShift();
+  bindOverviewInteractions();
   $('appointment-kind').onchange = togglePrivateFields;
   $('appointment-service').onchange = () => { fillPriceItemSelect($('appointment-service').value); fillDurationSelect(defaultDurationMinutes($('appointment-service').value, '')); };
   $('appointment-price-item').onchange = () => fillDurationSelect(defaultDurationMinutes($('appointment-service').value, $('appointment-price-item').value));

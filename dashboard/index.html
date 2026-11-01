@@ -7,7 +7,7 @@
   <title>GiGi Beauty | Admin Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261101-5">
+  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261101-6">
 </head>
 <body>
   <div class="login-screen" id="login-screen">
@@ -379,6 +379,15 @@
     <div class="modal-actions"><div></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="danger" type="submit" id="customer-delete-submit" disabled>Endgültig löschen</button></div></div>
   </form></div>
 
+  <div class="modal-backdrop" id="insight-modal" hidden><div class="modal insight-modal" role="dialog" aria-modal="true" aria-labelledby="insight-title">
+    <button class="modal-close" type="button" data-close>×</button>
+    <h2 id="insight-title"></h2>
+    <p class="insight-subtitle" id="insight-subtitle"></p>
+    <div class="insight-list" id="insight-list"></div>
+  </div></div>
+
+  <div class="chart-tooltip" id="chart-tooltip" role="tooltip" hidden><strong id="chart-tooltip-value"></strong><span id="chart-tooltip-label"></span></div>
+
   <div class="gap-menu" id="gap-menu" hidden role="menu">
     <strong id="gap-menu-title"></strong>
     <div class="gap-menu-options">
@@ -400,7 +409,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../assets/js/supabase-config.js?v=20260808-1"></script>
-  <script src="../assets/js/dashboard.js?v=20261101-5"></script>
+  <script src="../assets/js/dashboard.js?v=20261101-6"></script>
   <script src="../assets/js/password-toggle.js"></script>
 </body>
 </html>
