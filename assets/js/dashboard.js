@@ -335,57 +335,60 @@
       ? Array.from({ length: days }, (_, index) => { const start = addDays(range.start, index); return { start, end: addDays(start, 1), label: `${start.getDate()}.`, title: fmt(start, { weekday: 'short', day: '2-digit', month: '2-digit' }) }; })
       : Array.from({ length: 12 }, (_, index) => { const start = addMonths(range.start, index); return { start, end: addMonths(start, 1), label: fmt(start, { month: 'short' }), title: fmt(start, { month: 'long', year: 'numeric' }) }; });
     return buckets.map(bucket => {
-      const appointments = state.appointments.filter(a => new Date(a.starts_at) >= bucket.start && new Date(a.starts_at) < bucket.end);
+      const appointments = state.appointments.filter(a => !a.is_private && new Date(a.starts_at) >= bucket.start && new Date(a.starts_at) < bucket.end);
+      const now = new Date();
+      const value = list => list.reduce((sum, a) => sum + Number(a.amount_chf ?? a.services?.price_chf ?? 0), 0);
+      const open = appointments.filter(a => a.status === 'booked' && new Date(a.starts_at) < now);
+      const upcoming = appointments.filter(a => a.status === 'booked' && new Date(a.starts_at) >= now);
       return {
         ...bucket,
         revenue: appointments.reduce((sum, appointment) => sum + appointmentRevenue(appointment), 0),
-        completed: appointments.filter(a => a.status === 'completed' && !a.is_private).length
+        completed: appointments.filter(a => a.status === 'completed').length,
+        open: value(open), openCount: open.length,
+        upcoming: value(upcoming), upcomingCount: upcoming.length
       };
     });
   }
 
-  // Tageswerte eines Monats als Balken (eine Linie mit vielen Nulltagen
-  // wirkt wie Zacken); gleiche Achsen und Klassen wie revenueChart().
-  function revenueBarChart(series, attrsFor = () => '') {
-    const width = 760, height = 235, left = 48, right = 12, top = 12, bottom = 32;
+  // Umsatz als gestapelte Balken (Monat: pro Tag, Jahr: pro Monat):
+  // abgeschlossen + vergangen mit offenem Status + noch gebucht. Farben mit
+  // dataviz/validate_palette.js geprüft (CVD, Helligkeit, Kontrast).
+  const REVENUE_SERIES = [
+    { key: 'revenue', label: 'Abgeschlossen', color: '#9a4a6b' },
+    { key: 'open', label: 'Vergangen, Status offen', color: '#b8862f' },
+    { key: 'upcoming', label: 'Gebucht', color: '#3f7fc0' }
+  ];
+  function revenueStackChart(series, attrsFor = () => '', labelEvery = 1) {
+    const width = 760, height = 235, left = 52, right = 12, top = 18, bottom = 32;
     const plotWidth = width - left - right, plotHeight = height - top - bottom;
-    const maximum = Math.max(100, ...series.map(item => item.revenue));
+    const total = item => REVENUE_SERIES.reduce((sum, part) => sum + item[part.key], 0);
+    // Achse in runden Schritten (4 Intervalle à 1/2/2.5/5 × Zehnerpotenz).
+    const rawMax = Math.max(100, ...series.map(total));
+    const magnitude = 10 ** Math.floor(Math.log10(rawMax / 4));
+    const maximum = 4 * magnitude * [1, 2, 2.5, 5, 10].find(f => f * magnitude * 4 >= rawMax);
     const slot = plotWidth / series.length;
-    const barWidth = Math.max(4, slot * .62);
+    const barWidth = Math.max(4, Math.min(38, slot * .62));
     const grid = Array.from({ length: 5 }, (_, index) => {
       const lineY = top + (index / 4) * plotHeight;
       const value = maximum * (1 - index / 4);
       return `<line class="chart-grid-line" x1="${left}" y1="${lineY}" x2="${width - right}" y2="${lineY}"/><text class="chart-axis-label" x="${left - 7}" y="${lineY + 3}" text-anchor="end">${esc(compactMoney(value))}</text>`;
     }).join('');
-    const peak = series.reduce((best, item, index) => item.revenue > (series[best]?.revenue || 0) ? index : best, -1);
+    const peak = series.reduce((best, item, index) => total(item) > (best < 0 ? 0 : total(series[best])) ? index : best, -1);
     const bars = series.map((item, index) => {
-      const barHeight = (item.revenue / maximum) * plotHeight;
       const x = left + slot * index + (slot - barWidth) / 2;
-      const label = index === peak ? `<text class="chart-value-label" x="${x + barWidth / 2}" y="${top + plotHeight - barHeight - 5}" text-anchor="middle">${esc(compactMoney(item.revenue))}</text>` : '';
-      return `<g class="chart-hit"${attrsFor(item, index)}><rect class="chart-hit-area" x="${left + slot * index}" y="${top}" width="${slot}" height="${plotHeight}"/><rect class="chart-bar" x="${x}" y="${top + plotHeight - barHeight}" width="${barWidth}" height="${Math.max(item.revenue ? 2 : 0, barHeight)}" rx="2" fill="#6e384c"/>${label}</g>`;
+      let baseline = top + plotHeight;
+      const segments = REVENUE_SERIES.map(part => {
+        const h = (item[part.key] / maximum) * plotHeight;
+        if (h <= 0) return '';
+        const segmentHeight = Math.max(2, h - (baseline < top + plotHeight ? 2 : 0));
+        baseline -= h;
+        return `<rect class="chart-bar" x="${x}" y="${baseline + (h - segmentHeight)}" width="${barWidth}" height="${segmentHeight}" rx="2" fill="${part.color}"/>`;
+      }).join('');
+      const label = index === peak ? `<text class="chart-value-label" x="${x + barWidth / 2}" y="${baseline - 5}" text-anchor="middle">${esc(compactMoney(total(item)))}</text>` : '';
+      const axis = index % labelEvery === 0 || index === series.length - 1 ? `<text class="chart-axis-label" x="${left + slot * (index + .5)}" y="${height - 8}" text-anchor="middle">${esc(item.label)}</text>` : '';
+      return `<g class="chart-hit"${attrsFor(item, index)}><rect class="chart-hit-area" x="${left + slot * index}" y="${top}" width="${slot}" height="${plotHeight}"/>${segments}${label}</g>${axis}`;
     }).join('');
-    const labels = series.map((item, index) => index % 5 === 0 || index === series.length - 1 ? `<text class="chart-axis-label" x="${left + slot * (index + .5)}" y="${height - 8}" text-anchor="middle">${esc(item.label)}</text>` : '').join('');
-    return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Umsatz pro Tag">${grid}${bars}${labels}</svg>`;
-  }
-
-  function revenueChart(series, attrsFor = () => '') {
-    const width = 760, height = 235, left = 48, right = 12, top = 12, bottom = 32;
-    const plotWidth = width - left - right, plotHeight = height - top - bottom;
-    const maximum = Math.max(100, ...series.map(item => item.revenue));
-    const x = index => left + (series.length === 1 ? plotWidth / 2 : (index / (series.length - 1)) * plotWidth);
-    const y = value => top + plotHeight - (value / maximum) * plotHeight;
-    const points = series.map((item, index) => `${x(index)},${y(item.revenue)}`).join(' ');
-    const area = series.length ? `M ${left} ${top + plotHeight} L ${series.map((item, index) => `${x(index)} ${y(item.revenue)}`).join(' L ')} L ${x(series.length - 1)} ${top + plotHeight} Z` : '';
-    const labelStep = Math.max(1, Math.ceil(series.length / 7));
-    const grid = Array.from({ length: 5 }, (_, index) => {
-      const lineY = top + (index / 4) * plotHeight;
-      const value = maximum * (1 - index / 4);
-      return `<line class="chart-grid-line" x1="${left}" y1="${lineY}" x2="${width - right}" y2="${lineY}"/><text class="chart-axis-label" x="${left - 7}" y="${lineY + 3}" text-anchor="end">${esc(compactMoney(value))}</text>`;
-    }).join('');
-    const labels = series.map((item, index) => index % labelStep === 0 || index === series.length - 1 ? `<text class="chart-axis-label" x="${x(index)}" y="${height - 8}" text-anchor="middle">${esc(item.label)}</text>` : '').join('');
-    const peak = series.reduce((best, item, index) => item.revenue > (series[best]?.revenue || 0) ? index : best, -1);
-    const dots = series.map((item, index) => `<g class="chart-hit"${attrsFor(item, index)}><circle class="chart-hit-area" cx="${x(index)}" cy="${y(item.revenue)}" r="16"/><circle class="chart-point" cx="${x(index)}" cy="${y(item.revenue)}" r="4"/>${index === peak ? `<text class="chart-value-label" x="${x(index)}" y="${y(item.revenue) - 10}" text-anchor="middle">${esc(compactMoney(item.revenue))}</text>` : ''}</g>`).join('');
-    return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Umsatzentwicklung">${grid}<defs><linearGradient id="revenue-area" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#6e384c" stop-opacity=".24"/><stop offset="1" stop-color="#6e384c" stop-opacity=".02"/></linearGradient></defs><path d="${area}" fill="url(#revenue-area)"/><polyline points="${points}" fill="none" stroke="#6e384c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${dots}${labels}</svg>`;
+    return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Umsatzentwicklung">${grid}<line class="chart-baseline" x1="${left}" y1="${top + plotHeight}" x2="${width - right}" y2="${top + plotHeight}"/>${bars}</svg>`;
   }
 
   // Donut als SVG-Ring: jedes Segment ist ein eigener Kreisbogen (Hover +
@@ -487,11 +490,15 @@
     const series = periodRevenueSeries(range);
     const periodRevenue = series.reduce((sum, item) => sum + item.revenue, 0);
     const periodCompleted = series.reduce((sum, item) => sum + item.completed, 0);
+    const sumOf = key => series.reduce((sum, item) => sum + item[key], 0);
     const dayAppointments = item => state.appointments.filter(a => !a.is_private && a.status !== 'cancelled' && new Date(a.starts_at) >= item.start && new Date(a.starts_at) < item.end);
-    $('revenue-chart').innerHTML = state.period.mode === 'year'
-      ? revenueChart(series, item => interactive(() => { state.period = { mode: 'month', start: item.start }; renderOverview(); }, money(item.revenue), `${item.title} · ${item.completed} Behandlungen · Klick öffnet Monat`))
-      : revenueBarChart(series, item => interactive(() => openInsight({ title: `Termine ${item.title}`, appointments: dayAppointments(item) }), money(item.revenue), `${item.title} · ${item.completed} Behandlungen`));
-    $('revenue-chart-summary').innerHTML = `<strong>${esc(money(periodRevenue))}</strong><span>${periodCompleted} Behandlungen · ${esc(range.label)}</span>`;
+    const breakdown = item => REVENUE_SERIES.filter(part => item[part.key]).map(part => `${part.label} ${money(item[part.key])}`).join(' · ') || 'Kein Umsatz';
+    const isYear = state.period.mode === 'year';
+    $('revenue-chart').innerHTML = `<div class="chart-legend-row">${REVENUE_SERIES.map(part => `<span><i style="background:${part.color}"></i>${esc(part.label)} <b>${esc(money(sumOf(part.key)))}</b></span>`).join('')}</div>`
+      + revenueStackChart(series, item => interactive(
+        isYear ? () => { state.period = { mode: 'month', start: item.start }; renderOverview(); } : () => openInsight({ title: `Termine ${item.title}`, appointments: dayAppointments(item) }),
+        money(item.revenue + item.open + item.upcoming), `${item.title} · ${breakdown(item)}${isYear ? ' · Klick öffnet Monat' : ''}`), isYear ? 1 : 5);
+    $('revenue-chart-summary').innerHTML = `<strong>${esc(money(periodRevenue))}</strong><span>${periodCompleted} abgeschlossen · ${esc(range.label)}</span>`;
 
     const selectedYearStart = new Date(range.start.getFullYear(), 0, 1);
     const yearRevenue = state.appointments.filter(a => new Date(a.starts_at) >= selectedYearStart && new Date(a.starts_at) < new Date(range.start.getFullYear() + 1, 0, 1)).reduce((sum, appointment) => sum + appointmentRevenue(appointment), 0);
