@@ -711,16 +711,53 @@
     return { min, max };
   }
 
+  // Handy: Tagesansicht in voller Breite statt 7 Spalten mit seitlichem
+  // Scrollen. Oben eine Leiste mit den Tagen der Woche (Anzahl Termine),
+  // Pfeile und Wischen wechseln tageweise. Computer/Tablet: Wochenansicht.
+  const isCompactCalendar = () => window.matchMedia('(max-width: 720px)').matches;
+  function setCalendarDay(date) {
+    state.calDay = startOfDay(date);
+    state.week = startOfWeek(state.calDay);
+    renderCalendar();
+  }
+
+  function renderDayStrip() {
+    const strip = $('calendar-day-strip');
+    strip.hidden = !isCompactCalendar();
+    if (strip.hidden) return;
+    const today = dayKey(new Date()), selected = dayKey(state.calDay);
+    strip.innerHTML = Array.from({ length: 7 }, (_, index) => {
+      const date = addDays(state.week, index), key = dayKey(date);
+      const count = state.appointments.filter(a => a.status !== 'cancelled' && !a.is_private && dayKey(a.starts_at) === key).length;
+      return `<button type="button" class="day-strip-day${key === selected ? ' is-selected' : ''}${key === today ? ' is-today' : ''}" data-strip-day="${key}" aria-pressed="${key === selected}" aria-label="${esc(fmt(date, { weekday: 'long', day: 'numeric', month: 'long' }))}, ${count} Termine"><span>${esc(fmt(date, { weekday: 'short' }).replace('.', ''))}</span><strong>${date.getDate()}</strong><small>${count ? count : ''}</small></button>`;
+    }).join('');
+    strip.querySelectorAll('[data-strip-day]').forEach(button => button.onclick = () => {
+      const [y, m, d] = button.dataset.stripDay.split('-').map(Number);
+      setCalendarDay(new Date(y, m - 1, d));
+    });
+  }
+
   function renderCalendar() {
-    const days = Array.from({ length: 7 }, (_, index) => addDays(state.week, index));
+    const compact = isCompactCalendar();
+    if (!state.calDay || startOfWeek(state.calDay).getTime() !== state.week.getTime()) {
+      const today = startOfDay(new Date());
+      state.calDay = startOfWeek(today).getTime() === state.week.getTime() ? today : new Date(state.week);
+    }
+    const days = compact ? [state.calDay] : Array.from({ length: 7 }, (_, index) => addDays(state.week, index));
     const end = addDays(state.week, 6);
-    $('week-title').textContent = `${fmt(state.week, { day: '2-digit', month: 'short' })} bis ${fmt(end, { day: '2-digit', month: 'short', year: 'numeric' })}`;
+    $('week-title').textContent = compact
+      ? fmt(state.calDay, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+      : `${fmt(state.week, { day: '2-digit', month: 'short' })} bis ${fmt(end, { day: '2-digit', month: 'short', year: 'numeric' })}`;
+    $('week-prev').setAttribute('aria-label', compact ? 'Vorheriger Tag' : 'Vorherige Woche');
+    $('week-next').setAttribute('aria-label', compact ? 'Nächster Tag' : 'Nächste Woche');
+    $('admin-calendar').classList.toggle('is-day-view', compact);
+    renderDayStrip();
 
     const { min, max } = calendarBounds(days);
     const gridHeight = (max - min) * CAL_PX_PER_MIN;
     const hourMarks = [];
     for (let m = Math.ceil(min / 60) * 60; m <= max; m += 60) hourMarks.push(m);
-    const gutter = `<div class="admin-time-gutter">${hourMarks.map(m => `<span style="top:${3.1 * 16 + (m - min) * CAL_PX_PER_MIN}px">${String(Math.floor(m / 60)).padStart(2, '0')}:00</span>`).join('')}</div>`;
+    const gutter = `<div class="admin-time-gutter">${hourMarks.map(m => `<span style="top:${(compact ? 0 : 3.1 * 16) + (m - min) * CAL_PX_PER_MIN}px">${String(Math.floor(m / 60)).padStart(2, '0')}:00</span>`).join('')}</div>`;
 
     const dayCols = days.map(date => {
       const key = dayKey(date);
@@ -920,7 +957,7 @@
     if (canEmail) ({ error: mailError } = await db.rpc('queue_reschedule_email', { requested_appointment_id: appointment.id, change: mode === 'move' ? 'moved' : 'duration' }));
     await loadAll();
     // Verschobenen Termin im Kalender zeigen (Woche wechseln, falls nötig).
-    if (mode === 'move') { state.week = startOfWeek(newStart); renderCalendar(); }
+    if (mode === 'move') { state.calDay = startOfDay(newStart); state.week = startOfWeek(newStart); renderCalendar(); }
     pulseAppointment(appointment.id);
     const done = mode === 'move' ? 'Termin verschoben' : 'Termin angepasst';
     toast(mailError ? `${done}, Kundinnen-Mail fehlgeschlagen: ${mailError.message}` : canEmail ? `${done}. Info-Mails an Kundin und dich sind eingeplant.` : `${done}. Info-Mail an dich ist eingeplant.`);
@@ -2701,9 +2738,24 @@
   $('save-opening-hours').onclick = saveOpeningHours;
   $('save-contact').onclick = saveContact;
   $('add-testimonial').onclick = addTestimonial;
-  $('week-prev').onclick = () => { state.week = addDays(state.week, -7); renderCalendar(); };
-  $('week-next').onclick = () => { state.week = addDays(state.week, 7); renderCalendar(); };
-  $('week-today').onclick = () => { state.week = startOfWeek(new Date()); renderCalendar(); };
+  $('week-prev').onclick = () => { if (isCompactCalendar()) setCalendarDay(addDays(state.calDay, -1)); else { state.week = addDays(state.week, -7); renderCalendar(); } };
+  $('week-next').onclick = () => { if (isCompactCalendar()) setCalendarDay(addDays(state.calDay, 1)); else { state.week = addDays(state.week, 7); renderCalendar(); } };
+  $('week-today').onclick = () => setCalendarDay(new Date());
+  // Wischen in der Tagesansicht: links = nächster Tag, rechts = vorheriger.
+  (() => {
+    let start = null;
+    $('admin-calendar').addEventListener('touchstart', event => {
+      start = event.touches.length === 1 ? { x: event.touches[0].clientX, y: event.touches[0].clientY, t: Date.now() } : null;
+    }, { passive: true });
+    $('admin-calendar').addEventListener('touchend', event => {
+      if (!start || !isCompactCalendar() || resizeState) { start = null; return; }
+      const touch = event.changedTouches[0], dx = touch.clientX - start.x, dy = touch.clientY - start.y;
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.6 && Date.now() - start.t < 700) setCalendarDay(addDays(state.calDay, dx < 0 ? 1 : -1));
+      start = null;
+    }, { passive: true });
+    let wasCompact = isCompactCalendar();
+    window.addEventListener('resize', () => { const now = isCompactCalendar(); if (now !== wasCompact && state.user) { wasCompact = now; renderCalendar(); } });
+  })();
   bindWeekDragToShift();
   bindOverviewInteractions();
   // Tabellen werden auf dem Handy als Karten dargestellt (CSS, max-width

@@ -626,6 +626,21 @@ tr.is-unread { background: #fdf6e3; font-weight: 650; }
   .messages-table td:nth-child(3) { white-space: normal; overflow: visible; text-overflow: clip; }
 }
 
+/* Handy: Tagesansicht mit Tagesleiste */
+.day-strip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .3rem; margin-bottom: .7rem; }
+.day-strip[hidden] { display: none; }
+.day-strip-day { display: grid; justify-items: center; gap: .05rem; min-height: 58px; padding: .35rem 0; border: 1px solid var(--dash-line); border-radius: 11px; background: var(--dash-card); color: var(--dash-ink); }
+.day-strip-day span { color: var(--dash-muted); font-size: .66rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.day-strip-day strong { font-size: 1rem; line-height: 1.2; }
+.day-strip-day small { min-height: .9rem; color: var(--dash-wine); font-size: .66rem; font-weight: 700; }
+.day-strip-day.is-today { border-color: var(--dash-wine); }
+.day-strip-day.is-selected { background: var(--dash-wine); border-color: var(--dash-wine); color: #fff; }
+.day-strip-day.is-selected span, .day-strip-day.is-selected small { color: rgba(255,255,255,.85); }
+.admin-calendar.is-day-view { overflow-x: hidden; touch-action: pan-y; padding-top: .7rem; }
+.admin-calendar.is-day-view .admin-day { min-width: 0; }
+.admin-calendar.is-day-view .admin-day-head { display: none; }
+.admin-calendar.is-day-view .admin-time-gutter { padding-top: 0; }
+
 /* Termin verschieben per Tippen (Termin-Fenster) */
 .move-panel { margin-top: 1rem; padding: .9rem; border: 1px solid var(--dash-line); border-radius: 12px; background: #faf7f2; }
 .move-panel[hidden] { display: none; }
