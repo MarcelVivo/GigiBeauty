@@ -89,6 +89,10 @@ button { cursor: pointer; }
 .insight-main small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dash-muted); font-size: .72rem; }
 .insight-row b { font-size: .8rem; white-space: nowrap; text-align: right; }
 .insight-row .status, .insight-row .segment { justify-self: start; }
+.insight-actions { display: flex; align-items: center; justify-content: flex-end; gap: .9rem; margin-top: 1rem; padding-top: .9rem; border-top: 1px solid var(--dash-line); }
+.insight-actions[hidden] { display: none; }
+.insight-actions small { color: var(--dash-muted); font-size: .76rem; }
+.insight-actions button { flex: none; white-space: nowrap; }
 .insight-row[data-insight-customer] { grid-template-columns: minmax(0, 1fr) 7.6rem 5.8rem; }
 @media (max-width: 720px) { .insight-row { grid-template-columns: 1fr auto; } .insight-row time { grid-column: 1 / -1; } }
 .daily-brief { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; margin-bottom: .8rem; padding: 1.2rem 1.35rem; overflow: hidden; border-radius: 16px; color: #f8eee2; background: linear-gradient(120deg, #2c1f1a 0%, #50302f 65%, #6e384c 100%); box-shadow: 0 15px 40px rgba(52,31,27,.14); }

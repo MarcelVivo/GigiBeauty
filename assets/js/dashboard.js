@@ -292,7 +292,17 @@
 
   // Detailfenster hinter einer Grafik: Liste der Termine oder Kundinnen, je
   // ein Klick öffnet den Termin bzw. das Kundenprofil.
-  function openInsight({ title, subtitle = '', appointments = null, customers = null }) {
+  async function completePastAppointments(list) {
+    const ids = list.filter(a => new Date(a.ends_at) <= new Date()).map(a => a.id);
+    if (!ids.length || !confirm(`${ids.length} vergangene Termine als «Abgeschlossen» markieren? Die Kundinnen erhalten dabei keine E-Mails.`)) { $('insight-action').disabled = false; return; }
+    const { data, error } = await db.rpc('complete_past_appointments', { appointment_ids: ids });
+    if (error) { $('insight-action').disabled = false; toast(error.message); return; }
+    closeModal('insight-modal');
+    await loadAll();
+    toast(`${data ?? ids.length} Termine als abgeschlossen markiert.`);
+  }
+
+  function openInsight({ title, subtitle = '', appointments = null, customers = null, action = null }) {
     $('insight-title').textContent = title;
     let rows = '';
     if (appointments) {
@@ -309,6 +319,14 @@
       rows = list.map(({ customer, stats }) => `<button class="insight-row" type="button" data-insight-customer="${customer.id}"><span class="insight-main"><strong>${esc(customer.full_name)}</strong><small>${esc([customer.phone, customer.email].filter(Boolean).join(' · ') || 'Keine Kontaktdaten')}</small></span><span class="segment segment-${stats.segment.key}">${esc(stats.segment.label)}</span><b>${stats.totalBookings} Termin${stats.totalBookings === 1 ? '' : 'e'}</b></button>`).join('');
     }
     $('insight-list').innerHTML = rows || '<div class="empty">Keine Einträge in diesem Bereich.</div>';
+    // Optionale Sammelaktion unter der Liste (z. B. "alle abschliessen").
+    $('insight-actions').hidden = !action || !rows;
+    if (action && rows) {
+      $('insight-action').textContent = action.label;
+      $('insight-action-note').textContent = action.note || '';
+      $('insight-action').disabled = false;
+      $('insight-action').onclick = async () => { $('insight-action').disabled = true; await action.run(); };
+    }
     $('insight-list').querySelectorAll('[data-insight-appointment]').forEach(button => button.onclick = () => { closeModal('insight-modal'); openAppointment(button.dataset.insightAppointment); });
     $('insight-list').querySelectorAll('[data-insight-customer]').forEach(button => button.onclick = () => { closeModal('insight-modal'); openCustomer(button.dataset.insightCustomer); });
     openModal('insight-modal');
@@ -529,7 +547,7 @@
         interactive(() => openInsight({ title: `Gebucht ${range.label}`, appointments: bookedInRange }), money(bookedValue(bookedInRange)), `${bookedInRange.length} Termine · Klick für Details`)),
       metricCard('Davon bevorstehend', money(bookedValue(bookedUpcoming)), `${bookedUpcoming.length} kommende Termine`, null,
         interactive(() => openInsight({ title: `Bevorstehend ${range.label}`, appointments: bookedUpcoming }), money(bookedValue(bookedUpcoming)), `${bookedUpcoming.length} Termine · Klick für Details`)),
-      `<article class="metric is-interactive${bookedOverdue.length ? ' is-warning' : ''}"${interactive(() => openInsight({ title: `Vergangen, Status offen · ${range.label}`, subtitle: `${bookedOverdue.length} Termine liegen in der Vergangenheit und stehen noch auf «Gebucht». Bitte je Termin auf «Abgeschlossen» oder «Nicht erschienen» setzen, erst dann zählen sie als Umsatz.`, appointments: bookedOverdue }), `${bookedOverdue.length} Termine`, 'Status nachtragen · Klick für Liste')}><span>Status nachtragen</span><strong>${bookedOverdue.length}</strong><div class="metric-foot"><small>${esc(money(bookedValue(bookedOverdue)))} vergangen, noch «Gebucht»</small></div></article>`,
+      `<article class="metric is-interactive${bookedOverdue.length ? ' is-warning' : ''}"${interactive(() => openInsight({ title: `Vergangen, Status offen · ${range.label}`, subtitle: `${bookedOverdue.length} Termine liegen in der Vergangenheit und stehen noch auf «Gebucht». Erst als «Abgeschlossen» zählen sie als Umsatz. Einzelne No-Shows zuerst per Klick auf den Termin auf «Nicht erschienen» setzen.`, appointments: bookedOverdue, action: { label: `Alle ${bookedOverdue.length} als abgeschlossen markieren`, note: 'Ohne Mails an die Kundinnen und ohne Lagerabzug.', run: () => completePastAppointments(bookedOverdue) } }), `${bookedOverdue.length} Termine`, 'Status nachtragen · Klick für Liste')}><span>Status nachtragen</span><strong>${bookedOverdue.length}</strong><div class="metric-foot"><small>${esc(money(bookedValue(bookedOverdue)))} vergangen, noch «Gebucht»</small></div></article>`,
       metricCard(`Erwartet ${range.label}`, money(expectedTotal), 'abgeschlossen + gebucht', null,
         interactive(() => openInsight({ title: `Erwartet ${range.label}`, appointments: [...completedInRange, ...bookedInRange] }), money(expectedTotal), `${money(currentRevenue)} abgeschlossen + ${money(bookedValue(bookedInRange))} gebucht`))
     ].join('');
