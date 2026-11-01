@@ -2577,6 +2577,31 @@
   $('week-today').onclick = () => { state.week = startOfWeek(new Date()); renderCalendar(); };
   bindWeekDragToShift();
   bindOverviewInteractions();
+  // Tabellen werden auf dem Handy als Karten dargestellt (CSS, max-width
+  // 720px); dafür trägt jede Zelle ihre Spaltenüberschrift als data-label.
+  // Ein Observer beschriftet neu gerenderte Zeilen automatisch.
+  function labelTableCells(root = document) {
+    root.querySelectorAll('.table-wrap table').forEach(table => {
+      const headers = [...table.querySelectorAll('thead th')].map(th => th.textContent.trim());
+      table.querySelectorAll('tbody tr').forEach(row => [...row.children].forEach((cell, index) => {
+        if (cell.colSpan > 1) { cell.dataset.label = ''; return; }
+        if (headers[index] && cell.dataset.label !== headers[index]) cell.dataset.label = headers[index];
+        // Inhalt in einen Wrapper, damit er auf dem Handy als eigene Spalte
+        // neben der Bezeichnung steht (Event-Listener bleiben beim Verschieben).
+        if (!(cell.childNodes.length === 1 && cell.firstElementChild?.classList.contains('cell-value'))) {
+          const wrapper = document.createElement('span');
+          wrapper.className = 'cell-value';
+          wrapper.append(...cell.childNodes);
+          cell.append(wrapper);
+        }
+      }));
+    });
+  }
+  let tableLabelFrame = null;
+  new MutationObserver(() => {
+    if (tableLabelFrame) return;
+    tableLabelFrame = requestAnimationFrame(() => { tableLabelFrame = null; labelTableCells(); });
+  }).observe(document.querySelector('.dash-main') || document.body, { childList: true, subtree: true });
   // Diagramm bei geänderter Breite (Handy drehen, Fenster) neu zeichnen.
   let chartResizeTimer = null, lastChartWidth = 0;
   window.addEventListener('resize', () => {
