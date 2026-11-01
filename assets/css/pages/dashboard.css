@@ -624,6 +624,24 @@ tr.is-unread { background: #fdf6e3; font-weight: 650; }
   .messages-table td:nth-child(3) { white-space: normal; overflow: visible; text-overflow: clip; }
 }
 
+/* Termin verschieben per Tippen (Termin-Fenster) */
+.move-panel { margin-top: 1rem; padding: .9rem; border: 1px solid var(--dash-line); border-radius: 12px; background: #faf7f2; }
+.move-panel[hidden] { display: none; }
+.move-head { display: flex; justify-content: space-between; align-items: baseline; gap: .6rem; margin-bottom: .6rem; }
+.move-head strong { font-size: .95rem; }
+.move-head span { color: var(--dash-muted); font-size: .78rem; }
+.move-nav { display: grid; grid-template-columns: 44px 1fr 44px; gap: .4rem; }
+.move-nav button { height: 44px; border: 1px solid var(--dash-line); border-radius: 9px; background: white; color: var(--dash-ink); font-size: 1.25rem; }
+.move-nav input { min-width: 0; height: 44px; padding: 0 .7rem; border: 1px solid var(--dash-line); border-radius: 9px; background: white; color: var(--dash-ink); font-size: 16px; }
+.move-quick { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .5rem; }
+.move-quick button { padding: .4rem .7rem; border: 1px solid var(--dash-line); border-radius: 999px; background: white; color: var(--dash-ink); font-size: .78rem; font-weight: 650; }
+.move-day { margin: .7rem 0 .45rem; color: var(--dash-muted); font-size: .8rem; }
+.move-slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: .4rem; max-height: 260px; overflow-y: auto; }
+.move-slot { min-height: 44px; border: 1px solid var(--dash-line); border-radius: 9px; background: white; color: var(--dash-ink); font-weight: 700; font-size: .88rem; }
+.move-slot:hover, .move-slot:focus-visible { border-color: var(--dash-wine); color: var(--dash-wine); }
+.move-slot.is-current { border-style: dashed; color: var(--dash-muted); cursor: default; }
+.move-empty { grid-column: 1 / -1; margin: .3rem 0; color: var(--dash-muted); font-size: .82rem; }
+.move-outside { display: flex; align-items: center; gap: .45rem; margin-top: .7rem; color: var(--dash-muted); font-size: .78rem; }
 /* Für alle Breiten: Leisten umbrechen statt überlaufen, Legenden kürzen. */
 .toolbar-group { flex-wrap: wrap; }
 .modal-actions, .right-actions { flex-wrap: wrap; }

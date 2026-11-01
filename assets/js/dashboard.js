@@ -839,12 +839,12 @@
     });
   }
 
-  function openResizeConfirm(appointment, newStart, newEnd) {
+  function openResizeConfirm(appointment, newStart, newEnd, mode = 'resize') {
     const oldStart = new Date(appointment.starts_at), oldEnd = new Date(appointment.ends_at);
     const oldMinutes = Math.round((oldEnd - oldStart) / 60000), newMinutes = Math.round((newEnd - newStart) / 60000);
     const range = (a, b) => `${fmt(a, { weekday: 'short', day: '2-digit', month: '2-digit' })}, ${fmt(a, { hour: '2-digit', minute: '2-digit' })}–${fmt(b, { hour: '2-digit', minute: '2-digit' })}`;
     const canEmail = !appointment.is_private && !!appointment.customer_email;
-    $('resize-confirm-title').textContent = newMinutes > oldMinutes ? 'Termin verlängern?' : newMinutes < oldMinutes ? 'Termin verkürzen?' : 'Termin anpassen?';
+    $('resize-confirm-title').textContent = mode === 'move' ? 'Termin verschieben?' : newMinutes > oldMinutes ? 'Termin verlängern?' : newMinutes < oldMinutes ? 'Termin verkürzen?' : 'Termin anpassen?';
     $('resize-confirm-who').textContent = `${appointment.customer_name} · ${appointment.services?.name || 'Termin'}`;
     $('resize-confirm-old').textContent = `${range(oldStart, oldEnd)} (${durationLabel(oldMinutes)})`;
     $('resize-confirm-new').textContent = `${range(newStart, newEnd)} (${durationLabel(newMinutes)})`;
@@ -853,14 +853,14 @@
       : 'Nach OK erhältst du eine Info-Mail. Für die Kundin ist keine E-Mail-Adresse hinterlegt.';
     $('resize-confirm-message').textContent = '';
     $('resize-confirm-ok').disabled = false;
-    $('resize-confirm-ok').onclick = () => saveResize(appointment, newStart, newEnd, canEmail);
+    $('resize-confirm-ok').onclick = () => saveResize(appointment, newStart, newEnd, canEmail, mode);
     $('resize-confirm-cancel').onclick = cancelResize;
     openModal('resize-confirm-modal');
     $('resize-confirm-ok').focus();
   }
   function cancelResize() { closeModal('resize-confirm-modal'); renderCalendar(); }
 
-  async function saveResize(appointment, newStart, newEnd, canEmail) {
+  async function saveResize(appointment, newStart, newEnd, canEmail, mode = 'resize') {
     const conflict = state.appointments.some(a => a.id !== appointment.id && a.status !== 'cancelled' && newStart < new Date(a.ends_at) && newEnd > new Date(a.starts_at))
       || state.blocks.some(b => newStart < new Date(b.ends_at) && newEnd > new Date(b.starts_at));
     if (conflict) { $('resize-confirm-message').textContent = 'Termin kollidiert mit einem bestehenden Termin oder einer Sperrzeit.'; return; }
@@ -868,11 +868,15 @@
     const result = await db.from('appointments').update({ starts_at: newStart.toISOString(), ends_at: newEnd.toISOString() }).eq('id', appointment.id);
     if (result.error) { $('resize-confirm-ok').disabled = false; $('resize-confirm-message').textContent = result.error.message; return; }
     closeModal('resize-confirm-modal');
+    if (mode === 'move') closeModal('appointment-modal');
     let mailError = null;
-    if (canEmail) ({ error: mailError } = await db.rpc('queue_reschedule_email', { requested_appointment_id: appointment.id, change: 'duration' }));
+    if (canEmail) ({ error: mailError } = await db.rpc('queue_reschedule_email', { requested_appointment_id: appointment.id, change: mode === 'move' ? 'moved' : 'duration' }));
     await loadAll();
+    // Verschobenen Termin im Kalender zeigen (Woche wechseln, falls nötig).
+    if (mode === 'move') { state.week = startOfWeek(newStart); renderCalendar(); }
     pulseAppointment(appointment.id);
-    toast(mailError ? `Termin angepasst, Kundinnen-Mail fehlgeschlagen: ${mailError.message}` : canEmail ? 'Termin angepasst. Info-Mails an Kundin und dich sind eingeplant.' : 'Termin angepasst. Info-Mail an dich ist eingeplant.');
+    const done = mode === 'move' ? 'Termin verschoben' : 'Termin angepasst';
+    toast(mailError ? `${done}, Kundinnen-Mail fehlgeschlagen: ${mailError.message}` : canEmail ? `${done}. Info-Mails an Kundin und dich sind eingeplant.` : `${done}. Info-Mail an dich ist eingeplant.`);
   }
 
   // Klick in eine freie Stelle eines Tages: kleines Menü mit 15 Min. /
@@ -2036,6 +2040,73 @@
     $(`${prefix}-customer-open`).onclick = () => { const ref = $(`${prefix}-customer-ref`).value; if (ref) { closeModal(modalId); openCustomer(ref); } };
   }
 
+  // Verschieben per Tippen (Handy/Tablet, aber auch am Computer): im
+  // Termin-Fenster einen Tag wählen, freie Startzeiten im 15-Minuten-Raster
+  // antippen. Frei = innerhalb der Öffnungszeiten (abschaltbar), nicht in
+  // der Vergangenheit, keine Überschneidung mit anderen Terminen oder
+  // Sperrzeiten bei gleicher Dauer. Danach dieselbe Sicherheitsfrage und
+  // dieselben Info-Mails wie beim Verlängern (openResizeConfirm 'move').
+  let moveAppointmentId = null;
+  function openMovePanel(appointment) {
+    moveAppointmentId = appointment.id;
+    const start = new Date(appointment.starts_at);
+    const today = startOfDay(new Date());
+    $('move-date').value = dayKey(start < today ? today : start);
+    $('move-outside').checked = false;
+    $('move-panel').hidden = false;
+    renderMoveSlots();
+    $('move-panel').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  function renderMoveSlots() {
+    const appointment = state.appointments.find(a => a.id === moveAppointmentId);
+    if (!appointment || !$('move-date').value) return;
+    const durationMs = new Date(appointment.ends_at) - new Date(appointment.starts_at);
+    $('move-duration').textContent = durationLabel(Math.round(durationMs / 60000));
+    const [year, month, dayOfMonth] = $('move-date').value.split('-').map(Number);
+    const day = new Date(year, month - 1, dayOfMonth, 0, 0, 0, 0);
+    const at = minutes => { const d = new Date(day); d.setMinutes(minutes); return d; };
+    const toMin = value => Number(value.split(':')[0]) * 60 + Number(value.split(':')[1]);
+    const opening = (state.settings?.opening_hours || {})[String(day.getDay())];
+    const outside = $('move-outside').checked;
+    $('move-day').textContent = `${fmt(day, { weekday: 'long', day: 'numeric', month: 'long' })}${opening ? ` · geöffnet ${opening[0]}–${opening[1]}` : ' · geschlossen'}`;
+    if (!opening && !outside) {
+      $('move-slots').innerHTML = '<p class="move-empty">An diesem Tag ist geschlossen. Anderen Tag wählen oder «ausserhalb der Öffnungszeiten» aktivieren.</p>';
+      return;
+    }
+    const from = outside ? 7 * 60 : toMin(opening[0]);
+    const until = outside ? 22 * 60 : toMin(opening[1]);
+    const now = new Date();
+    const busy = [
+      ...state.appointments.filter(a => a.id !== appointment.id && a.status !== 'cancelled'),
+      ...state.blocks
+    ].map(item => [new Date(item.starts_at), new Date(item.ends_at)]);
+    const currentStart = new Date(appointment.starts_at).getTime();
+    const slots = [];
+    for (let minutes = from; minutes * 60000 + durationMs <= until * 60000; minutes += CAL_SLOT_MINUTES) {
+      const start = at(minutes), end = new Date(start.getTime() + durationMs);
+      if (start <= now) continue;
+      if (busy.some(([s, e]) => start < e && end > s)) continue;
+      slots.push(start);
+    }
+    $('move-slots').innerHTML = slots.length
+      ? slots.map(start => {
+        const isCurrent = start.getTime() === currentStart;
+        return `<button type="button" role="option" class="move-slot${isCurrent ? ' is-current' : ''}" data-move-start="${start.toISOString()}" ${isCurrent ? 'disabled title="Aktuelle Zeit"' : ''}>${fmt(start, { hour: '2-digit', minute: '2-digit' })}</button>`;
+      }).join('')
+      : '<p class="move-empty">Keine freie Zeit mit dieser Dauer an diesem Tag.</p>';
+    $('move-slots').querySelectorAll('[data-move-start]').forEach(button => button.onclick = () => {
+      const start = new Date(button.dataset.moveStart);
+      openResizeConfirm(appointment, start, new Date(start.getTime() + durationMs), 'move');
+    });
+  }
+
+  function shiftMoveDate(days) {
+    const [year, month, dayOfMonth] = $('move-date').value.split('-').map(Number);
+    $('move-date').value = dayKey(addDays(new Date(year, month - 1, dayOfMonth), days));
+    renderMoveSlots();
+  }
+
   function openAppointment(id = null, preset = null) {
     const item = id ? state.appointments.find(a => a.id === id) : null;
     $('appointment-modal-title').textContent = item ? 'Termin bearbeiten' : 'Termin eintragen';
@@ -2057,6 +2128,9 @@
     setPickerCustomer('appointment', linkedCustomer || null);
     if (!item && linkedCustomer) selectPickerCustomer('appointment', linkedCustomer.id);
     $('delete-appointment').hidden = !item || item.status === 'cancelled';
+    $('move-appointment').hidden = !item || item.status !== 'booked';
+    $('move-panel').hidden = true;
+    moveAppointmentId = null;
     $('appointment-message').textContent = '';
     togglePrivateFields();
     openModal('appointment-modal');
@@ -2632,6 +2706,19 @@
   $('admin-calendar').addEventListener('scroll', closeGapMenu);
   $('appointment-form').onsubmit = saveAppointment;
   bindCustomerPicker('appointment', 'appointment-modal');
+  $('move-appointment').onclick = () => {
+    const item = state.appointments.find(a => a.id === $('appointment-id').value);
+    if (!item) return;
+    if ($('move-panel').hidden) openMovePanel(item); else $('move-panel').hidden = true;
+  };
+  $('move-date').onchange = renderMoveSlots;
+  $('move-outside').onchange = renderMoveSlots;
+  $('move-prev').onclick = () => shiftMoveDate(-1);
+  $('move-next').onclick = () => shiftMoveDate(1);
+  document.querySelectorAll('[data-move-jump]').forEach(button => button.onclick = () => {
+    $('move-date').value = dayKey(addDays(startOfDay(new Date()), Number(button.dataset.moveJump)));
+    renderMoveSlots();
+  });
   bindCustomerPicker('waitlist', 'waitlist-modal');
   $('customer-delete').onclick = openCustomerDelete;
   $('customer-delete-form').onsubmit = deleteCustomerPermanently;
