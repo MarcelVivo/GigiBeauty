@@ -523,6 +523,7 @@ tr.is-unread { background: #fdf6e3; font-weight: 650; }
 .login-card .primary { width: 100%; margin-top: 1rem; background: #ae813f; }
 .login-link { display: block; width: 100%; margin-top: .9rem; padding: .3rem; border: 0; background: transparent; color: #ddb977; font-size: .78rem; text-align: center; text-decoration: underline; cursor: pointer; }
 .login-link:hover { color: #f3d9a0; }
+@media (max-width: 720px) { .password-toggle { min-width: 40px; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; } .login-link { min-height: 44px; } }
 .notice { padding: .8rem 1rem; border-radius: 9px; color: #775d20; background: #fbf2d8; font-size: .82rem; }
 .toast { position: fixed; z-index: 80; right: 1.5rem; bottom: 1.5rem; max-width: 380px; padding: .9rem 1.1rem; border-radius: 9px; color: white; background: #3d2a22; transform: translateY(130%); transition: transform .22s ease; }
 .toast.is-visible { transform: translateY(0); }
@@ -643,6 +644,23 @@ tr.is-unread { background: #fdf6e3; font-weight: 650; }
 .move-slot.is-current { border-style: dashed; color: var(--dash-muted); cursor: default; }
 .move-empty { grid-column: 1 / -1; margin: .3rem 0; color: var(--dash-muted); font-size: .82rem; }
 .move-outside { display: flex; align-items: center; gap: .45rem; margin-top: .7rem; color: var(--dash-muted); font-size: .78rem; }
+/* Handy/Tablet: Tippflächen mindestens 40 px (Kalender-Termine und
+   Diagramm-Elemente ausgenommen), Felder mit 16 px Schrift gegen iOS-Zoom. */
+@media (max-width: 720px), (hover: none) {
+  .dash-main button:not(.calendar-event):not(.modal-close):not(.cal-resize),
+  .dash-main a.secondary, .dash-main a.primary, .dash-main .link-button,
+  .modal button:not(.modal-close), .modal a.secondary, .modal .link-button,
+  .gap-menu button, .reschedule-flyout button { min-height: 40px; }
+  .modal-close, .reschedule-flyout-close { min-width: 44px; min-height: 44px; }
+  .insight-list { grid-auto-rows: max-content; }
+  .insight-row { height: auto; }
+  #customer-chat-category { min-height: 40px; }
+  .legend-row.is-interactive { min-height: 34px; }
+  .period-mode button { min-height: 36px; }
+  .dash-main input:not([type=checkbox]):not([type=radio]):not([type=file]),
+  .dash-main select, .dash-main textarea, .modal input:not([type=checkbox]):not([type=radio]):not([type=file]),
+  .modal select, .modal textarea, .login-card input { font-size: 16px; }
+}
 /* Für alle Breiten: Leisten umbrechen statt überlaufen, Legenden kürzen. */
 .toolbar-group { flex-wrap: wrap; }
 .modal-actions, .right-actions { flex-wrap: wrap; }

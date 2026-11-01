@@ -1213,4 +1213,11 @@ html.booking-embed body.booking-page {
   .acc-grid > * { flex: 0 0 auto; }
   .acc-date { width: 56px; }
   .acc-date strong { font-size: 1.5rem; }
+  .acc-photos, .acc-journey, .acc-foot { width: 100%; }
+  .acc-quiet { display: inline-flex; align-items: center; min-height: 40px; }
+  .modal-close { min-width: 44px; min-height: 44px; }
+  .account-chat-send { min-width: 44px; min-height: 44px; }
+  .acc-review { display: inline-flex; align-items: center; min-height: 40px; }
+  #auth-forgot-password { min-height: 40px; }
+  #account-chat-text { font-size: 16px; }
 }

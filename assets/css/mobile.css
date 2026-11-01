@@ -1,0 +1,49 @@
+/* Mobile-Feinschliff für alle öffentlichen Seiten (Startseite, Über Liliane,
+   Rechtstexte, FAQ, Buchung, Passwort). Wird nach den seiteneigenen Styles
+   geladen. Ziele: kein seitliches Scrollen, Tippflächen >= 40 px, Felder
+   mit 16 px Schrift (sonst zoomt iOS beim Antippen hinein). */
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html, body { overflow-x: clip; }
+
+/* Lange Wörter (z. B. «Geschäftsbedingungen») dürfen umbrechen. */
+h1, h2, h3 { overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto; }
+
+/* Unsichtbare Überschrift für Suchmaschinen darf keine Breite erzeugen. */
+.visually-hidden { overflow: hidden !important; }
+
+/* Kleine Links: unsichtbar vergrösserte Tippfläche, Optik unverändert. */
+#imp-logo, #imp-footer a, .footer-bar a, .footer-map-link, .nav-logo, .footer-links a, .imp-block a {
+  position: relative;
+}
+#imp-logo::after, #imp-footer a::after, .footer-bar a::after, .footer-map-link::after, .nav-logo::after, .footer-links a::after {
+  content: '';
+  position: absolute;
+  inset: -10px -6px;
+}
+
+@media (max-width: 720px) {
+  html body input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),
+  html body select, html body textarea { font-size: max(16px, 1em); }
+
+  /* Rechtstexte & FAQ */
+  .imp-wrap { padding-left: 20px; padding-right: 20px; }
+  html body .imp-wrap h1 { font-size: clamp(1.9rem, 8.4vw, 2.6rem); line-height: 1.15; }
+  html body #imp-logo { display: inline-flex; align-items: center; min-height: 44px; }
+  html body #imp-footer { padding: .8rem 1rem; gap: .2rem .9rem; }
+  html body #imp-footer a { display: inline-flex; align-items: center; min-height: 40px; }
+
+  /* Startseite & Über Liliane */
+  html body .nav-logo { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+  html body .footer-bar { row-gap: .2rem; }
+  html body .footer-bar a { display: inline-flex; align-items: center; min-height: 40px; }
+  html body .nav-ai-badge { min-height: 36px; }
+  html body .footer-map-link { display: inline-flex; align-items: center; min-height: 40px; }
+
+  /* Offenes Mobil-Menü: Auszeichnung «3. Platz» darf Menüpunkte nicht verdecken. */
+  html body.menu-open .championship-medal, html body:has(#top-nav.menu-open) .championship-medal { opacity: 0; visibility: hidden; pointer-events: none; }
+
+  /* Buchungsseite */
+  html body .footer-links a { display: inline-flex; align-items: center; min-height: 40px; }
+  html body .password-toggle { min-width: 40px; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; top: 0; }
+}
