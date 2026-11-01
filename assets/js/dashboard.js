@@ -1027,7 +1027,7 @@
     const totalBookings = legacyBookings + validItems.length;
     const revenue = items.reduce((sum, appointment) => sum + appointmentRevenue(appointment), 0);
     const segment = totalBookings >= 10 ? { key: 'vip', label: 'VIP' } : totalBookings >= 5 ? { key: 'loyal', label: 'Stammkundin' } : totalBookings >= 2 ? { key: 'repeat', label: 'Wiederkehrend' } : totalBookings >= 1 ? { key: 'new', label: 'Neu' } : { key: 'lead', label: 'Kontakt' };
-    return { items, validItems, legacyBookings, totalBookings, revenue, last: past[0]?.starts_at || null, next: upcoming[0]?.starts_at || null, completed: items.filter(a => a.status === 'completed').length, noShows: items.filter(a => a.status === 'no_show').length, segment };
+    return { items, validItems, upcoming, legacyBookings, totalBookings, revenue, last: past[0]?.starts_at || null, next: upcoming[0]?.starts_at || null, completed: items.filter(a => a.status === 'completed').length, noShows: items.filter(a => a.status === 'no_show').length, segment };
   }
 
   function renderCustomers() {
@@ -1043,7 +1043,10 @@
     $('customer-count').textContent = `${profiles.length} Kundenprofile`;
     $('customer-table').innerHTML = profiles.length ? profiles.map(p => {
       const stats = customerStats(p);
-      const upcoming = stats.next ? fmt(stats.next, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : stats.last ? `Zuletzt ${esc(fmt(stats.last, { day: '2-digit', month: '2-digit' }))}` : '–';
+      const more = stats.upcoming.length - 1;
+      const upcoming = stats.next
+        ? `${fmt(stats.next, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}${more > 0 ? `<span class="customer-meta">+ ${more} weitere${more === 1 ? 'r' : ''} Termin${more === 1 ? '' : 'e'}</span>` : ''}`
+        : stats.last ? `Zuletzt ${esc(fmt(stats.last, { day: '2-digit', month: '2-digit' }))}` : '–';
       const contactPermission = p.do_not_contact ? '<span class="contact-state is-blocked">Gesperrt</span>' : p.marketing_consent && p.email ? '<span class="contact-state is-active">✓ E-Mail</span>' : p.marketing_consent ? '<span class="contact-state">Ohne E-Mail</span>' : '<span class="contact-state">Nur Service</span>';
       const rowHint = `${p.profile_id ? 'Login aktiv' : 'Kein Login'}${p.registration_invited_at ? ' · Eingeladen ' + esc(fmt(p.registration_invited_at, { day: '2-digit', month: '2-digit' })) : ''}`;
       return `<tr data-edit-customer="${p.id}" class="customer-row" title="${rowHint}"><td><strong class="customer-name">${esc(p.full_name)}</strong><span class="customer-contact">${esc(p.email || p.phone || 'Kein Kontakt')}</span></td><td><span class="segment segment-${stats.segment.key}">${esc(stats.segment.label)}</span></td><td><strong>${esc(money(stats.revenue))}</strong><span class="customer-meta">${stats.totalBookings} Termine</span></td><td>${upcoming}</td><td>${contactPermission}</td></tr>`;
@@ -1954,7 +1957,7 @@
       ['Zahlungen', esc(money(actualPayments))],
       ['Aktive Pakete', activePackages],
       ['Empfehlungscode', esc(customer.referral_code || '–')],
-      ['Nächster Termin', stats.next ? esc(fmt(stats.next, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })) : 'Keiner']
+      [stats.upcoming.length > 1 ? `Kommende Termine (${stats.upcoming.length})` : 'Nächster Termin', stats.upcoming.length ? stats.upcoming.map(a => esc(fmt(a.starts_at, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }))).join('<br>') : 'Keiner']
     ].map(([label, value]) => `<div class="customer-insight"><span>${esc(label)}</span><strong>${value}</strong></div>`).join('');
     $('customer-registration').hidden = Boolean(customer.profile_id);
     $('customer-registration-title').textContent = customer.registration_invited_at ? 'Registrierung noch ausstehend' : 'Noch kein Kundenlogin';
@@ -1963,8 +1966,10 @@
       : 'Einladung über einen vorhandenen Kontaktkanal senden. Die Kundin registriert sich mit E-Mail und ihrer hinterlegten Telefonnummer.';
     $('customer-registration-actions').innerHTML = registrationActionButtons(customer);
     bindRegistrationActions($('customer-registration-actions'));
-    const history = [...stats.items].sort((a, b) => new Date(b.starts_at) - new Date(a.starts_at)).slice(0, 8);
-    $('customer-history').innerHTML = `${stats.legacyBookings ? `<p class="muted">${stats.legacyBookings} historische Buchungen aus dem Kundenimport. Dafür liegen keine einzelnen Termin- oder Preisdaten vor.</p>` : ''}${history.length ? `<div class="history-list">${history.map(appointment => `<div class="history-item"><span>${esc(fmt(appointment.starts_at, { day: '2-digit', month: '2-digit', year: 'numeric' }))} · ${esc(appointment.services?.name || 'Behandlung')}</span><strong>${esc(labelStatus(appointment.status))}${appointment.status === 'completed' ? ` · ${esc(money(appointment.amount_chf ?? appointment.services?.price_chf ?? 0))}` : ''}</strong></div>`).join('')}</div>` : '<p class="muted">Noch keine einzelnen Termine im neuen Kalender erfasst.</p>'}`;
+    // Kommende Termine immer vollständig, danach die letzten 8 vergangenen.
+    const upcomingIds = new Set(stats.upcoming.map(a => a.id));
+    const history = [...stats.upcoming, ...[...stats.items].filter(a => !upcomingIds.has(a.id)).sort((a, b) => new Date(b.starts_at) - new Date(a.starts_at)).slice(0, 8)];
+    $('customer-history').innerHTML = `${stats.legacyBookings ? `<p class="muted">${stats.legacyBookings} historische Buchungen aus dem Kundenimport. Dafür liegen keine einzelnen Termin- oder Preisdaten vor.</p>` : ''}${history.length ? `<div class="history-list">${history.map(appointment => `<div class="history-item${upcomingIds.has(appointment.id) ? ' is-upcoming' : ''}"><span>${esc(fmt(appointment.starts_at, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }))} · ${esc(appointment.services?.name || 'Behandlung')}</span><strong>${upcomingIds.has(appointment.id) ? 'Geplant' : esc(labelStatus(appointment.status))}${appointment.status === 'completed' ? ` · ${esc(money(appointment.amount_chf ?? appointment.services?.price_chf ?? 0))}` : ''}</strong></div>`).join('')}</div>` : '<p class="muted">Noch keine einzelnen Termine im neuen Kalender erfasst.</p>'}`;
     const communications = state.communications.filter(item => item.customer_id === customer.id).slice(0, 8);
     $('customer-communications').innerHTML = `${communications.length ? `<div class="communication-list">${communications.map(item => `<div class="communication-item"><span class="communication-channel">${esc(({ email: 'E-Mail', phone: 'Telefon', sms: 'SMS', whatsapp: 'WhatsApp', in_person: 'Persönlich', system: 'System' })[item.channel] || item.channel)}</span><span><strong>${esc(item.subject || item.communication_type)}</strong><small>${esc(fmt(item.occurred_at, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }))} · ${esc(item.status)}</small></span></div>`).join('')}</div>` : '<p class="muted">Noch keine Kommunikation protokolliert.</p>'}`;
     $('customer-rebook-message').disabled = !customer.email || !customer.marketing_consent || customer.do_not_contact;

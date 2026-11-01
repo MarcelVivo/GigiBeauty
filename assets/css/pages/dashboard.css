@@ -413,6 +413,8 @@ tr.is-unread { background: #fdf6e3; font-weight: 650; }
 .history-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: .45rem; }
 .history-item { display: flex; justify-content: space-between; gap: .7rem; padding: .55rem .65rem; border-radius: 8px; background: #faf7f2; font-size: .7rem; }
 .history-item span { color: var(--dash-muted); }
+.history-item.is-upcoming { background: #f8f0f2; border-left: 3px solid var(--dash-wine); }
+.history-item.is-upcoming strong { color: var(--dash-wine); }
 .communication-list { display: grid; gap: .45rem; }
 .communication-item { display: grid; grid-template-columns: 75px 1fr; align-items: center; gap: .7rem; padding: .55rem .65rem; border-radius: 8px; background: #faf7f2; }
 .communication-channel { color: var(--dash-wine); font-size: .65rem; font-weight: 750; }
