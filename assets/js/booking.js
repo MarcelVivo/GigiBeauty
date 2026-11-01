@@ -65,7 +65,14 @@
   function startOfWeek(date) { const d = startOfDay(date); return addDays(d, -((d.getDay() + 6) % 7)); }
   function dateKey(date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`; }
   function parseDateKey(key) { const [y, m, d] = key.split('-').map(Number); return new Date(y, m - 1, d); }
-  function formatDate(date, options) { return new Intl.DateTimeFormat('de-CH', options).format(date); }
+  // Uhrzeiten immer in Schweizer Zeit (Termine liegen in Bern). Reine
+  // Datumsangaben bleiben im Gerätekalender, weil Tage als lokale
+  // Mitternacht gerechnet werden.
+  const STUDIO_TIME_ZONE = 'Europe/Zurich';
+  function formatDate(date, options = {}) {
+    const withTime = options.hour || options.minute || options.timeStyle;
+    return new Intl.DateTimeFormat('de-CH', withTime ? { timeZone: STUDIO_TIME_ZONE, ...options } : options).format(date);
+  }
   function minutes(time) { const [h, m] = time.split(':').map(Number); return h * 60 + m; }
   function timeLabel(total) { return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`; }
   function escapeHtml(value) { return String(value ?? '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[c]); }
@@ -627,6 +634,11 @@
     loadCustomerMedia();
   }
 
+  // Speicher-Schlüssel erlauben keine Umlaute/Leerzeichen («Nägel Juni.jpg»).
+  function safeFileName(name) {
+    return String(name || 'foto.jpg').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9._-]+/g, '-').replace(/-+/g, '-').slice(-80) || 'foto.jpg';
+  }
+
   async function signedPhotoUrl(path) {
     const { data } = await db.storage.from('customer-photos').createSignedUrl(path, 3600);
     return data?.signedUrl || '';
@@ -689,7 +701,7 @@
 
     let photo_path = null;
     if (file) {
-      photo_path = `${state.customerId}/${crypto.randomUUID()}-${file.name}`;
+      photo_path = `${state.customerId}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
       const { error: uploadError } = await db.storage.from('customer-photos').upload(photo_path, file);
       if (uploadError) { message.textContent = uploadError.message; return; }
     }
@@ -784,6 +796,18 @@
   document.getElementById('account-chat-photo').addEventListener('change', function () {
     document.getElementById('account-chat-filename').textContent = this.files[0]?.name || '';
   });
+
+  // Gerät in anderer Zeitzone (z. B. Ferien): Hinweis unter dem Kalender.
+  (() => {
+    let deviceZone = '';
+    try { deviceZone = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch {}
+    const note = document.querySelector('.booking-note');
+    if (!note || !deviceZone || deviceZone === STUDIO_TIME_ZONE) return;
+    const hint = document.createElement('span');
+    hint.className = 'timezone-hint';
+    hint.textContent = 'Alle Zeiten sind Schweizer Zeit (Bern).';
+    note.appendChild(hint);
+  })();
 
   loadData().then(() => {
     if (new URLSearchParams(location.search).get('register') === '1' && !state.user) {

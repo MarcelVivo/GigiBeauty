@@ -2559,7 +2559,7 @@
 
     let photo_path = null;
     if (file) {
-      photo_path = `${customerId}/${crypto.randomUUID()}-${file.name}`;
+      photo_path = `${customerId}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
       const { error: uploadError } = await db.storage.from('customer-photos').upload(photo_path, file);
       if (uploadError) { message.textContent = uploadError.message; return; }
     }
@@ -2679,6 +2679,11 @@
     closeModal('customer-modal');
     await loadAll();
     toast(removals.some(r => r.error) ? `${customer.full_name} gelöscht. Einige Fotos konnten nicht entfernt werden.` : `${customer.full_name} wurde endgültig gelöscht.`);
+  }
+
+  // Speicher-Schlüssel erlauben keine Umlaute/Leerzeichen («Nägel Juni.jpg»).
+  function safeFileName(name) {
+    return String(name || 'foto.jpg').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9._-]+/g, '-').replace(/-+/g, '-').slice(-80) || 'foto.jpg';
   }
 
   function openContactLog() {

@@ -494,7 +494,8 @@
       busy = true;
       updateGenerateAvailability();
       currentAbort = new AbortController();
-      const timeout = setTimeout(() => currentAbort.abort(), 45000);
+      // Bildbearbeitung dauert oft 30–90 s; 45 s brachen gültige Anfragen ab.
+      const timeout = setTimeout(() => currentAbort.abort(), 120000);
 
       imageAfter.removeAttribute('src');
       imageBefore.src = originalDataUrl;

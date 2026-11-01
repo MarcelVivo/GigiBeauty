@@ -11,7 +11,7 @@ const db = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: f
 
 type OutboxItem = {
   id: string;
-  kind: 'confirmation' | 'reminder' | 'cancellation' | 'rescheduled' | 'invoice' | 'campaign' | 'aftercare' | 'review' | 'rebooking' | 'winback' | 'birthday' | 'waitlist' | 'registration_invite' | 'newsletter_welcome' | 'ai_preview_followup' | 'owner_notice' | 'newsletter_confirm';
+  kind: 'confirmation' | 'reminder' | 'cancellation' | 'rescheduled' | 'invoice' | 'campaign' | 'aftercare' | 'review' | 'rebooking' | 'winback' | 'birthday' | 'waitlist' | 'registration_invite' | 'newsletter_welcome' | 'ai_preview_followup' | 'owner_notice' | 'newsletter_confirm' | 'chat_reply';
   recipient_email: string;
   recipient_name: string | null;
   subject: string;
@@ -105,6 +105,11 @@ function emailHtml(item: OutboxItem) {
     const bookingUrl = esc(trackedLink(item, String(item.payload.booking_url || 'https://www.gigibeauty.ch/pages/booking.html')));
     heading = item.subject;
     content = `<p>${esc(item.payload.content)}</p><p><a href="${bookingUrl}" style="display:inline-block;padding:13px 20px;background:#6e384c;color:#fff;text-decoration:none;border-radius:7px">Termin buchen</a></p>`;
+  } else if (item.kind === 'chat_reply') {
+    heading = item.payload.category === 'result' ? 'Neues Behandlungsfoto für dich' : 'Neue Nachricht von Liliane';
+    const preview = String(item.payload.preview || '').trim();
+    const accountUrl = esc(String(item.payload.account_url || 'https://www.gigibeauty.ch/pages/booking.html?auth=1'));
+    content = `${preview ? `<p style="padding:14px 16px;border-left:3px solid #ae813f;background:#f7f1ea">${esc(preview)}${preview.length >= 220 ? ' …' : ''}</p>` : ''}${item.payload.has_photo ? '<p>Liliane hat dir ein Foto geschickt.</p>' : ''}<p>Die ganze Nachricht findest du in deinem Kundenkonto unter «Fotos &amp; Wünsche». Dort kannst du auch direkt antworten.</p><p><a href="${accountUrl}" style="display:inline-block;padding:13px 20px;background:#6e384c;color:#fff;text-decoration:none;border-radius:7px">Nachricht ansehen</a></p>`;
   } else if (item.kind === 'newsletter_confirm') {
     heading = 'Bitte bestätige deine Anmeldung';
     const confirmUrl = `${marketingTrackingUrl}?event=confirm&id=${encodeURIComponent(item.id)}`;
