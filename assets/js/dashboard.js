@@ -2109,6 +2109,58 @@
     closeModal('customer-modal'); toast('Kundenprofile wurden zusammengeführt.'); await loadAll(); openCustomer(data || primary.id);
   }
 
+  // Endgültiges Löschen (RPC delete_customer_permanently, siehe Migration
+  // 202611010006). Der Dialog zeigt vorher, was alles verschwindet, und
+  // verlangt den Namen als Bestätigung. Kommende Termine blockieren.
+  function openCustomerDelete() {
+    const customer = state.customers.find(c => c.id === $('customer-id').value);
+    if (!customer) return;
+    const stats = customerStats(customer);
+    const media = state.customerMedia.filter(m => m.customer_id === customer.id).length;
+    $('customer-delete-lead').innerHTML = `<strong>${esc(customer.full_name)}</strong>${[customer.phone, customer.email].filter(Boolean).map(v => ` · ${esc(v)}`).join('')}`;
+    $('customer-delete-list').innerHTML = [
+      'Kundenprofil mit Notizen, Tags und Einwilligungen',
+      'Chat-Nachrichten und Fotos' + (media ? ` (${media})` : ''),
+      'Aufgaben, Kommunikationsverlauf und Wartelisten-Einträge',
+      'Gesendete und geplante E-Mails, KI-Farbwünsche unter ihrem Namen',
+      customer.profile_id ? 'Ihr Online-Login (Konto im Kundencenter)' : '',
+      'Alle Kopien im Änderungsprotokoll'
+    ].filter(Boolean).map(item => `<li>${esc(item)}</li>`).join('');
+    $('customer-delete-confirm').value = '';
+    $('customer-delete-submit').disabled = true;
+    $('customer-delete-message').textContent = stats.upcoming.length
+      ? `Sie hat noch ${stats.upcoming.length} kommende${stats.upcoming.length === 1 ? 'n Termin' : ' Termine'}. Diese bitte zuerst stornieren.`
+      : '';
+    $('customer-delete-confirm').disabled = stats.upcoming.length > 0;
+    $('customer-delete-form').dataset.customerId = customer.id;
+    openModal('customer-delete-modal');
+    if (!stats.upcoming.length) $('customer-delete-confirm').focus();
+  }
+
+  async function deleteCustomerPermanently(event) {
+    event.preventDefault();
+    const customer = state.customers.find(c => c.id === $('customer-delete-form').dataset.customerId);
+    if (!customer || $('customer-delete-confirm').value.trim().toLowerCase() !== customer.full_name.trim().toLowerCase()) return;
+    $('customer-delete-submit').disabled = true;
+    $('customer-delete-message').textContent = 'Wird gelöscht …';
+    // Dateipfade vor dem Löschen der Zeilen einsammeln.
+    const folder = await db.storage.from('customer-photos').list(customer.id, { limit: 1000 });
+    const photoPaths = (folder.data || []).map(file => `${customer.id}/${file.name}`);
+    const nameFilter = customer.full_name.trim().replace(/[\\%_]/g, char => `\\${char}`);
+    const { data: previews } = await db.from('ai_preview_requests').select('photo_path').ilike('customer_name', nameFilter);
+    const { error } = await db.rpc('delete_customer_permanently', { target_customer_id: customer.id });
+    if (error) { $('customer-delete-submit').disabled = false; $('customer-delete-message').textContent = error.message; return; }
+    const previewPaths = (previews || []).map(p => p.photo_path).filter(Boolean);
+    const removals = await Promise.all([
+      photoPaths.length ? db.storage.from('customer-photos').remove(photoPaths) : { error: null },
+      previewPaths.length ? db.storage.from('ai-preview-photos').remove(previewPaths) : { error: null }
+    ]);
+    closeModal('customer-delete-modal');
+    closeModal('customer-modal');
+    await loadAll();
+    toast(removals.some(r => r.error) ? `${customer.full_name} gelöscht. Einige Fotos konnten nicht entfernt werden.` : `${customer.full_name} wurde endgültig gelöscht.`);
+  }
+
   function openContactLog() {
     const customerId = $('customer-id').value;
     if (!customerId) return;
@@ -2301,6 +2353,12 @@
   $('appointment-customer-search').onblur = () => setTimeout(() => { $('appointment-customer-list').hidden = true; }, 120);
   $('appointment-customer-clear').onclick = () => { setAppointmentCustomer(null); $('appointment-customer-search').focus(); };
   $('appointment-customer-open').onclick = () => { const ref = $('appointment-customer-ref').value; if (ref) { closeModal('appointment-modal'); openCustomer(ref); } };
+  $('customer-delete').onclick = openCustomerDelete;
+  $('customer-delete-form').onsubmit = deleteCustomerPermanently;
+  $('customer-delete-confirm').oninput = event => {
+    const customer = state.customers.find(c => c.id === $('customer-delete-form').dataset.customerId);
+    $('customer-delete-submit').disabled = !customer || event.target.value.trim().toLowerCase() !== customer.full_name.trim().toLowerCase();
+  };
   $('customer-new-appointment').onclick = () => { const ref = $('customer-id').value; closeModal('customer-modal'); openAppointment(null, { customerId: ref }); };
   $('delete-appointment').onclick = cancelAppointment;
   $('block-form').onsubmit = saveBlock;

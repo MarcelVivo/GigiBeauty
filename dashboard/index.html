@@ -7,7 +7,7 @@
   <title>GiGi Beauty | Admin Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261101-3">
+  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261101-4">
 </head>
 <body>
   <div class="login-screen" id="login-screen">
@@ -291,7 +291,7 @@
     </div>
 
     <div class="form-message" id="customer-message"></div>
-    <div class="modal-actions"><div class="right-actions"><button class="secondary" id="customer-new-appointment" type="button">Termin eintragen</button><button class="secondary" id="customer-rebook-message" type="button">Wiederbuchung senden</button><button class="secondary" id="customer-log-contact" type="button">Kontakt protokollieren</button></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit">Speichern</button></div></div>
+    <div class="modal-actions"><div class="right-actions"><button class="danger" id="customer-delete" type="button">Kundin löschen</button><button class="secondary" id="customer-new-appointment" type="button">Termin eintragen</button><button class="secondary" id="customer-rebook-message" type="button">Wiederbuchung senden</button><button class="secondary" id="customer-log-contact" type="button">Kontakt protokollieren</button></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit">Speichern</button></div></div>
   </form></div>
 
   <div class="modal-backdrop" id="waitlist-modal" hidden><form class="modal" id="waitlist-form">
@@ -366,6 +366,17 @@
     <div class="modal-actions"><div></div><div class="right-actions"><button class="secondary" type="button" id="resize-confirm-cancel">Abbrechen</button><button class="primary" type="button" id="resize-confirm-ok">OK</button></div></div>
   </div></div>
 
+  <div class="modal-backdrop" id="customer-delete-modal" hidden><form class="modal customer-delete" id="customer-delete-form">
+    <button class="modal-close" type="button" data-close>×</button>
+    <h2>Kundin endgültig löschen?</h2>
+    <p class="customer-delete-lead" id="customer-delete-lead"></p>
+    <ul class="customer-delete-list" id="customer-delete-list"></ul>
+    <p class="customer-delete-keep">Bleibt erhalten: vergangene Termine ohne Namen und Kontaktdaten (als «Gelöschte Kundin», für Umsatz und Statistik) sowie Rechnungen und Zahlungen (gesetzliche Aufbewahrungspflicht).</p>
+    <div class="field"><label for="customer-delete-confirm">Zum Bestätigen den Namen eintippen</label><input id="customer-delete-confirm" autocomplete="off"></div>
+    <div class="form-message" id="customer-delete-message"></div>
+    <div class="modal-actions"><div></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="danger" type="submit" id="customer-delete-submit" disabled>Endgültig löschen</button></div></div>
+  </form></div>
+
   <div class="gap-menu" id="gap-menu" hidden role="menu">
     <strong id="gap-menu-title"></strong>
     <div class="gap-menu-options">
@@ -387,7 +398,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../assets/js/supabase-config.js?v=20260808-1"></script>
-  <script src="../assets/js/dashboard.js?v=20261101-3"></script>
+  <script src="../assets/js/dashboard.js?v=20261101-4"></script>
   <script src="../assets/js/password-toggle.js"></script>
 </body>
 </html>
