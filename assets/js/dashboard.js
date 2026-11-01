@@ -263,6 +263,8 @@
   function bindOverviewInteractions() {
     const panel = document.querySelector('[data-view-panel="overview"]');
     panel.addEventListener('pointermove', event => {
+      // Auf Touch-Geräten kein Hover: Antippen öffnet direkt das Detailfenster.
+      if (event.pointerType === 'touch') { hideChartTip(); return; }
       const target = event.target.closest('[data-tip-value]');
       if (target && panel.contains(target)) showChartTip(target, event.clientX, event.clientY); else hideChartTip();
     });
@@ -381,8 +383,8 @@
     { key: 'open', label: 'Vergangen, Status offen', color: '#b8862f' },
     { key: 'upcoming', label: 'Gebucht', color: '#3f7fc0' }
   ];
-  function revenueStackChart(series, attrsFor = () => '', labelEvery = 1) {
-    const width = 760, height = 235, left = 52, right = 12, top = 18, bottom = 32;
+  function revenueStackChart(series, attrsFor = () => '', labelEvery = 1, width = 760) {
+    const height = 235, left = 52, right = 12, top = 18, bottom = 32;
     const plotWidth = width - left - right, plotHeight = height - top - bottom;
     const total = item => REVENUE_SERIES.reduce((sum, part) => sum + item[part.key], 0);
     // Achse in runden Schritten (4 Intervalle à 1/2/2.5/5 × Zehnerpotenz).
@@ -532,10 +534,11 @@
     const dayAppointments = item => state.appointments.filter(a => !a.is_private && a.status !== 'cancelled' && new Date(a.starts_at) >= item.start && new Date(a.starts_at) < item.end);
     const breakdown = item => REVENUE_SERIES.filter(part => item[part.key]).map(part => `${part.label} ${money(item[part.key])}`).join(' · ') || 'Kein Umsatz';
     const isYear = state.period.mode === 'year';
+    const chartWidth = Math.max(300, Math.round($('revenue-chart').clientWidth || 760));
     $('revenue-chart').innerHTML = `<div class="chart-legend-row">${REVENUE_SERIES.map(part => `<span><i style="background:${part.color}"></i>${esc(part.label)} <b>${esc(money(sumOf(part.key)))}</b></span>`).join('')}</div>`
       + revenueStackChart(series, item => interactive(
         isYear ? () => { state.period = { mode: 'month', start: item.start }; renderOverview(); } : () => openInsight({ title: `Termine ${item.title}`, appointments: dayAppointments(item) }),
-        money(item.revenue + item.open + item.upcoming), `${item.title} · ${breakdown(item)}${isYear ? ' · Klick öffnet Monat' : ''}`), isYear ? 1 : 5);
+        money(item.revenue + item.open + item.upcoming), `${item.title} · ${breakdown(item)}${isYear ? ' · Klick öffnet Monat' : ''}`), isYear ? (chartWidth < 480 ? 2 : 1) : 5, chartWidth);
     $('revenue-chart-summary').innerHTML = `<strong>${esc(money(periodRevenue))}</strong><span>${periodCompleted} abgeschlossen · ${esc(range.label)}</span>`;
 
     const selectedYearStart = new Date(range.start.getFullYear(), 0, 1);
@@ -800,7 +803,9 @@
         resizeState = { appointment, card, edge, startMin, endMin, limit, originY: event.clientY, newStart: startMin, newEnd: endMin, pointerId: event.pointerId };
         card.draggable = false;
         card.classList.add('is-resizing');
-        handle.setPointerCapture(event.pointerId);
+        // Capture kann in einzelnen (Android-)WebViews fehlschlagen; Ziehen
+        // funktioniert dann trotzdem, solange der Finger auf dem Griff bleibt.
+        try { handle.setPointerCapture(event.pointerId); } catch {}
       });
       handle.addEventListener('pointermove', event => {
         const r = resizeState;
@@ -1966,8 +1971,12 @@
     }).join('') + `<button type="button" role="option" class="customer-picker-option is-new" data-pick-new><strong>+ Neue Kundin «${esc(query.trim())}»</strong></button>`;
     list.hidden = false;
     $(`${prefix}-customer-search`).setAttribute('aria-expanded', 'true');
-    list.querySelectorAll('[data-pick-customer]').forEach(button => button.onmousedown = event => { event.preventDefault(); selectPickerCustomer(prefix, button.dataset.pickCustomer); });
-    list.querySelector('[data-pick-new]').onmousedown = event => { event.preventDefault(); startNewPickerCustomer(prefix); };
+    // mousedown verhindert nur den Fokusverlust des Suchfelds (sonst schliesst
+    // onblur die Liste vor dem Klick), gewählt wird erst per click -- so
+    // löst Scrollen der Liste auf dem Handy keine Auswahl aus.
+    list.querySelectorAll('.customer-picker-option').forEach(button => button.onmousedown = event => event.preventDefault());
+    list.querySelectorAll('[data-pick-customer]').forEach(button => button.onclick = () => selectPickerCustomer(prefix, button.dataset.pickCustomer));
+    list.querySelector('[data-pick-new]').onclick = () => startNewPickerCustomer(prefix);
   }
 
   function moveCustomerPicker(prefix, step) {
@@ -2022,7 +2031,7 @@
         else if (active) startNewPickerCustomer(prefix);
       } else if (event.key === 'Escape') { event.stopPropagation(); list.hidden = true; }
     };
-    search.onblur = () => setTimeout(() => { list.hidden = true; }, 120);
+    search.onblur = () => setTimeout(() => { list.hidden = true; }, 250);
     $(`${prefix}-customer-clear`).onclick = () => { setPickerCustomer(prefix, null); search.focus(); };
     $(`${prefix}-customer-open`).onclick = () => { const ref = $(`${prefix}-customer-ref`).value; if (ref) { closeModal(modalId); openCustomer(ref); } };
   }
@@ -2568,6 +2577,15 @@
   $('week-today').onclick = () => { state.week = startOfWeek(new Date()); renderCalendar(); };
   bindWeekDragToShift();
   bindOverviewInteractions();
+  // Diagramm bei geänderter Breite (Handy drehen, Fenster) neu zeichnen.
+  let chartResizeTimer = null, lastChartWidth = 0;
+  window.addEventListener('resize', () => {
+    clearTimeout(chartResizeTimer);
+    chartResizeTimer = setTimeout(() => {
+      const width = $('revenue-chart').clientWidth;
+      if (state.user && width && Math.abs(width - lastChartWidth) > 40) { lastChartWidth = width; renderOverview(); }
+    }, 200);
+  });
   $('appointment-kind').onchange = togglePrivateFields;
   $('appointment-service').onchange = () => { fillPriceItemSelect($('appointment-service').value); fillDurationSelect(defaultDurationMinutes($('appointment-service').value, '')); };
   $('appointment-price-item').onchange = () => fillDurationSelect(defaultDurationMinutes($('appointment-service').value, $('appointment-price-item').value));
