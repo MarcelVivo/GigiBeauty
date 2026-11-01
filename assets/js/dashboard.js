@@ -296,7 +296,11 @@
     const ids = list.filter(a => new Date(a.ends_at) <= new Date()).map(a => a.id);
     if (!ids.length || !confirm(`${ids.length} vergangene Termine als «Abgeschlossen» markieren? Die Kundinnen erhalten dabei keine E-Mails.`)) { $('insight-action').disabled = false; return; }
     const { data, error } = await db.rpc('complete_past_appointments', { appointment_ids: ids });
-    if (error) { $('insight-action').disabled = false; $('insight-message').textContent = `Fehler: ${error.message}`; return; }
+    if (error) {
+      $('insight-action').disabled = false;
+      if ($('insight-modal').hidden) toast(`Fehler: ${error.message}`); else $('insight-message').textContent = `Fehler: ${error.message}`;
+      return;
+    }
     closeModal('insight-modal');
     await loadAll();
     toast(`${data ?? ids.length} Termine als abgeschlossen markiert.`);
@@ -483,6 +487,20 @@
     const occupied = booked.filter(a => new Date(a.starts_at) >= startOfDay(now) && new Date(a.starts_at) < capacityEnd).reduce((sum, a) => sum + appointmentSlotUnits(a), 0);
     const openInvoices = state.invoices.filter(invoice => ['draft', 'sent'].includes(invoice.status));
     const openInvoiceTotal = openInvoices.reduce((sum, invoice) => sum + Number(invoice.amount_chf || 0), 0);
+
+    // Hinweis ganz oben, unabhängig vom gewählten Zeitraum: alle vergangenen
+    // Termine, die noch auf "Gebucht" stehen (zählen sonst nirgends).
+    const allOverdue = booked.filter(a => !a.is_private && new Date(a.ends_at) <= now);
+    const overdueValue = allOverdue.reduce((sum, a) => sum + Number(a.amount_chf ?? a.services?.price_chf ?? 0), 0);
+    $('overdue-banner').hidden = !allOverdue.length;
+    $('overdue-banner').innerHTML = allOverdue.length
+      ? `<div><strong>${allOverdue.length} vergangene Termine stehen noch auf «Gebucht»</strong><span>${esc(money(overdueValue))} fehlen deshalb im Umsatz. Kundinnen, die nicht erschienen sind, zuerst in der Liste auf «Nicht erschienen» setzen.</span></div><div class="overdue-actions"><button class="secondary" type="button" id="overdue-list">Liste ansehen</button><button class="primary" type="button" id="overdue-complete">Alle ${allOverdue.length} abschliessen</button></div>`
+      : '';
+    const overdueInsight = () => openInsight({ title: 'Vergangene Termine, Status offen', subtitle: `${allOverdue.length} Termine liegen in der Vergangenheit und stehen noch auf «Gebucht». Erst als «Abgeschlossen» zählen sie als Umsatz. Einzelne No-Shows zuerst per Klick auf den Termin auf «Nicht erschienen» setzen.`, appointments: allOverdue, action: { label: `Alle ${allOverdue.length} als abgeschlossen markieren`, note: 'Ohne Mails an die Kundinnen und ohne Lagerabzug.', run: () => completePastAppointments(allOverdue) } });
+    if (allOverdue.length) {
+      $('overdue-list').onclick = overdueInsight;
+      $('overdue-complete').onclick = async () => { $('overdue-complete').disabled = true; await completePastAppointments(allOverdue); if ($('overdue-complete')) $('overdue-complete').disabled = false; };
+    }
 
     $('analytics-period-label').textContent = `Auswertung ${range.label} · Vergleich mit ${range.previousLabel}`;
     $('period-label').textContent = range.label;

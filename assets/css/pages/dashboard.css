@@ -32,6 +32,12 @@ button { cursor: pointer; }
 .danger { color: #8b2d2d; background: #fff3f1; border-color: #f1cbc6; }
 .link-button { padding: .3rem; color: var(--dash-wine); background: transparent; }
 .view-panel[hidden] { display: none; }
+.overdue-banner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .8rem; padding: .95rem 1.1rem; border: 1px solid #e6c77c; border-radius: 12px; background: #fdf6e3; }
+.overdue-banner[hidden] { display: none; }
+.overdue-banner strong { display: block; color: var(--dash-ink); font-size: .95rem; }
+.overdue-banner span { display: block; margin-top: .2rem; color: var(--dash-muted); font-size: .8rem; line-height: 1.4; }
+.overdue-actions { display: flex; flex: none; gap: .5rem; }
+@media (max-width: 720px) { .overdue-banner { flex-direction: column; align-items: stretch; } .overdue-actions { flex-wrap: wrap; } }
 .analytics-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; padding: .8rem 1rem; border: 1px solid var(--dash-line); border-radius: 12px; background: rgba(255,253,249,.72); }
 .analytics-toolbar > div { display: flex; align-items: baseline; gap: .7rem; }
 .analytics-toolbar span { color: var(--dash-muted); font-size: .78rem; }
