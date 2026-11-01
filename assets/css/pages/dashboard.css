@@ -641,6 +641,44 @@ tr.is-unread { background: #fdf6e3; font-weight: 650; }
 .admin-calendar.is-day-view .admin-day-head { display: none; }
 .admin-calendar.is-day-view .admin-time-gutter { padding-top: 0; }
 
+/* Kalender-Ansichten Tag | Woche | Monat */
+.cal-view-switch { display: inline-flex; margin-bottom: .7rem; padding: 3px; border: 1px solid var(--dash-line); border-radius: 10px; background: white; }
+.cal-view-switch button { min-height: 36px; padding: .3rem 1rem; border: 0; border-radius: 7px; background: transparent; color: var(--dash-muted); font-weight: 700; font-size: .82rem; }
+.cal-view-switch button[aria-pressed="true"] { background: var(--dash-wine); color: #fff; }
+.admin-calendar.is-list-view { display: block; overflow-x: hidden; max-height: none; touch-action: pan-y; }
+.cal-agenda { display: grid; gap: .6rem; }
+.agenda-day { padding: .35rem; border: 1px solid var(--dash-line); border-radius: 12px; background: var(--dash-card); }
+.agenda-day.is-today { border-color: var(--dash-wine); }
+.agenda-head { display: flex; justify-content: space-between; align-items: center; gap: .6rem; width: 100%; min-height: 44px; padding: .4rem .55rem; border: 0; background: transparent; color: var(--dash-ink); text-align: left; }
+.agenda-head strong { font-size: .92rem; }
+.agenda-head span { color: var(--dash-muted); font-size: .78rem; white-space: nowrap; }
+.agenda-day.is-today .agenda-head strong { color: var(--dash-wine); }
+.agenda-item { display: grid; grid-template-columns: 6.6rem minmax(0, 1fr); align-items: center; gap: .6rem; width: 100%; min-height: 48px; margin: .25rem 0 0; padding: .5rem .6rem; border: 0; border-left: 3px solid var(--dash-wine); border-radius: 8px; background: #faf7f2; color: var(--dash-ink); text-align: left; }
+.agenda-item.is-admin-entered { border-left-color: #c9973f; background: #fbf3e2; }
+.agenda-item.is-private { border-left-color: #71849b; background: #f3f6f9; }
+.agenda-item.is-block { border-left-color: #9a918c; background: #ece8e3; }
+.agenda-item time { font-size: .8rem; font-weight: 700; white-space: nowrap; }
+.agenda-item span { display: grid; min-width: 0; }
+.agenda-item strong, .agenda-item small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.agenda-item small { color: var(--dash-muted); font-size: .75rem; }
+.cal-month-head, .cal-month-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .3rem; }
+.cal-month-head { margin-bottom: .3rem; }
+.cal-month-head span { color: var(--dash-muted); font-size: .7rem; font-weight: 700; text-align: center; text-transform: uppercase; }
+.month-cell { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: .15rem; min-width: 0; min-height: 96px; padding: .4rem; overflow: hidden; border: 1px solid var(--dash-line); border-radius: 9px; background: var(--dash-card); color: var(--dash-ink); text-align: left; }
+.month-cell.is-other { opacity: .45; }
+.month-cell.is-today { border-color: var(--dash-wine); }
+.month-cell.is-selected { box-shadow: inset 0 0 0 2px var(--dash-wine); }
+.month-num { font-weight: 700; font-size: .85rem; }
+.month-count { position: absolute; top: .35rem; right: .35rem; min-width: 1.3rem; padding: 0 .3rem; border-radius: 999px; background: var(--dash-wine); color: #fff; font-size: .68rem; font-weight: 700; line-height: 1.3rem; text-align: center; }
+.month-entry { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .7rem; color: var(--dash-muted); }
+.month-more { font-size: .68rem; color: var(--dash-wine); font-weight: 700; }
+@media (max-width: 720px) {
+  .cal-view-switch { display: flex; }
+  .cal-view-switch button { flex: 1; min-height: 40px; }
+  .month-cell { min-height: 54px; align-items: center; justify-content: center; padding: .3rem .15rem; }
+  .month-count { position: static; }
+}
+
 /* Termin verschieben per Tippen (Termin-Fenster) */
 .move-panel { margin-top: 1rem; padding: .9rem; border: 1px solid var(--dash-line); border-radius: 12px; background: #faf7f2; }
 .move-panel[hidden] { display: none; }

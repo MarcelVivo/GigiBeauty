@@ -715,6 +715,13 @@
   // Scrollen. Oben eine Leiste mit den Tagen der Woche (Anzahl Termine),
   // Pfeile und Wischen wechseln tageweise. Computer/Tablet: Wochenansicht.
   const isCompactCalendar = () => window.matchMedia('(max-width: 720px)').matches;
+  // Ansicht: gewählt (state.calView) oder Standard -- Handy Tag, sonst Woche.
+  const calendarView = () => state.calView || (isCompactCalendar() ? 'day' : 'week');
+  function shiftCalendar(direction) {
+    const view = calendarView();
+    if (view === 'month') { const d = addMonths(monthStart(state.calDay), direction); setCalendarDay(d); }
+    else setCalendarDay(addDays(state.calDay, view === 'week' ? 7 * direction : direction));
+  }
   function setCalendarDay(date) {
     state.calDay = startOfDay(date);
     state.week = startOfWeek(state.calDay);
@@ -723,7 +730,7 @@
 
   function renderDayStrip() {
     const strip = $('calendar-day-strip');
-    strip.hidden = !isCompactCalendar();
+    strip.hidden = calendarView() !== 'day';
     if (strip.hidden) return;
     const today = dayKey(new Date()), selected = dayKey(state.calDay);
     strip.innerHTML = Array.from({ length: 7 }, (_, index) => {
@@ -737,21 +744,83 @@
     });
   }
 
+  // Ein Termin/eine Sperre als Listenzeile (Wochenliste auf dem Handy).
+  function agendaItem(item) {
+    const time = `${fmt(item.starts_at, { hour: '2-digit', minute: '2-digit' })}–${fmt(item.ends_at, { hour: '2-digit', minute: '2-digit' })}`;
+    if (item.type === 'block') return `<button type="button" class="agenda-item is-block" data-delete-block="${item.id}"><time>${time}</time><span><strong>Gesperrt</strong><small>${esc(item.reason || '')}</small></span></button>`;
+    const origin = appointmentOrigin(item);
+    return `<button type="button" class="agenda-item ${appointmentOriginClass(origin)}" data-edit-appointment="${item.id}"><time>${time}</time><span><strong>${esc(item.customer_name)}</strong><small>${esc(item.services?.name || 'Privat')}</small></span></button>`;
+  }
+
+  function dayItems(key) {
+    return [
+      ...state.appointments.filter(a => a.status !== 'cancelled' && dayKey(a.starts_at) === key).map(a => ({ ...a, type: 'appointment' })),
+      ...state.blocks.filter(b => dayKey(b.starts_at) === key).map(b => ({ ...b, type: 'block' }))
+    ].sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
+  }
+
+  function bindCalendarListActions(root) {
+    root.querySelectorAll('[data-edit-appointment]').forEach(button => button.onclick = () => { if (!suppressCalendarClick) openAppointment(button.dataset.editAppointment); });
+    root.querySelectorAll('[data-delete-block]').forEach(button => button.onclick = () => removeBlock(button.dataset.deleteBlock));
+    root.querySelectorAll('[data-goto-day]').forEach(button => button.onclick = () => {
+      const [y, m, d] = button.dataset.gotoDay.split('-').map(Number);
+      state.calView = 'day';
+      setCalendarDay(new Date(y, m - 1, d));
+    });
+  }
+
+  // Woche auf dem Handy: 7 Tage untereinander statt 7 Spalten.
+  function renderWeekAgenda() {
+    const today = dayKey(new Date());
+    const hours = state.settings?.opening_hours || {};
+    $('admin-calendar').innerHTML = `<div class="cal-agenda">${Array.from({ length: 7 }, (_, index) => {
+      const date = addDays(state.week, index), key = dayKey(date), items = dayItems(key);
+      const appointments = items.filter(i => i.type === 'appointment' && !i.is_private).length;
+      const closed = !hours[String(date.getDay())];
+      return `<section class="agenda-day${key === today ? ' is-today' : ''}"><button type="button" class="agenda-head" data-goto-day="${key}"><strong>${esc(fmt(date, { weekday: 'long', day: 'numeric', month: 'long' }))}</strong><span>${appointments ? `${appointments} Termin${appointments === 1 ? '' : 'e'}` : closed ? 'Geschlossen' : 'Frei'} ›</span></button>${items.length ? items.map(agendaItem).join('') : ''}</section>`;
+    }).join('')}</div>`;
+    bindCalendarListActions($('admin-calendar'));
+  }
+
+  // Monat: Raster Mo–So, pro Tag Anzahl Termine (am Computer zusätzlich
+  // die ersten Termine). Tipp auf einen Tag öffnet die Tagesansicht.
+  function renderMonthView() {
+    const first = monthStart(state.calDay), gridStart = startOfWeek(first);
+    const last = addDays(addMonths(first, 1), -1), gridEnd = addDays(startOfWeek(last), 6);
+    const today = dayKey(new Date()), selected = dayKey(state.calDay), wide = !isCompactCalendar();
+    const cells = [];
+    for (let date = gridStart; date <= gridEnd; date = addDays(date, 1)) {
+      const key = dayKey(date), items = dayItems(key).filter(i => i.type === 'appointment');
+      const preview = wide ? items.slice(0, 3).map(i => `<span class="month-entry">${esc(fmt(i.starts_at, { hour: '2-digit', minute: '2-digit' }))} ${esc(i.customer_name)}</span>`).join('') + (items.length > 3 ? `<span class="month-more">+${items.length - 3} weitere</span>` : '') : '';
+      cells.push(`<button type="button" class="month-cell${date.getMonth() !== first.getMonth() ? ' is-other' : ''}${key === today ? ' is-today' : ''}${key === selected ? ' is-selected' : ''}" data-goto-day="${key}" aria-label="${esc(fmt(date, { weekday: 'long', day: 'numeric', month: 'long' }))}, ${items.length} Termine"><span class="month-num">${date.getDate()}</span>${items.length ? `<span class="month-count">${items.length}</span>` : ''}${preview}</button>`);
+    }
+    const weekdays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(d => `<span>${d}</span>`).join('');
+    $('admin-calendar').innerHTML = `<div class="cal-month"><div class="cal-month-head">${weekdays}</div><div class="cal-month-grid">${cells.join('')}</div></div>`;
+    bindCalendarListActions($('admin-calendar'));
+  }
+
   function renderCalendar() {
-    const compact = isCompactCalendar();
+    const view = calendarView();
     if (!state.calDay || startOfWeek(state.calDay).getTime() !== state.week.getTime()) {
       const today = startOfDay(new Date());
       state.calDay = startOfWeek(today).getTime() === state.week.getTime() ? today : new Date(state.week);
     }
-    const days = compact ? [state.calDay] : Array.from({ length: 7 }, (_, index) => addDays(state.week, index));
+    const compact = view === 'day';
     const end = addDays(state.week, 6);
-    $('week-title').textContent = compact
-      ? fmt(state.calDay, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+    $('week-title').textContent = view === 'month' ? fmt(state.calDay, { month: 'long', year: 'numeric' })
+      : compact ? fmt(state.calDay, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
       : `${fmt(state.week, { day: '2-digit', month: 'short' })} bis ${fmt(end, { day: '2-digit', month: 'short', year: 'numeric' })}`;
-    $('week-prev').setAttribute('aria-label', compact ? 'Vorheriger Tag' : 'Vorherige Woche');
-    $('week-next').setAttribute('aria-label', compact ? 'Nächster Tag' : 'Nächste Woche');
-    $('admin-calendar').classList.toggle('is-day-view', compact);
+    const unit = { day: ['Vorheriger Tag', 'Nächster Tag'], week: ['Vorherige Woche', 'Nächste Woche'], month: ['Vorheriger Monat', 'Nächster Monat'] }[view];
+    $('week-prev').setAttribute('aria-label', unit[0]);
+    $('week-next').setAttribute('aria-label', unit[1]);
+    document.querySelectorAll('[data-cal-view]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.calView === view)));
+    const calendar = $('admin-calendar');
+    calendar.classList.toggle('is-day-view', compact);
+    calendar.classList.toggle('is-list-view', view === 'month' || (view === 'week' && isCompactCalendar()));
     renderDayStrip();
+    if (view === 'month') { renderMonthView(); return; }
+    if (view === 'week' && isCompactCalendar()) { renderWeekAgenda(); return; }
+    const days = compact ? [state.calDay] : Array.from({ length: 7 }, (_, index) => addDays(state.week, index));
 
     const { min, max } = calendarBounds(days);
     const gridHeight = (max - min) * CAL_PX_PER_MIN;
@@ -2738,19 +2807,21 @@
   $('save-opening-hours').onclick = saveOpeningHours;
   $('save-contact').onclick = saveContact;
   $('add-testimonial').onclick = addTestimonial;
-  $('week-prev').onclick = () => { if (isCompactCalendar()) setCalendarDay(addDays(state.calDay, -1)); else { state.week = addDays(state.week, -7); renderCalendar(); } };
-  $('week-next').onclick = () => { if (isCompactCalendar()) setCalendarDay(addDays(state.calDay, 1)); else { state.week = addDays(state.week, 7); renderCalendar(); } };
+  $('week-prev').onclick = () => shiftCalendar(-1);
+  $('week-next').onclick = () => shiftCalendar(1);
+  document.querySelectorAll('[data-cal-view]').forEach(button => button.onclick = () => { state.calView = button.dataset.calView; renderCalendar(); });
   $('week-today').onclick = () => setCalendarDay(new Date());
-  // Wischen in der Tagesansicht: links = nächster Tag, rechts = vorheriger.
+  // Wischen (Handy): links = vor, rechts = zurück -- je nach Ansicht um
+  // einen Tag, eine Woche oder einen Monat.
   (() => {
     let start = null;
     $('admin-calendar').addEventListener('touchstart', event => {
       start = event.touches.length === 1 ? { x: event.touches[0].clientX, y: event.touches[0].clientY, t: Date.now() } : null;
     }, { passive: true });
     $('admin-calendar').addEventListener('touchend', event => {
-      if (!start || !isCompactCalendar() || resizeState) { start = null; return; }
+      if (!start || !isTouchDevice() || resizeState) { start = null; return; }
       const touch = event.changedTouches[0], dx = touch.clientX - start.x, dy = touch.clientY - start.y;
-      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.6 && Date.now() - start.t < 700) setCalendarDay(addDays(state.calDay, dx < 0 ? 1 : -1));
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.6 && Date.now() - start.t < 700) shiftCalendar(dx < 0 ? 1 : -1);
       start = null;
     }, { passive: true });
     let wasCompact = isCompactCalendar();
