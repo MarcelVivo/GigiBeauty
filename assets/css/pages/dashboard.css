@@ -569,7 +569,8 @@ tr.is-unread { background: #fdf6e3; font-weight: 650; }
 /* Smartphone & Tablet (Android/iOS): Touch-Griffe, umbrechende Leisten,
    erreichbare Dialog-Knöpfe. */
 @media (hover: none) {
-  .cal-resize { height: 14px; }
+  .cal-resize { height: 14px; touch-action: pan-x pan-y; }
+  .calendar-event.is-arming { box-shadow: 0 0 0 2px rgba(110,56,76,.35); transition: box-shadow .35s ease; }
   .cal-resize::after { opacity: .4; }
   .calendar-event { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
 }

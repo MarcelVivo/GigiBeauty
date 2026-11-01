@@ -745,7 +745,7 @@
         const origin = appointmentOrigin(event);
         const detail = compact ? '' : `<small>${esc(event.services?.name || 'Privat')}</small><span class="calendar-event-origin">${esc(appointmentOriginLabel(origin))}</span>`;
         const handles = event.status === 'booked' ? '<span class="cal-resize is-top" data-resize="top" title="Ziehen zum Verlängern/Verkürzen"></span><span class="cal-resize is-bottom" data-resize="bottom" title="Ziehen zum Verlängern/Verkürzen"></span>' : '';
-        return `<button class="calendar-event ${appointmentOriginClass(origin)}" type="button" draggable="true" style="${style}" data-edit-appointment="${event.id}">${time}<strong>${esc(event.customer_name)}</strong>${detail}${handles}</button>`;
+        return `<button class="calendar-event ${appointmentOriginClass(origin)}" type="button" draggable="${isTouchDevice() ? 'false' : 'true'}" style="${style}" data-edit-appointment="${event.id}">${time}<strong>${esc(event.customer_name)}</strong>${detail}${handles}</button>`;
       }).join('');
       return `<section class="admin-day" data-date="${key}"><div class="admin-day-head"><strong>${fmt(date, { weekday: 'short' })}</strong><span>${fmt(date, { day: '2-digit', month: '2-digit' })}</span></div><div class="admin-day-body" style="height:${gridHeight}px">${body}</div></section>`;
     }).join('');
@@ -783,15 +783,35 @@
   // Darstellung wieder her.
   let resizeState = null;
   let suppressCalendarClick = false;
+
+  // Touch-Bedienung (Handy/Tablet): Ein Tipp, der eigentlich Scrollen war
+  // oder eine laufende Scrollbewegung stoppt, darf nichts öffnen. Erkennt
+  // Fingerbewegung > 10 px, vom Browser abgebrochene Gesten (Scrollen) und
+  // Klicks bis 400 ms nach dem letzten Scroll-Ereignis.
+  const isTouchDevice = () => window.matchMedia('(hover: none), (pointer: coarse)').matches;
+  let lastScrollAt = 0, lastPointer = null;
+  window.addEventListener('scroll', () => { lastScrollAt = Date.now(); }, { capture: true, passive: true });
+  document.addEventListener('pointerdown', event => {
+    lastPointer = { type: event.pointerType, x: event.clientX, y: event.clientY, moved: false };
+  }, { capture: true, passive: true });
+  document.addEventListener('pointermove', event => {
+    if (lastPointer && event.pointerType !== 'mouse' && Math.hypot(event.clientX - lastPointer.x, event.clientY - lastPointer.y) > 10) lastPointer.moved = true;
+  }, { capture: true, passive: true });
+  document.addEventListener('pointercancel', () => { if (lastPointer) lastPointer.moved = true; }, { capture: true, passive: true });
+  document.addEventListener('click', event => {
+    if (!lastPointer || lastPointer.type === 'mouse') return;
+    if (event.target.closest('input, select, textarea, label')) return;
+    if (lastPointer.moved || Date.now() - lastScrollAt < 400) { event.preventDefault(); event.stopPropagation(); }
+  }, true);
   function attachCalendarResizeHandlers(gridMin, gridMax) {
     document.querySelectorAll('.calendar-event [data-resize]').forEach(handle => {
-      handle.addEventListener('pointerdown', event => {
-        if (event.button !== 0) return;
+      // Maus: sofort ziehen. Finger: erst nach 350 ms ruhigem Halten (sonst
+      // ist es Scrollen) -- dann kurze Vibration als Rückmeldung.
+      let pendingTouch = null;
+      const startResize = (pointerId, clientY) => {
         const card = handle.closest('.calendar-event');
         const appointment = state.appointments.find(a => a.id === card.dataset.editAppointment);
-        if (!appointment) return;
-        event.preventDefault();
-        event.stopPropagation();
+        if (!appointment) return false;
         const s = new Date(appointment.starts_at), e = new Date(appointment.ends_at);
         const startMin = s.getHours() * 60 + s.getMinutes();
         const endMin = startMin + Math.round((e - s) / 60000);
@@ -800,13 +820,40 @@
         const limit = edge === 'top'
           ? Math.max(gridMin, endMin - 240, ...busy.filter(r => r.end <= startMin).map(r => r.end))
           : Math.min(gridMax, startMin + 240, ...busy.filter(r => r.start >= endMin).map(r => r.start));
-        resizeState = { appointment, card, edge, startMin, endMin, limit, originY: event.clientY, newStart: startMin, newEnd: endMin, pointerId: event.pointerId };
+        resizeState = { appointment, card, edge, startMin, endMin, limit, originY: clientY, newStart: startMin, newEnd: endMin, pointerId };
         card.draggable = false;
         card.classList.add('is-resizing');
         // Capture kann in einzelnen (Android-)WebViews fehlschlagen; Ziehen
         // funktioniert dann trotzdem, solange der Finger auf dem Griff bleibt.
-        try { handle.setPointerCapture(event.pointerId); } catch {}
+        try { handle.setPointerCapture(pointerId); } catch {}
+        return true;
+      };
+      handle.addEventListener('pointerdown', event => {
+        if (event.button !== 0) return;
+        event.stopPropagation();
+        if (event.pointerType === 'mouse') { event.preventDefault(); startResize(event.pointerId, event.clientY); return; }
+        const card = handle.closest('.calendar-event');
+        card.classList.add('is-arming');
+        pendingTouch = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, timer: setTimeout(() => {
+          card.classList.remove('is-arming');
+          if (!pendingTouch) return;
+          if (startResize(pendingTouch.pointerId, pendingTouch.y)) navigator.vibrate?.(15);
+          pendingTouch = null;
+        }, 350) };
       });
+      const cancelPending = () => {
+        if (!pendingTouch) return;
+        clearTimeout(pendingTouch.timer);
+        handle.closest('.calendar-event')?.classList.remove('is-arming');
+        pendingTouch = null;
+      };
+      handle.addEventListener('pointermove', event => {
+        if (pendingTouch && Math.hypot(event.clientX - pendingTouch.x, event.clientY - pendingTouch.y) > 8) cancelPending();
+      });
+      handle.addEventListener('pointerup', cancelPending);
+      handle.addEventListener('pointercancel', cancelPending);
+      // Während des Ziehens mit dem Finger die Seite nicht mitscrollen.
+      handle.addEventListener('touchmove', event => { if (resizeState) event.preventDefault(); }, { passive: false });
       handle.addEventListener('pointermove', event => {
         const r = resizeState;
         if (!r || r.pointerId !== event.pointerId) return;
@@ -824,7 +871,7 @@
         if (!r || r.pointerId !== event.pointerId) return;
         resizeState = null;
         r.card.classList.remove('is-resizing');
-        r.card.draggable = true;
+        r.card.draggable = !isTouchDevice();
         // Der Klick nach dem Loslassen soll nicht den Bearbeiten-Dialog öffnen.
         suppressCalendarClick = true;
         setTimeout(() => { suppressCalendarClick = false; }, 60);
