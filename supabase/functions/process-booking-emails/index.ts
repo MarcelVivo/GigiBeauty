@@ -11,7 +11,7 @@ const db = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: f
 
 type OutboxItem = {
   id: string;
-  kind: 'confirmation' | 'reminder' | 'cancellation' | 'rescheduled' | 'invoice' | 'campaign' | 'aftercare' | 'review' | 'rebooking' | 'winback' | 'birthday' | 'waitlist' | 'registration_invite' | 'newsletter_welcome' | 'ai_preview_followup';
+  kind: 'confirmation' | 'reminder' | 'cancellation' | 'rescheduled' | 'invoice' | 'campaign' | 'aftercare' | 'review' | 'rebooking' | 'winback' | 'birthday' | 'waitlist' | 'registration_invite' | 'newsletter_welcome' | 'ai_preview_followup' | 'owner_notice';
   recipient_email: string;
   recipient_name: string | null;
   subject: string;
@@ -43,7 +43,29 @@ function trackedLink(item: OutboxItem, target: string) {
   }
 }
 
+// Interne Info an die Inhaberin (Buchung/Storno/Verschiebung), siehe
+// 202611010001_owner_booking_notifications.sql.
+function ownerNoticeHtml(item: OutboxItem) {
+  const p = item.payload;
+  const headings: Record<string, string> = { booked: 'Neue Buchung', cancelled: 'Termin storniert', rescheduled: 'Termin verschoben' };
+  const row = (label: string, value: unknown) => value ? `<tr><td style="padding:8px 12px 8px 0;color:#8b7d73;font:13px Arial,sans-serif;vertical-align:top">${label}</td><td style="padding:8px 0;font:15px Arial,sans-serif">${esc(value)}</td></tr>` : '';
+  const phone = p.customer_phone ? `<a href="tel:${esc(String(p.customer_phone).replace(/\s+/g, ''))}" style="color:#6e384c">${esc(p.customer_phone)}</a>` : '';
+  const email = p.customer_email ? `<a href="mailto:${esc(p.customer_email)}" style="color:#6e384c">${esc(p.customer_email)}</a>` : '';
+  const rows = [
+    row('Kundin', p.customer_name),
+    row('Behandlung', p.service || 'Behandlung'),
+    row(p.event === 'rescheduled' ? 'Neu' : 'Termin', p.starts_at ? `${appointmentDate(p.starts_at)} Uhr` : ''),
+    row('Bisher', p.old_starts_at ? `${appointmentDate(p.old_starts_at)} Uhr` : ''),
+    phone ? `<tr><td style="padding:8px 12px 8px 0;color:#8b7d73;font:13px Arial,sans-serif">Telefon</td><td style="padding:8px 0;font:15px Arial,sans-serif">${phone}</td></tr>` : '',
+    email ? `<tr><td style="padding:8px 12px 8px 0;color:#8b7d73;font:13px Arial,sans-serif">E-Mail</td><td style="padding:8px 0;font:15px Arial,sans-serif">${email}</td></tr>` : '',
+    row('Notiz', p.notes),
+    row('Über', p.source === 'dashboard' ? 'Dashboard' : 'Online-Buchung')
+  ].join('');
+  return `<!doctype html><html><body style="margin:0;background:#f4efe8;color:#2a201b;font-family:Georgia,serif"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding:30px 15px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:auto;background:#fffdf9;border:1px solid #e1d4c2"><tr><td style="padding:34px"><p style="margin:0 0 24px;color:#ae813f;letter-spacing:3px;font-size:12px">GiGi BEAUTY · INTERN</p><h1 style="font-weight:normal;font-size:26px">${esc(headings[String(p.event)] || item.subject)}</h1><table role="presentation" cellpadding="0" cellspacing="0">${rows}</table><p style="margin-top:28px"><a href="https://www.gigibeauty.ch/dashboard/" style="display:inline-block;padding:13px 20px;background:#6e384c;color:#fff;text-decoration:none;border-radius:7px">Im Dashboard öffnen</a></p></td></tr></table></td></tr></table></body></html>`;
+}
+
 function emailHtml(item: OutboxItem) {
+  if (item.kind === 'owner_notice') return ownerNoticeHtml(item);
   const name = esc(item.recipient_name || 'liebe Kundin');
   const service = esc(item.payload.service || 'Behandlung');
   const date = item.payload.starts_at ? appointmentDate(item.payload.starts_at) : '';
@@ -139,7 +161,7 @@ Deno.serve(async (request) => {
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from: fromAddress, to: [item.recipient_email], subject: item.subject, html: emailHtml(item), reply_to: 'info@gigibeauty.ch' })
+        body: JSON.stringify({ from: fromAddress, to: [item.recipient_email], subject: item.subject, html: emailHtml(item), reply_to: item.kind === 'owner_notice' && item.payload.customer_email ? String(item.payload.customer_email) : 'info@gigibeauty.ch' })
       });
       if (!response.ok) throw new Error(`Resend ${response.status}: ${await response.text()}`);
       await db.from('email_outbox').update({ processed_at: new Date().toISOString(), processing_at: null, last_error: null }).eq('id', item.id);
