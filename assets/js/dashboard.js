@@ -1705,6 +1705,85 @@
     $('appointment-duration').value = String(minutes > 0 ? minutes : 90);
   }
 
+  // Kundensuche im Termin-Dialog: Name, E-Mail oder Telefon (letzte 9
+  // Ziffern, wie phoneKey). Treffer, deren Name mit der Eingabe beginnt,
+  // stehen oben.
+  function searchCustomers(query) {
+    const text = query.trim().toLowerCase();
+    if (!text) return [];
+    const digits = text.replace(/\D/g, '');
+    const words = text.split(/\s+/);
+    return state.customers
+      .map(customer => {
+        const name = String(customer.full_name || '').toLowerCase();
+        const email = String(customer.email || '').toLowerCase();
+        const nameHit = words.every(word => name.includes(word));
+        const hit = nameHit || email.includes(text) || (digits.length >= 3 && phoneKey(customer.phone).includes(digits.slice(-9)));
+        return hit ? { customer, rank: name.startsWith(text) ? 0 : nameHit ? 1 : 2 } : null;
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.rank - b.rank || String(a.customer.full_name).localeCompare(String(b.customer.full_name), 'de'))
+      .slice(0, 8)
+      .map(entry => entry.customer);
+  }
+
+  let customerPickerIndex = -1;
+  function renderCustomerPicker() {
+    const query = $('appointment-customer-search').value;
+    const list = $('appointment-customer-list');
+    if (!query.trim()) { list.hidden = true; $('appointment-customer-search').setAttribute('aria-expanded', 'false'); return; }
+    const matches = searchCustomers(query);
+    customerPickerIndex = matches.length ? 0 : -1;
+    list.innerHTML = matches.map((customer, index) => {
+      const stats = customerStats(customer);
+      const meta = [customer.phone, customer.email].filter(Boolean).map(esc).join(' · ') || 'Keine Kontaktdaten';
+      const visits = stats.totalBookings ? `${stats.totalBookings} Besuch${stats.totalBookings === 1 ? '' : 'e'}` : 'Noch kein Besuch';
+      return `<button type="button" role="option" class="customer-picker-option${index === 0 ? ' is-active' : ''}" data-pick-customer="${customer.id}"><strong>${esc(customer.full_name)}</strong><span>${meta}</span><small>${visits}</small></button>`;
+    }).join('') + `<button type="button" role="option" class="customer-picker-option is-new" data-pick-new><strong>+ Neue Kundin «${esc(query.trim())}»</strong></button>`;
+    list.hidden = false;
+    $('appointment-customer-search').setAttribute('aria-expanded', 'true');
+    list.querySelectorAll('[data-pick-customer]').forEach(button => button.onmousedown = event => { event.preventDefault(); selectAppointmentCustomer(button.dataset.pickCustomer); });
+    list.querySelector('[data-pick-new]').onmousedown = event => { event.preventDefault(); startNewAppointmentCustomer(); };
+  }
+
+  function moveCustomerPicker(step) {
+    const options = [...$('appointment-customer-list').querySelectorAll('.customer-picker-option')];
+    if (!options.length) return;
+    customerPickerIndex = (customerPickerIndex + step + options.length) % options.length;
+    options.forEach((option, index) => option.classList.toggle('is-active', index === customerPickerIndex));
+    options[customerPickerIndex].scrollIntoView({ block: 'nearest' });
+  }
+
+  function setAppointmentCustomer(customer) {
+    $('appointment-customer-ref').value = customer?.id || '';
+    $('appointment-customer-chip').hidden = !customer;
+    $('appointment-customer-picker').hidden = !!customer;
+    $('appointment-customer-hint').hidden = !!customer;
+    $('appointment-customer-list').hidden = true;
+    $('appointment-customer-search').value = '';
+    if (customer) $('appointment-customer-chip-text').innerHTML = `<strong>${esc(customer.full_name)}</strong>${[customer.phone, customer.email].filter(Boolean).map(value => ` · ${esc(value)}`).join('')}`;
+  }
+
+  function selectAppointmentCustomer(customerId) {
+    const customer = state.customers.find(c => c.id === customerId);
+    if (!customer) return;
+    setAppointmentCustomer(customer);
+    $('appointment-name').value = customer.full_name || '';
+    $('appointment-email').value = customer.email || '';
+    $('appointment-phone').value = customer.phone || '';
+  }
+
+  // Keine bestehende Kundin: Name übernehmen, E-Mail/Telefon erfassen --
+  // beim Speichern legt sync_appointment_customer() das Profil an.
+  function startNewAppointmentCustomer() {
+    const name = $('appointment-customer-search').value.trim();
+    setAppointmentCustomer(null);
+    $('appointment-name').value = name;
+    $('appointment-email').value = '';
+    $('appointment-phone').value = '';
+    $('appointment-phone').focus();
+  }
+
   function openAppointment(id = null, preset = null) {
     const item = id ? state.appointments.find(a => a.id === id) : null;
     $('appointment-modal-title').textContent = item ? 'Termin bearbeiten' : 'Termin eintragen';
@@ -1722,6 +1801,9 @@
     $('appointment-email').value = item?.customer_email || '';
     $('appointment-phone').value = item?.customer_phone || '';
     $('appointment-notes').value = item?.notes || '';
+    const linkedCustomer = state.customers.find(c => c.id === (item?.customer_ref_id || preset?.customerId));
+    setAppointmentCustomer(linkedCustomer || null);
+    if (!item && linkedCustomer) selectAppointmentCustomer(linkedCustomer.id);
     $('delete-appointment').hidden = !item || item.status === 'cancelled';
     $('appointment-message').textContent = '';
     togglePrivateFields();
@@ -1742,6 +1824,7 @@
       if (field) field.hidden = privateEntry;
       $(id).disabled = privateEntry;
     });
+    $('appointment-customer-field').hidden = privateEntry;
     $('appointment-name-label').textContent = privateEntry ? 'Bezeichnung' : 'Name';
     $('appointment-name').placeholder = privateEntry ? 'z. B. Arzttermin, Ferien' : '';
     if (privateEntry && !$('appointment-name').value) $('appointment-name').value = 'Privat, Liliane';
@@ -1756,7 +1839,9 @@
     const privateEntry = $('appointment-kind').value === 'private';
     const priceItemId = privateEntry ? '' : $('appointment-price-item').value;
     const durationMinutes = Number($('appointment-duration').value) || defaultDurationMinutes($('appointment-service').value, priceItemId);
+    const customerRef = privateEntry ? null : ($('appointment-customer-ref').value || null);
     const payload = {
+      customer_ref_id: customerRef,
       service_id: privateEntry ? null : $('appointment-service').value,
       price_item_id: privateEntry ? null : (priceItemId || null),
       customer_name: $('appointment-name').value.trim(),
@@ -1769,6 +1854,12 @@
       notes: $('appointment-notes').value.trim() || null,
       created_by: state.user.id
     };
+    // Andere Kundin gewählt: Konto-Verknüpfung (customer_id -> profiles,
+    // steuert die Sicht im Kundenkonto) mitziehen. Unverändert = nicht
+    // anfassen, damit Online-Buchungen ihr Konto behalten.
+    if (customerRef && customerRef !== existing?.customer_ref_id) {
+      payload.customer_id = state.customers.find(c => c.id === customerRef)?.profile_id || null;
+    }
     const result = id ? await db.from('appointments').update(payload).eq('id', id) : await db.from('appointments').insert(payload);
     if (result.error) { $('appointment-message').textContent = result.error.message; return; }
     closeModal('appointment-modal'); await loadAll();
@@ -2191,6 +2282,21 @@
   });
   $('admin-calendar').addEventListener('scroll', closeGapMenu);
   $('appointment-form').onsubmit = saveAppointment;
+  $('appointment-customer-search').oninput = renderCustomerPicker;
+  $('appointment-customer-search').onkeydown = event => {
+    if ($('appointment-customer-list').hidden) return;
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); moveCustomerPicker(event.key === 'ArrowDown' ? 1 : -1); }
+    else if (event.key === 'Enter') {
+      event.preventDefault();
+      const active = $('appointment-customer-list').querySelectorAll('.customer-picker-option')[customerPickerIndex];
+      if (active?.dataset.pickCustomer) selectAppointmentCustomer(active.dataset.pickCustomer);
+      else if (active) startNewAppointmentCustomer();
+    } else if (event.key === 'Escape') { event.stopPropagation(); $('appointment-customer-list').hidden = true; }
+  };
+  $('appointment-customer-search').onblur = () => setTimeout(() => { $('appointment-customer-list').hidden = true; }, 120);
+  $('appointment-customer-clear').onclick = () => { setAppointmentCustomer(null); $('appointment-customer-search').focus(); };
+  $('appointment-customer-open').onclick = () => { const ref = $('appointment-customer-ref').value; if (ref) { closeModal('appointment-modal'); openCustomer(ref); } };
+  $('customer-new-appointment').onclick = () => { const ref = $('customer-id').value; closeModal('customer-modal'); openAppointment(null, { customerId: ref }); };
   $('delete-appointment').onclick = cancelAppointment;
   $('block-form').onsubmit = saveBlock;
   $('campaign-form').onsubmit = saveCampaign;

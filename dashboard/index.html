@@ -7,7 +7,7 @@
   <title>GiGi Beauty | Admin Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261101-1">
+  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261101-2">
 </head>
 <body>
   <div class="login-screen" id="login-screen">
@@ -205,6 +205,15 @@
       <div class="field"><label for="appointment-start">Datum & Zeit</label><input id="appointment-start" type="datetime-local" step="900" required></div>
       <div class="field"><label for="appointment-duration">Dauer</label><select id="appointment-duration"></select></div>
       <div class="field"><label for="appointment-status">Status</label><select id="appointment-status"><option value="booked">Gebucht</option><option value="completed">Abgeschlossen</option><option value="cancelled">Storniert</option><option value="no_show">Nicht erschienen</option></select></div>
+      <div class="field full" id="appointment-customer-field"><label for="appointment-customer-search">Kundin</label>
+        <div class="customer-picker" id="appointment-customer-picker">
+          <input id="appointment-customer-search" type="search" autocomplete="off" placeholder="Name, Telefon oder E-Mail suchen" role="combobox" aria-expanded="false" aria-controls="appointment-customer-list">
+          <div class="customer-picker-list" id="appointment-customer-list" role="listbox" hidden></div>
+        </div>
+        <div class="customer-picker-chip" id="appointment-customer-chip" hidden><span class="customer-picker-chip-text" id="appointment-customer-chip-text"></span><button class="link-button" type="button" id="appointment-customer-open">Profil</button><button class="link-button" type="button" id="appointment-customer-clear">Ändern</button></div>
+        <small class="customer-picker-hint" id="appointment-customer-hint">Keine Kundin ausgewählt: Beim Speichern wird über E-Mail, Telefon oder eindeutigen Namen zugeordnet, sonst eine neue Kundin angelegt.</small>
+        <input type="hidden" id="appointment-customer-ref">
+      </div>
       <div class="field"><label for="appointment-name" id="appointment-name-label">Name</label><input id="appointment-name" required></div>
       <div class="field"><label for="appointment-email">E-Mail</label><input id="appointment-email" type="email"></div>
       <div class="field"><label for="appointment-phone">Telefon</label><input id="appointment-phone" type="tel"></div>
@@ -282,7 +291,7 @@
     </div>
 
     <div class="form-message" id="customer-message"></div>
-    <div class="modal-actions"><div class="right-actions"><button class="secondary" id="customer-rebook-message" type="button">Wiederbuchung senden</button><button class="secondary" id="customer-log-contact" type="button">Kontakt protokollieren</button></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit">Speichern</button></div></div>
+    <div class="modal-actions"><div class="right-actions"><button class="secondary" id="customer-new-appointment" type="button">Termin eintragen</button><button class="secondary" id="customer-rebook-message" type="button">Wiederbuchung senden</button><button class="secondary" id="customer-log-contact" type="button">Kontakt protokollieren</button></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit">Speichern</button></div></div>
   </form></div>
 
   <div class="modal-backdrop" id="waitlist-modal" hidden><form class="modal" id="waitlist-form">
@@ -378,7 +387,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../assets/js/supabase-config.js?v=20260808-1"></script>
-  <script src="../assets/js/dashboard.js?v=20261101-1"></script>
+  <script src="../assets/js/dashboard.js?v=20261101-2"></script>
   <script src="../assets/js/password-toggle.js"></script>
 </body>
 </html>
