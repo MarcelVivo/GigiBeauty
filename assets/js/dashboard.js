@@ -546,16 +546,176 @@
         }
         const origin = appointmentOrigin(event);
         const detail = compact ? '' : `<small>${esc(event.services?.name || 'Privat')}</small><span class="calendar-event-origin">${esc(appointmentOriginLabel(origin))}</span>`;
-        return `<button class="calendar-event ${appointmentOriginClass(origin)}" type="button" draggable="true" style="${style}" data-edit-appointment="${event.id}">${time}<strong>${esc(event.customer_name)}</strong>${detail}</button>`;
+        const handles = event.status === 'booked' ? '<span class="cal-resize is-top" data-resize="top" title="Ziehen zum Verlängern/Verkürzen"></span><span class="cal-resize is-bottom" data-resize="bottom" title="Ziehen zum Verlängern/Verkürzen"></span>' : '';
+        return `<button class="calendar-event ${appointmentOriginClass(origin)}" type="button" draggable="true" style="${style}" data-edit-appointment="${event.id}">${time}<strong>${esc(event.customer_name)}</strong>${detail}${handles}</button>`;
       }).join('');
       return `<section class="admin-day" data-date="${key}"><div class="admin-day-head"><strong>${fmt(date, { weekday: 'short' })}</strong><span>${fmt(date, { day: '2-digit', month: '2-digit' })}</span></div><div class="admin-day-body" style="height:${gridHeight}px">${body}</div></section>`;
     }).join('');
 
     $('admin-calendar').innerHTML = gutter + dayCols;
-    document.querySelectorAll('[data-edit-appointment]').forEach(button => button.onclick = () => openAppointment(button.dataset.editAppointment));
+    document.querySelectorAll('[data-edit-appointment]').forEach(button => button.onclick = () => { if (!suppressCalendarClick) openAppointment(button.dataset.editAppointment); });
     document.querySelectorAll('[data-delete-block]').forEach(button => button.onclick = () => removeBlock(button.dataset.deleteBlock));
     attachCalendarDragHandlers(min);
+    attachCalendarResizeHandlers(min, max);
+    attachCalendarGapHandlers(min, max);
   }
+
+  // Belegte Minuten-Intervalle eines Tages (Minuten ab Mitternacht, wie beim
+  // Rendern), optional ohne einen bestimmten Termin -- Grundlage für die
+  // Grenzen beim Verlängern/Verkürzen und für freie Lücken.
+  function busyRangesOfDay(key, excludeId = null) {
+    const toMin = value => { const d = new Date(value); return d.getHours() * 60 + d.getMinutes(); };
+    return [
+      ...state.appointments.filter(a => a.id !== excludeId && a.status !== 'cancelled' && dayKey(a.starts_at) === key),
+      ...state.blocks.filter(b => dayKey(b.starts_at) === key)
+    ].map(item => ({ start: toMin(item.starts_at), end: dayKey(item.ends_at) === key ? toMin(item.ends_at) : 24 * 60 }));
+  }
+
+  function durationLabel(minutes) {
+    const h = Math.floor(minutes / 60), m = minutes % 60;
+    return [h ? `${h} Std.` : '', m ? `${m} Min.` : ''].filter(Boolean).join(' ');
+  }
+
+  // Verlängern/Verkürzen am oberen bzw. unteren Rand im 15-Minuten-Raster.
+  // Pointer-Events statt nativem Drag & Drop, damit es sich nicht mit dem
+  // Verschieben der ganzen Karte (dragstart) beisst. Die Karte folgt dem
+  // Cursor live und stoppt an Nachbarterminen/Sperrzeiten, an 15 Min.
+  // Mindest- und 4 Std. Höchstdauer (appointments_duration_check). Erst nach
+  // "OK" im Sicherheitsdialog wird gespeichert, "Abbrechen" stellt die alte
+  // Darstellung wieder her.
+  let resizeState = null;
+  let suppressCalendarClick = false;
+  function attachCalendarResizeHandlers(gridMin, gridMax) {
+    document.querySelectorAll('.calendar-event [data-resize]').forEach(handle => {
+      handle.addEventListener('pointerdown', event => {
+        if (event.button !== 0) return;
+        const card = handle.closest('.calendar-event');
+        const appointment = state.appointments.find(a => a.id === card.dataset.editAppointment);
+        if (!appointment) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const s = new Date(appointment.starts_at), e = new Date(appointment.ends_at);
+        const startMin = s.getHours() * 60 + s.getMinutes();
+        const endMin = startMin + Math.round((e - s) / 60000);
+        const busy = busyRangesOfDay(dayKey(s), appointment.id);
+        const edge = handle.dataset.resize;
+        const limit = edge === 'top'
+          ? Math.max(gridMin, endMin - 240, ...busy.filter(r => r.end <= startMin).map(r => r.end))
+          : Math.min(gridMax, startMin + 240, ...busy.filter(r => r.start >= endMin).map(r => r.start));
+        resizeState = { appointment, card, edge, startMin, endMin, limit, originY: event.clientY, newStart: startMin, newEnd: endMin, pointerId: event.pointerId };
+        card.draggable = false;
+        card.classList.add('is-resizing');
+        handle.setPointerCapture(event.pointerId);
+      });
+      handle.addEventListener('pointermove', event => {
+        const r = resizeState;
+        if (!r || r.pointerId !== event.pointerId) return;
+        const delta = (event.clientY - r.originY) / CAL_PX_PER_MIN;
+        const snap = value => Math.round(value / CAL_SLOT_MINUTES) * CAL_SLOT_MINUTES;
+        if (r.edge === 'top') r.newStart = Math.min(r.endMin - CAL_SLOT_MINUTES, Math.max(r.limit, snap(r.startMin + delta)));
+        else r.newEnd = Math.max(r.startMin + CAL_SLOT_MINUTES, Math.min(r.limit, snap(r.endMin + delta)));
+        r.card.style.top = `${(r.newStart - gridMin) * CAL_PX_PER_MIN}px`;
+        r.card.style.height = `${Math.max(28, (r.newEnd - r.newStart) * CAL_PX_PER_MIN)}px`;
+        const clock = minutes => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+        r.card.querySelector('time').textContent = `${clock(r.newStart)}–${clock(r.newEnd)} · ${durationLabel(r.newEnd - r.newStart)}`;
+      });
+      const finish = event => {
+        const r = resizeState;
+        if (!r || r.pointerId !== event.pointerId) return;
+        resizeState = null;
+        r.card.classList.remove('is-resizing');
+        r.card.draggable = true;
+        // Der Klick nach dem Loslassen soll nicht den Bearbeiten-Dialog öffnen.
+        suppressCalendarClick = true;
+        setTimeout(() => { suppressCalendarClick = false; }, 60);
+        if (event.type === 'pointercancel' || (r.newStart === r.startMin && r.newEnd === r.endMin)) { renderCalendar(); return; }
+        const base = new Date(r.appointment.starts_at);
+        base.setHours(0, 0, 0, 0);
+        const at = minutes => { const d = new Date(base); d.setMinutes(minutes); return d; };
+        openResizeConfirm(r.appointment, at(r.newStart), at(r.newEnd));
+      };
+      handle.addEventListener('pointerup', finish);
+      handle.addEventListener('pointercancel', finish);
+    });
+  }
+
+  function openResizeConfirm(appointment, newStart, newEnd) {
+    const oldStart = new Date(appointment.starts_at), oldEnd = new Date(appointment.ends_at);
+    const oldMinutes = Math.round((oldEnd - oldStart) / 60000), newMinutes = Math.round((newEnd - newStart) / 60000);
+    const range = (a, b) => `${fmt(a, { weekday: 'short', day: '2-digit', month: '2-digit' })}, ${fmt(a, { hour: '2-digit', minute: '2-digit' })}–${fmt(b, { hour: '2-digit', minute: '2-digit' })}`;
+    const canEmail = !appointment.is_private && !!appointment.customer_email;
+    $('resize-confirm-title').textContent = newMinutes > oldMinutes ? 'Termin verlängern?' : newMinutes < oldMinutes ? 'Termin verkürzen?' : 'Termin anpassen?';
+    $('resize-confirm-who').textContent = `${appointment.customer_name} · ${appointment.services?.name || 'Termin'}`;
+    $('resize-confirm-old').textContent = `${range(oldStart, oldEnd)} (${durationLabel(oldMinutes)})`;
+    $('resize-confirm-new').textContent = `${range(newStart, newEnd)} (${durationLabel(newMinutes)})`;
+    $('resize-confirm-note').textContent = canEmail
+      ? `Nach OK erhalten die Kundin (${appointment.customer_email}) und du eine Info-Mail.`
+      : 'Nach OK erhältst du eine Info-Mail. Für die Kundin ist keine E-Mail-Adresse hinterlegt.';
+    $('resize-confirm-message').textContent = '';
+    $('resize-confirm-ok').disabled = false;
+    $('resize-confirm-ok').onclick = () => saveResize(appointment, newStart, newEnd, canEmail);
+    $('resize-confirm-cancel').onclick = cancelResize;
+    openModal('resize-confirm-modal');
+    $('resize-confirm-ok').focus();
+  }
+  function cancelResize() { closeModal('resize-confirm-modal'); renderCalendar(); }
+
+  async function saveResize(appointment, newStart, newEnd, canEmail) {
+    const conflict = state.appointments.some(a => a.id !== appointment.id && a.status !== 'cancelled' && newStart < new Date(a.ends_at) && newEnd > new Date(a.starts_at))
+      || state.blocks.some(b => newStart < new Date(b.ends_at) && newEnd > new Date(b.starts_at));
+    if (conflict) { $('resize-confirm-message').textContent = 'Termin kollidiert mit einem bestehenden Termin oder einer Sperrzeit.'; return; }
+    $('resize-confirm-ok').disabled = true;
+    const result = await db.from('appointments').update({ starts_at: newStart.toISOString(), ends_at: newEnd.toISOString() }).eq('id', appointment.id);
+    if (result.error) { $('resize-confirm-ok').disabled = false; $('resize-confirm-message').textContent = result.error.message; return; }
+    closeModal('resize-confirm-modal');
+    let mailError = null;
+    if (canEmail) ({ error: mailError } = await db.rpc('queue_reschedule_email', { requested_appointment_id: appointment.id, change: 'duration' }));
+    await loadAll();
+    pulseAppointment(appointment.id);
+    toast(mailError ? `Termin angepasst, Kundinnen-Mail fehlgeschlagen: ${mailError.message}` : canEmail ? 'Termin angepasst. Info-Mails an Kundin und dich sind eingeplant.' : 'Termin angepasst. Info-Mail an dich ist eingeplant.');
+  }
+
+  // Klick in eine freie Stelle eines Tages: kleines Menü mit 15 Min. /
+  // 30 Min. / 1 Std. ab der angeklickten Viertelstunde. Optionen, die nicht
+  // bis zum nächsten Termin/zur nächsten Sperrzeit passen, sind deaktiviert.
+  // Die Auswahl öffnet den normalen Termin-Dialog mit Startzeit und Dauer.
+  function attachCalendarGapHandlers(gridMin, gridMax) {
+    document.querySelectorAll('.admin-day').forEach(day => {
+      const body = day.querySelector('.admin-day-body');
+      body?.addEventListener('click', event => {
+        if (event.target !== body || suppressCalendarClick) return;
+        const offset = (event.clientY - body.getBoundingClientRect().top) / CAL_PX_PER_MIN;
+        const exact = gridMin + offset;
+        const busy = busyRangesOfDay(day.dataset.date);
+        if (busy.some(r => exact >= r.start && exact < r.end)) return;
+        const previousEnd = Math.max(gridMin, ...busy.filter(r => r.end <= exact).map(r => r.end));
+        const start = Math.max(previousEnd, gridMin + Math.floor(offset / CAL_SLOT_MINUTES) * CAL_SLOT_MINUTES);
+        const gapEnd = Math.min(gridMax, ...busy.filter(r => r.start >= start).map(r => r.start));
+        if (gapEnd - start < CAL_SLOT_MINUTES) return;
+        openGapMenu(day.dataset.date, start, gapEnd, event.clientX, event.clientY);
+      });
+    });
+  }
+
+  function openGapMenu(dateKey, startMin, gapEndMin, x, y) {
+    const menu = $('gap-menu');
+    const [year, month, dayOfMonth] = dateKey.split('-').map(Number);
+    const at = minutes => { const d = new Date(year, month - 1, dayOfMonth, 0, 0, 0, 0); d.setMinutes(minutes); return d; };
+    const start = at(startMin);
+    $('gap-menu-title').textContent = `${fmt(start, { weekday: 'short', day: '2-digit', month: '2-digit' })} · ${fmt(start, { hour: '2-digit', minute: '2-digit' })} Uhr`;
+    $('gap-menu-hint').textContent = `Frei bis ${fmt(at(gapEndMin), { hour: '2-digit', minute: '2-digit' })} Uhr (${durationLabel(gapEndMin - startMin)})`;
+    menu.querySelectorAll('[data-gap-minutes]').forEach(button => {
+      const minutes = Number(button.dataset.gapMinutes);
+      button.disabled = minutes > gapEndMin - startMin;
+      button.onclick = () => { closeGapMenu(); openAppointment(null, { start, duration: minutes }); };
+    });
+    menu.hidden = false;
+    const rect = menu.getBoundingClientRect();
+    menu.style.left = `${Math.max(8, Math.min(x, window.innerWidth - rect.width - 8))}px`;
+    menu.style.top = `${Math.max(8, Math.min(y, window.innerHeight - rect.height - 8))}px`;
+    menu.querySelector('[data-gap-minutes]:not(:disabled)')?.focus();
+  }
+  function closeGapMenu() { $('gap-menu').hidden = true; }
 
   let draggedAppointmentId = null;
   let draggedDurationMs = 0;
@@ -563,6 +723,7 @@
   function attachCalendarDragHandlers(gridMin) {
     document.querySelectorAll('.calendar-event[data-edit-appointment]').forEach(button => {
       button.addEventListener('dragstart', event => {
+        if (resizeState) { event.preventDefault(); return; }
         draggedAppointmentId = button.dataset.editAppointment;
         const appointment = state.appointments.find(a => a.id === draggedAppointmentId);
         draggedDurationMs = appointment ? new Date(appointment.ends_at) - new Date(appointment.starts_at) : 5400000;
@@ -1526,7 +1687,25 @@
     $('appointment-price-item').value = selectedItemId || '';
   }
 
-  function openAppointment(id = null) {
+  // Standarddauer laut Position bzw. Behandlung (Fallback 90 Min.).
+  function defaultDurationMinutes(serviceId, priceItemId) {
+    const priceItem = priceItemId ? state.servicePriceItems.find(item => item.id === priceItemId) : null;
+    const service = state.services.find(s => s.id === serviceId);
+    if (Number(priceItem?.duration_minutes) > 0) return Number(priceItem.duration_minutes);
+    return Number(service?.duration_minutes) > 0 ? Number(service.duration_minutes) : 90;
+  }
+
+  // 15 Min. bis 4 Std. im Viertelstundenraster; eine abweichende bestehende
+  // Dauer (z. B. 100 Min. aus einem Import) bleibt als eigene Option erhalten.
+  function fillDurationSelect(minutes) {
+    const values = Array.from({ length: 16 }, (_, index) => (index + 1) * 15);
+    if (minutes > 0 && !values.includes(minutes)) values.push(minutes);
+    values.sort((a, b) => a - b);
+    $('appointment-duration').innerHTML = values.map(value => `<option value="${value}">${durationLabel(value)}</option>`).join('');
+    $('appointment-duration').value = String(minutes > 0 ? minutes : 90);
+  }
+
+  function openAppointment(id = null, preset = null) {
     const item = id ? state.appointments.find(a => a.id === id) : null;
     $('appointment-modal-title').textContent = item ? 'Termin bearbeiten' : 'Termin eintragen';
     $('appointment-id').value = item?.id || '';
@@ -1534,7 +1713,10 @@
     const serviceId = item?.service_id || state.services[0]?.id || '';
     $('appointment-service').value = serviceId;
     fillPriceItemSelect(serviceId, item?.price_item_id || '');
-    $('appointment-start').value = localInput(item?.starts_at || nextRoundedSlot());
+    $('appointment-start').value = localInput(item?.starts_at || preset?.start || nextRoundedSlot());
+    fillDurationSelect(item
+      ? Math.round((new Date(item.ends_at) - new Date(item.starts_at)) / 60000)
+      : (preset?.duration || defaultDurationMinutes(serviceId, '')));
     $('appointment-status').value = item?.status || 'booked';
     $('appointment-name').value = item?.customer_name || '';
     $('appointment-email').value = item?.customer_email || '';
@@ -1573,11 +1755,7 @@
     const start = new Date($('appointment-start').value);
     const privateEntry = $('appointment-kind').value === 'private';
     const priceItemId = privateEntry ? '' : $('appointment-price-item').value;
-    const priceItem = priceItemId ? state.servicePriceItems.find(item => item.id === priceItemId) : null;
-    const service = state.services.find(s => s.id === $('appointment-service').value);
-    const durationMinutes = Number(priceItem?.duration_minutes) > 0
-      ? Number(priceItem.duration_minutes)
-      : (Number(service?.duration_minutes) > 0 ? Number(service.duration_minutes) : 90);
+    const durationMinutes = Number($('appointment-duration').value) || defaultDurationMinutes($('appointment-service').value, priceItemId);
     const payload = {
       service_id: privateEntry ? null : $('appointment-service').value,
       price_item_id: privateEntry ? null : (priceItemId || null),
@@ -2002,7 +2180,16 @@
   $('week-today').onclick = () => { state.week = startOfWeek(new Date()); renderCalendar(); };
   bindWeekDragToShift();
   $('appointment-kind').onchange = togglePrivateFields;
-  $('appointment-service').onchange = () => fillPriceItemSelect($('appointment-service').value);
+  $('appointment-service').onchange = () => { fillPriceItemSelect($('appointment-service').value); fillDurationSelect(defaultDurationMinutes($('appointment-service').value, '')); };
+  $('appointment-price-item').onchange = () => fillDurationSelect(defaultDurationMinutes($('appointment-service').value, $('appointment-price-item').value));
+  $('resize-confirm-modal').addEventListener('click', event => { if (event.target === event.currentTarget) renderCalendar(); });
+  document.addEventListener('pointerdown', event => { if (!$('gap-menu').hidden && !$('gap-menu').contains(event.target)) closeGapMenu(); });
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape') return;
+    if (!$('gap-menu').hidden) closeGapMenu();
+    if (!$('resize-confirm-modal').hidden) cancelResize();
+  });
+  $('admin-calendar').addEventListener('scroll', closeGapMenu);
   $('appointment-form').onsubmit = saveAppointment;
   $('delete-appointment').onclick = cancelAppointment;
   $('block-form').onsubmit = saveBlock;

@@ -21,6 +21,15 @@ type OutboxItem = {
 const htmlEntities: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' };
 const esc = (value: unknown) => String(value ?? '').replace(/[&<>'"]/g, (char) => htmlEntities[char]);
 
+function clockTime(value: unknown) {
+  return new Intl.DateTimeFormat('de-CH', { timeZone: 'Europe/Zurich', hour: '2-digit', minute: '2-digit' }).format(new Date(String(value)));
+}
+
+// "Montag, 01. März 2027 um 10:00–11:30 Uhr" (Endzeit nur, wenn bekannt).
+function appointmentRange(start: unknown, end: unknown) {
+  return end ? `${appointmentDate(start)}–${clockTime(end)}` : appointmentDate(start);
+}
+
 function appointmentDate(value: unknown) {
   return new Intl.DateTimeFormat('de-CH', {
     timeZone: 'Europe/Zurich', weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
@@ -47,15 +56,15 @@ function trackedLink(item: OutboxItem, target: string) {
 // 202611010001_owner_booking_notifications.sql.
 function ownerNoticeHtml(item: OutboxItem) {
   const p = item.payload;
-  const headings: Record<string, string> = { booked: 'Neue Buchung', cancelled: 'Termin storniert', rescheduled: 'Termin verschoben' };
+  const headings: Record<string, string> = { booked: 'Neue Buchung', cancelled: 'Termin storniert', rescheduled: 'Termin verschoben', duration: 'Dauer geändert' };
   const row = (label: string, value: unknown) => value ? `<tr><td style="padding:8px 12px 8px 0;color:#8b7d73;font:13px Arial,sans-serif;vertical-align:top">${label}</td><td style="padding:8px 0;font:15px Arial,sans-serif">${esc(value)}</td></tr>` : '';
   const phone = p.customer_phone ? `<a href="tel:${esc(String(p.customer_phone).replace(/\s+/g, ''))}" style="color:#6e384c">${esc(p.customer_phone)}</a>` : '';
   const email = p.customer_email ? `<a href="mailto:${esc(p.customer_email)}" style="color:#6e384c">${esc(p.customer_email)}</a>` : '';
   const rows = [
     row('Kundin', p.customer_name),
     row('Behandlung', p.service || 'Behandlung'),
-    row(p.event === 'rescheduled' ? 'Neu' : 'Termin', p.starts_at ? `${appointmentDate(p.starts_at)} Uhr` : ''),
-    row('Bisher', p.old_starts_at ? `${appointmentDate(p.old_starts_at)} Uhr` : ''),
+    row(p.old_starts_at ? 'Neu' : 'Termin', p.starts_at ? `${appointmentRange(p.starts_at, p.ends_at)} Uhr` : ''),
+    row('Bisher', p.old_starts_at ? `${appointmentRange(p.old_starts_at, p.old_ends_at)} Uhr` : ''),
     phone ? `<tr><td style="padding:8px 12px 8px 0;color:#8b7d73;font:13px Arial,sans-serif">Telefon</td><td style="padding:8px 0;font:15px Arial,sans-serif">${phone}</td></tr>` : '',
     email ? `<tr><td style="padding:8px 12px 8px 0;color:#8b7d73;font:13px Arial,sans-serif">E-Mail</td><td style="padding:8px 0;font:15px Arial,sans-serif">${email}</td></tr>` : '',
     row('Notiz', p.notes),
@@ -79,7 +88,10 @@ function emailHtml(item: OutboxItem) {
   } else if (item.kind === 'cancellation') {
     content = `<p>Dein Termin für <strong>${service}</strong> am ${esc(date)} Uhr wurde storniert.</p>`;
   } else if (item.kind === 'rescheduled') {
-    content = `<p>Dein Termin wurde verschoben. Der neue Termin:</p><p><strong>${service}</strong><br>${esc(date)} Uhr</p>`;
+    const range = item.payload.starts_at ? appointmentRange(item.payload.starts_at, item.payload.ends_at) : '';
+    content = item.payload.change === 'duration'
+      ? `<p>Die Dauer deines Termins wurde angepasst. Dein Termin neu:</p><p><strong>${service}</strong><br>${esc(range)} Uhr</p>`
+      : `<p>Dein Termin wurde verschoben. Der neue Termin:</p><p><strong>${service}</strong><br>${esc(range)} Uhr</p>`;
   } else if (item.kind === 'invoice') {
     content = `<p><strong>Rechnung Nr. ${String(item.payload.invoice_number || '').padStart(5, '0')}</strong></p><p>Da der Termin am ${esc(date)} Uhr ohne eine Abmeldung mindestens 12 Stunden vorher nicht wahrgenommen wurde, wird gemäss unseren AGB der vereinbarte Behandlungspreis berechnet.</p><table role="presentation" width="100%" style="margin:22px 0;border-collapse:collapse"><tr><td style="padding:12px;border-top:1px solid #e1d4c2;border-bottom:1px solid #e1d4c2">Nichterscheinen / reservierter Termin</td><td style="padding:12px;border-top:1px solid #e1d4c2;border-bottom:1px solid #e1d4c2;text-align:right"><strong>CHF ${Number(item.payload.amount_chf || 0).toFixed(2)}</strong></td></tr></table><p>Zahlbar bis ${esc(item.payload.due_at)}. Bitte antworte auf diese E-Mail, um die Zahlungsangaben zu erhalten oder falls du Fragen zur Rechnung hast.</p>`;
   } else if (item.kind === 'review') {
