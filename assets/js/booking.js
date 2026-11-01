@@ -389,8 +389,10 @@
     if (user) {
       const { data } = await db.from('profiles').select('*').eq('id', user.id).maybeSingle();
       state.profile = data;
-      const { data: customerRow } = await db.from('customers').select('id').eq('profile_id', user.id).maybeSingle();
-      state.customerId = customerRow?.id || null;
+      // Die Kundenkartei ist per RLS nur für Admins lesbar; die eigene
+      // Kunden-ID liefert current_customer_id() (SECURITY DEFINER).
+      const { data: customerId } = await db.rpc('current_customer_id');
+      state.customerId = customerId || null;
       els.authButton.textContent = 'Abmelden';
       els.authButton.title = `Angemeldet als ${data?.full_name || user.email}`;
       document.getElementById('my-appointments').hidden = false;
@@ -503,9 +505,9 @@
     if (upcoming.length) {
       const next = upcoming[0];
       const nextDate = new Date(next.starts_at);
-      const canCancel = nextDate.getTime() - Date.now() >= 24 * 60 * 60 * 1000;
+      const canCancel = next.can_cancel ?? nextDate.getTime() - Date.now() >= 24 * 60 * 60 * 1000;
       const extra = upcoming.slice(1).map(item => {
-        const itemCanCancel = new Date(item.starts_at).getTime() - Date.now() >= 24 * 60 * 60 * 1000;
+        const itemCanCancel = item.can_cancel ?? new Date(item.starts_at).getTime() - Date.now() >= 24 * 60 * 60 * 1000;
         return `<div class="acc-row"><time>${formatDate(new Date(item.starts_at), { day: '2-digit', month: '2-digit' })}</time><span class="acc-row-name">${escapeHtml(item.services?.name || 'Behandlung')}<small>${formatDate(new Date(item.starts_at), { hour: '2-digit', minute: '2-digit' })} Uhr</small></span>${itemCanCancel ? `<button class="acc-quiet" type="button" data-cancel-own="${item.id}">Stornieren</button>` : '<small class="acc-row-status">Bitte direkt melden</small>'}</div>`;
       }).join('');
       hero.innerHTML = `<div class="acc-panel account-hero-card">
@@ -565,13 +567,12 @@
     newsletter.checked = Boolean(state.profile?.marketing_consent);
     document.getElementById('account-newsletter-message').textContent = '';
 
-    // Bewusst nicht allein auf RLS verlassen: ein Konto, das zugleich Admin
-    // ist, darf laut RLS alle Termine lesen -- "meine Termine" muss aber
-    // trotzdem explizit auf die eigene Identität eingegrenzt werden.
-    const ownConditions = [`customer_id.eq.${state.user.id}`];
-    if (state.customerId) ownConditions.push(`customer_ref_id.eq.${state.customerId}`);
-    if (state.profile?.email) ownConditions.push(`customer_email.ilike.${state.profile.email}`);
-    const { data, error } = await db.from('appointments').select('id, starts_at, status, services(name, slug)').eq('is_private', false).or(ownConditions.join(',')).order('starts_at', { ascending: false });
+    // my_appointments() liefert eigene Online-Buchungen und die Termine aus
+    // der Kundenkartei (customer_ref_id), ohne interne Notizen -- auch für
+    // ein Admin-Konto nur die eigenen. can_cancel berücksichtigt die
+    // Stornofrist aus business_settings.
+    const { data: rows, error } = await db.rpc('my_appointments');
+    const data = (rows || []).map(row => ({ id: row.id, starts_at: row.starts_at, status: row.status, can_cancel: row.can_cancel, services: { name: row.service_name, slug: row.service_slug } }));
     if (error) { hero.innerHTML = `<div class="acc-panel account-hero-card acc-loading">${escapeHtml(error.message)}</div>`; return; }
     const now = Date.now();
     const upcoming = (data || []).filter(item => item.status === 'booked' && new Date(item.starts_at).getTime() >= now).sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));

@@ -80,9 +80,29 @@ function buildBeautyEditPrompt({ serviceType, userRequest }: { serviceType: stri
   ].filter(Boolean).join('\n');
 }
 
+// Kostenschutz (OpenAI ist kostenpflichtig): nur Aufrufe von der eigenen
+// Website und höchstens RATE_LIMIT Bilder pro Stunde und IP. Der Zähler lebt
+// im Speicher der Funktionsinstanz -- kein harter Schutz, aber er stoppt
+// Missbrauch per Schleife; das Budgetlimit bei OpenAI bleibt die Obergrenze.
+const RATE_LIMIT = 10;
+const RATE_WINDOW_MS = 60 * 60 * 1000;
+const requestLog = new Map<string, number[]>();
+function rateLimited(ip: string) {
+  const now = Date.now();
+  const recent = (requestLog.get(ip) || []).filter(time => now - time < RATE_WINDOW_MS);
+  if (recent.length >= RATE_LIMIT) { requestLog.set(ip, recent); return true; }
+  recent.push(now);
+  requestLog.set(ip, recent);
+  if (requestLog.size > 5000) requestLog.clear();
+  return false;
+}
+
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   if (request.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
+  if (ALLOWED_ORIGIN !== '*' && request.headers.get('origin') !== ALLOWED_ORIGIN) return json({ error: 'origin_not_allowed' }, 403);
+  const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
+  if (rateLimited(ip)) return json({ error: 'rate_limited', message: 'Zu viele Vorschauen in kurzer Zeit. Bitte versuche es in einer Stunde erneut.' }, 429);
   if (!OPENAI_API_KEY) return json({ error: 'OPENAI_API_KEY is missing' }, 500);
 
   let body: { serviceType?: string; userRequest?: string; image?: string };

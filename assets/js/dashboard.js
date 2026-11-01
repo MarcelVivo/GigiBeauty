@@ -1076,7 +1076,7 @@
   }
 
   function taskTypeLabel(type) {
-    return ({ registration_invite: 'Kundenlogin', missing_email: 'Datenpflege', rebooking: 'Wiederbuchung', winback: 'Reaktivierung', birthday: 'Geburtstag', low_stock: 'Lager', waitlist: 'Warteliste' })[type] || 'CRM';
+    return ({ registration_invite: 'Kundenlogin', missing_email: 'Datenpflege', rebooking: 'Wiederbuchung', winback: 'Reaktivierung', birthday: 'Geburtstag', low_stock: 'Lager', waitlist: 'Warteliste', duplicate_check: 'Doppelprofil?' })[type] || 'CRM';
   }
 
   // Änderungsprotokoll: audit_log speichert bei jeder Änderung die
@@ -2222,9 +2222,15 @@
     const communications = state.communications.filter(item => item.customer_id === customer.id).slice(0, 8);
     $('customer-communications').innerHTML = `${communications.length ? `<div class="communication-list">${communications.map(item => `<div class="communication-item"><span class="communication-channel">${esc(({ email: 'E-Mail', phone: 'Telefon', sms: 'SMS', whatsapp: 'WhatsApp', in_person: 'Persönlich', system: 'System' })[item.channel] || item.channel)}</span><span><strong>${esc(item.subject || item.communication_type)}</strong><small>${esc(fmt(item.occurred_at, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }))} · ${esc(item.status)}</small></span></div>`).join('')}</div>` : '<p class="muted">Noch keine Kommunikation protokolliert.</p>'}`;
     $('customer-rebook-message').disabled = !customer.email || !customer.marketing_consent || customer.do_not_contact;
-    const matches = customer.phone ? state.customers.filter(item => item.id !== customer.id && phoneKey(item.phone) && phoneKey(item.phone) === phoneKey(customer.phone)) : [];
+    // Doppelprofil-Vorschläge: gleiche Telefonnummer oder gleicher Name
+    // (z. B. neues Online-Konto zu bestehender Kartei, siehe crm_tasks
+    // 'duplicate_check' aus link_profile_to_customer()).
+    const nameKey = value => String(value || '').trim().toLowerCase();
+    const matches = state.customers.filter(item => item.id !== customer.id && (
+      (phoneKey(customer.phone) && phoneKey(item.phone) === phoneKey(customer.phone))
+      || (nameKey(customer.full_name) && nameKey(item.full_name) === nameKey(customer.full_name))));
     $('customer-merge-suggestions').hidden = !matches.length;
-    $('customer-merge-suggestions').innerHTML = matches.length ? `<strong>Mögliche Doppelprofile gefunden</strong><p>Die Telefonnummer ist identisch. Bitte nur zusammenführen, wenn es wirklich dieselbe Person ist.</p>${matches.map(item => `<div><span>${esc(item.full_name)} · ${esc(item.email || 'ohne E-Mail')}</span><button class="secondary small" type="button" data-merge-customer="${item.id}">Zusammenführen</button></div>`).join('')}` : '';
+    $('customer-merge-suggestions').innerHTML = matches.length ? `<strong>Mögliche Doppelprofile gefunden</strong><p>Telefonnummer oder Name stimmen überein. Bitte nur zusammenführen, wenn es wirklich dieselbe Person ist.</p>${matches.map(item => `<div><span>${esc(item.full_name)} · ${esc([item.phone, item.email || 'ohne E-Mail'].filter(Boolean).join(' · '))}</span><button class="secondary small" type="button" data-merge-customer="${item.id}">Zusammenführen</button></div>`).join('')}` : '';
     document.querySelectorAll('[data-merge-customer]').forEach(button => button.onclick = () => mergeCustomerProfiles(customer.id, button.dataset.mergeCustomer));
     $('customer-message').textContent = '';
     $('customer-chat-text').value = '';
@@ -2355,6 +2361,8 @@
     const duplicate = primary.id === first.id ? second : first;
     const { data, error } = await db.rpc('merge_customers', { primary_customer_id: primary.id, duplicate_customer_id: duplicate.id });
     if (error) return $('customer-message').textContent = error.message;
+    // Offene "Doppelprofil prüfen"-Aufgaben sind damit erledigt.
+    await db.from('crm_tasks').update({ status: 'done', completed_at: new Date().toISOString(), completed_by: state.user.id }).eq('customer_id', data || primary.id).eq('task_type', 'duplicate_check').eq('status', 'open');
     closeModal('customer-modal'); toast('Kundenprofile wurden zusammengeführt.'); await loadAll(); openCustomer(data || primary.id);
   }
 
