@@ -505,7 +505,8 @@
     $('analytics-period-label').textContent = `Auswertung ${range.label} · Vergleich mit ${range.previousLabel}`;
     $('period-label').textContent = range.label;
     document.querySelectorAll('[data-period-mode]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.periodMode === state.period.mode)));
-    $('period-next').disabled = range.end > now;
+    // Vorwärts bis 3 Jahre ab heute (künftige Monate zeigen gebuchte Termine).
+    $('period-next').disabled = range.start.getFullYear() >= now.getFullYear() + 3;
     $('period-today').hidden = range.start <= now && now < range.end;
     const completedInRange = currentMonthAppointments.filter(a => a.status === 'completed');
     const bookedNext30 = booked.filter(a => !a.is_private && new Date(a.starts_at) >= startOfDay(now) && new Date(a.starts_at) < capacityEnd);
