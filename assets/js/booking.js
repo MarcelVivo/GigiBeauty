@@ -316,12 +316,18 @@
     const start = startOfWeek(state.cursor);
     const end = addDays(start, 6);
     els.calendarTitle.textContent = `${formatDate(start, { day: '2-digit', month: 'short' })} bis ${formatDate(end, { day: '2-digit', month: 'short', year: 'numeric' })}`;
+    // Handy: Tage untereinander (CSS), vergangene Tage nur als «vorbei»
+    // statt einer Liste ausgegrauter Zeiten.
+    const compact = window.matchMedia('(max-width: 720px)').matches;
+    const today = startOfDay(new Date());
     els.calendar.innerHTML = `<div class="week-grid">${Array.from({ length: 7 }, (_, i) => {
       const day = addDays(start, i);
       const slots = createSlots(day);
-      const afternoonNote = day.getDay() === 3 && slots.length ? '<div class="closed-day">Mittwoch Nachmittag geschlossen</div>' : '';
-      return `<div class="week-day"><div class="week-day-head"><strong>${formatDate(day, { weekday: 'short' })}</strong><span>${formatDate(day, { day: '2-digit', month: '2-digit' })}</span></div>
-        <div class="slot-list">${slots.length ? slots.map(slotButton).join('') : '<div class="closed-day">geschlossen</div>'}${afternoonNote}</div></div>`;
+      const past = day < today;
+      const afternoonNote = day.getDay() === 3 && slots.length && !(compact && past) ? '<div class="closed-day">Mittwoch Nachmittag geschlossen</div>' : '';
+      const list = compact && past ? '<div class="closed-day">vorbei</div>' : slots.length ? slots.map(slotButton).join('') : '<div class="closed-day">geschlossen</div>';
+      return `<div class="week-day${past ? ' is-past' : ''}"><div class="week-day-head"><strong>${formatDate(day, { weekday: compact ? 'long' : 'short' })}</strong><span>${formatDate(day, { day: '2-digit', month: '2-digit' })}</span></div>
+        <div class="slot-list">${list}${afternoonNote}</div></div>`;
     }).join('')}</div>`;
   }
 
@@ -339,7 +345,7 @@
         const outside = day.getMonth() !== first.getMonth();
         return `<button class="month-day${outside ? ' is-outside' : ''}${dateKey(day) === today ? ' is-today' : ''}" type="button" data-day="${dateKey(day)}" ${!slots.length || day < startOfDay(new Date()) ? 'disabled' : ''}>
           <span class="day-number">${day.getDate()}</span>
-          <span class="availability-badge${free ? '' : ' is-full'}" data-count="${free ? `${free} frei` : 'voll'}">${free ? `${free} freie Termine` : 'ausgebucht'}</span>
+          <span class="availability-badge${free ? '' : ' is-full'}" data-count="${day < startOfDay(new Date()) ? 'vorbei' : !slots.length ? 'zu' : free ? `${free} frei` : 'voll'}">${day < startOfDay(new Date()) ? 'vorbei' : !slots.length ? 'geschlossen' : free ? `${free} freie Termine` : 'ausgebucht'}</span>
         </button>`;
       }).join('')}</div>`;
     els.calendar.querySelectorAll('[data-day]').forEach(button => button.addEventListener('click', () => {

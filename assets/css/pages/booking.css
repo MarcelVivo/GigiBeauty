@@ -1214,6 +1214,14 @@ html.booking-embed body.booking-page {
   .acc-date { width: 56px; }
   .acc-date strong { font-size: 1.5rem; }
   .acc-photos, .acc-journey, .acc-foot { width: 100%; }
+  /* Woche auf dem Handy: Tage untereinander, Zeiten als Kacheln */
+  .week-grid { grid-template-columns: minmax(0, 1fr); overflow: visible; height: auto; gap: .8rem; }
+  .week-day { min-width: 0; }
+  .week-day-head { display: flex; justify-content: space-between; align-items: baseline; text-align: left; }
+  .week-day-head strong { text-transform: capitalize; }
+  .week-day .slot-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: .4rem; }
+  .week-day .slot-list .closed-day { grid-column: 1 / -1; padding: .4rem 0; text-align: left; }
+  .week-day.is-past { opacity: .55; }
   .acc-quiet { display: inline-flex; align-items: center; min-height: 40px; }
   .modal-close { min-width: 44px; min-height: 44px; }
   .account-chat-send { min-width: 44px; min-height: 44px; }
