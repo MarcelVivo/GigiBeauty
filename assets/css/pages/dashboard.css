@@ -59,6 +59,7 @@ button { cursor: pointer; }
 .chart-hit:focus { outline: none; }
 .chart-hit:focus-visible .chart-hit-area { fill: rgba(110,56,76,.1); }
 .chart-value-label { fill: var(--dash-ink); font-size: 11px; font-weight: 700; }
+.metric.is-warning { border-color: #e6c77c; background: #fdf6e3; }
 .metric.is-interactive { transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
 .metric.is-interactive:hover, .metric.is-interactive:focus-visible { transform: translateY(-2px); border-color: rgba(110,56,76,.35); box-shadow: 0 12px 28px rgba(55,40,30,.08); }
 .finance-row.is-interactive, .opportunity.is-interactive, .bar-row.is-interactive, .funnel-row.is-interactive, .legend-row.is-interactive { transition: background .15s ease, box-shadow .15s ease; }

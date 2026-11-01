@@ -7,7 +7,7 @@
   <title>GiGi Beauty | Admin Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261101-6">
+  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261101-7">
 </head>
 <body>
   <div class="login-screen" id="login-screen">
@@ -75,7 +75,7 @@
         <div class="analytics-grid">
           <article class="card analytics-card span-8"><div class="card-head"><div><h2>Umsatzentwicklung</h2><p>Abgeschlossene Behandlungen</p></div><div class="chart-total" id="revenue-chart-summary"></div></div><div class="line-chart" id="revenue-chart"></div></article>
           <article class="card analytics-card span-4"><div class="card-head"><div><h2>Finanzen</h2><p>Liquidität und Potenzial</p></div></div><div class="finance-stack" id="finance-summary"></div></article>
-          <article class="card analytics-card span-12"><div class="card-head"><div><h2>Gebuchter Umsatz (Pipeline)</h2><p>Bereits gebuchte, aber noch nicht durchgeführte Termine</p></div></div><div class="metric-grid pipeline-metrics" id="booking-pipeline"></div></article>
+          <article class="card analytics-card span-12"><div class="card-head"><div><h2 id="booking-pipeline-title">Gebuchter Umsatz</h2><p>Gebuchte, noch nicht abgeschlossene Termine im gewählten Zeitraum</p></div></div><div class="metric-grid pipeline-metrics" id="booking-pipeline"></div></article>
 
           <article class="card analytics-card span-4"><div class="card-head"><div><h2>Behandlungen</h2><p>Nach Nachfrage und Umsatz</p></div></div><div class="bar-chart" id="service-performance"></div></article>
           <article class="card analytics-card span-4"><div class="card-head"><div><h2>Kundenbindung</h2><p>Verteilung nach Kundenstatus</p></div></div><div class="donut-layout"><div class="donut" id="retention-chart"></div><div class="chart-legend" id="retention-legend"></div></div></article>
@@ -409,7 +409,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../assets/js/supabase-config.js?v=20260808-1"></script>
-  <script src="../assets/js/dashboard.js?v=20261101-6"></script>
+  <script src="../assets/js/dashboard.js?v=20261101-7"></script>
   <script src="../assets/js/password-toggle.js"></script>
 </body>
 </html>

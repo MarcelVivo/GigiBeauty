@@ -222,14 +222,6 @@
     return appointment.status === 'completed' && !appointment.is_private ? Number(appointment.amount_chf ?? appointment.services?.price_chf ?? 0) : 0;
   }
 
-  // Umsatz aus bereits gebuchten, aber noch nicht durchgeführten Terminen --
-  // zeigt Liliane, was an gebuchten Behandlungen bereits feststeht, bevor
-  // sie überhaupt stattgefunden haben.
-  function bookedPotential(start, end) {
-    return state.appointments
-      .filter(a => a.status === 'booked' && !a.is_private && new Date(a.starts_at) >= start && new Date(a.starts_at) < end)
-      .reduce((sum, a) => sum + Number(a.amount_chf ?? a.services?.price_chf ?? 0), 0);
-  }
 
   function trend(current, previous, positiveIsGood = true) {
     if (!current && !previous) return { text: '–', className: 'neutral' };
@@ -451,8 +443,6 @@
     overviewActions = new Map();
     const now = new Date();
     const today = dayKey(now);
-    const currentMonth = monthStart(now);
-    const nextMonth = addMonths(currentMonth, 1);
     const range = periodRange();
     const periodStart = range.start;
     const booked = state.appointments.filter(a => a.status === 'booked');
@@ -503,7 +493,6 @@
       : revenueBarChart(series, item => interactive(() => openInsight({ title: `Termine ${item.title}`, appointments: dayAppointments(item) }), money(item.revenue), `${item.title} · ${item.completed} Behandlungen`));
     $('revenue-chart-summary').innerHTML = `<strong>${esc(money(periodRevenue))}</strong><span>${periodCompleted} Behandlungen · ${esc(range.label)}</span>`;
 
-    const yearStart = new Date(now.getFullYear(), 0, 1);
     const selectedYearStart = new Date(range.start.getFullYear(), 0, 1);
     const yearRevenue = state.appointments.filter(a => new Date(a.starts_at) >= selectedYearStart && new Date(a.starts_at) < new Date(range.start.getFullYear() + 1, 0, 1)).reduce((sum, appointment) => sum + appointmentRevenue(appointment), 0);
     const averageTicket = periodCompleted ? periodRevenue / periodCompleted : 0;
@@ -518,18 +507,25 @@
       ['Noch ausstehend', money(openInvoiceTotal), openInvoiceTotal ? 'is-warning' : '', interactive(() => showPanel('invoices'), money(openInvoiceTotal), 'Klick öffnet Rechnungen')]
     ].map(([label, value, className, attrs]) => `<div class="finance-row is-interactive ${className}"${attrs}><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('');
 
-    const pipelineToday = bookedPotential(startOfDay(now), addDays(startOfDay(now), 1));
-    const pipelineWeek = bookedPotential(startOfWeek(now), addDays(startOfWeek(now), 7));
-    const pipelineMonth = bookedPotential(currentMonth, nextMonth);
-    const pipelineYear = bookedPotential(yearStart, new Date(now.getFullYear() + 1, 0, 1));
-    const bookedBetween = (start, end) => booked.filter(a => !a.is_private && new Date(a.starts_at) >= start && new Date(a.starts_at) < end);
+    // Gebuchter Umsatz folgt dem gewählten Zeitraum: was in diesem Monat/Jahr
+    // gebucht, aber nicht abgeschlossen ist -- getrennt nach "kommt noch" und
+    // "liegt in der Vergangenheit, Status nie nachgetragen" (zählt sonst
+    // nirgends als Umsatz).
+    const bookedValue = list => list.reduce((sum, a) => sum + Number(a.amount_chf ?? a.services?.price_chf ?? 0), 0);
+    const bookedInRange = booked.filter(a => !a.is_private && new Date(a.starts_at) >= range.start && new Date(a.starts_at) < range.end);
+    const bookedUpcoming = bookedInRange.filter(a => new Date(a.starts_at) >= now);
+    const bookedOverdue = bookedInRange.filter(a => new Date(a.starts_at) < now);
+    const expectedTotal = currentRevenue + bookedValue(bookedInRange);
+    $('booking-pipeline-title').textContent = `Gebuchter Umsatz ${range.label}`;
     $('booking-pipeline').innerHTML = [
-      ['Heute', pipelineToday, bookedBetween(startOfDay(now), addDays(startOfDay(now), 1))],
-      ['Diese Woche', pipelineWeek, bookedBetween(startOfWeek(now), addDays(startOfWeek(now), 7))],
-      ['Diesen Monat', pipelineMonth, bookedBetween(currentMonth, nextMonth)],
-      ['Dieses Jahr', pipelineYear, bookedBetween(yearStart, new Date(now.getFullYear() + 1, 0, 1))]
-    ].map(([label, value, list]) => metricCard(label, money(value), `${list.length} gebuchte Termine`, null,
-      interactive(() => openInsight({ title: `Gebucht: ${label}`, appointments: list }), money(value), `${list.length} Termine · Klick für Details`))).join('');
+      metricCard(`Gebucht ${range.label}`, money(bookedValue(bookedInRange)), `${bookedInRange.length} Termine, noch nicht abgeschlossen`, null,
+        interactive(() => openInsight({ title: `Gebucht ${range.label}`, appointments: bookedInRange }), money(bookedValue(bookedInRange)), `${bookedInRange.length} Termine · Klick für Details`)),
+      metricCard('Davon bevorstehend', money(bookedValue(bookedUpcoming)), `${bookedUpcoming.length} kommende Termine`, null,
+        interactive(() => openInsight({ title: `Bevorstehend ${range.label}`, appointments: bookedUpcoming }), money(bookedValue(bookedUpcoming)), `${bookedUpcoming.length} Termine · Klick für Details`)),
+      `<article class="metric is-interactive${bookedOverdue.length ? ' is-warning' : ''}"${interactive(() => openInsight({ title: `Vergangen, Status offen · ${range.label}`, subtitle: `${bookedOverdue.length} Termine liegen in der Vergangenheit und stehen noch auf «Gebucht». Bitte je Termin auf «Abgeschlossen» oder «Nicht erschienen» setzen, erst dann zählen sie als Umsatz.`, appointments: bookedOverdue }), `${bookedOverdue.length} Termine`, 'Status nachtragen · Klick für Liste')}><span>Status nachtragen</span><strong>${bookedOverdue.length}</strong><div class="metric-foot"><small>${esc(money(bookedValue(bookedOverdue)))} vergangen, noch «Gebucht»</small></div></article>`,
+      metricCard(`Erwartet ${range.label}`, money(expectedTotal), 'abgeschlossen + gebucht', null,
+        interactive(() => openInsight({ title: `Erwartet ${range.label}`, appointments: [...completedInRange, ...bookedInRange] }), money(expectedTotal), `${money(currentRevenue)} abgeschlossen + ${money(bookedValue(bookedInRange))} gebucht`))
+    ].join('');
 
     const periodAppointments = state.appointments.filter(a => new Date(a.starts_at) >= periodStart && new Date(a.starts_at) < range.end && new Date(a.starts_at) <= now && !a.is_private);
     const serviceRows = state.services.map(service => {
