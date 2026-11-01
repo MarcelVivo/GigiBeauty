@@ -3,7 +3,7 @@
   const config = window.GIGI_SUPABASE || {};
   const configured = /^https:\/\/.+\.supabase\.co$/.test(config.url || '') && !String(config.anonKey || '').startsWith('YOUR-');
   const db = configured && window.supabase ? window.supabase.createClient(config.url, config.anonKey) : null;
-  const state = { user: null, profile: null, settings: null, services: [], profiles: [], customers: [], appointments: [], blocks: [], invoices: [], campaigns: [], payments: [], expenses: [], inventory: [], serviceInventory: [], waitlist: [], tasks: [], communications: [], automations: [], marketingEvents: [], packages: [], giftCards: [], auditLog: [], servicePriceItems: [], siteContentBlocks: [], testimonials: [], customerMedia: [], aiPreviewRequests: [], week: startOfWeek(new Date()), customerFilter: '', customerSegment: 'all', analyticsMonths: 12 };
+  const state = { user: null, profile: null, settings: null, services: [], profiles: [], customers: [], appointments: [], blocks: [], invoices: [], campaigns: [], payments: [], expenses: [], inventory: [], serviceInventory: [], waitlist: [], tasks: [], communications: [], automations: [], marketingEvents: [], packages: [], giftCards: [], auditLog: [], servicePriceItems: [], siteContentBlocks: [], testimonials: [], customerMedia: [], aiPreviewRequests: [], week: startOfWeek(new Date()), customerFilter: '', customerSegment: 'all', period: { mode: 'month', start: monthStart(new Date()) } };
   const $ = id => document.getElementById(id);
   const panelMeta = {
     overview: ['Guten Tag, Liliane', 'Das Wichtigste auf einen Blick.'],
@@ -243,19 +243,56 @@
     return `<article class="metric"><span>${esc(label)}</span><strong>${esc(value)}</strong><div class="metric-foot"><small>${esc(detail)}</small>${change ? `<em class="trend ${change.className}">${esc(change.text)}</em>` : ''}</div></article>`;
   }
 
-  function monthlyRevenueSeries(months) {
-    const first = addMonths(monthStart(new Date()), -(months - 1));
-    return Array.from({ length: months }, (_, index) => {
-      const start = addMonths(first, index);
-      const end = addMonths(start, 1);
-      const appointments = state.appointments.filter(a => new Date(a.starts_at) >= start && new Date(a.starts_at) < end);
+  // Gewählter Auswertungszeitraum der Übersicht: ein Kalendermonat oder ein
+  // Kalenderjahr, plus der unmittelbar davor liegende Vergleichszeitraum.
+  function periodRange(period = state.period) {
+    const step = period.mode === 'year' ? 12 : 1;
+    const start = period.mode === 'year' ? new Date(period.start.getFullYear(), 0, 1) : monthStart(period.start);
+    return {
+      start,
+      end: addMonths(start, step),
+      previousStart: addMonths(start, -step),
+      label: period.mode === 'year' ? String(start.getFullYear()) : fmt(start, { month: 'long', year: 'numeric' }),
+      previousLabel: period.mode === 'year' ? 'Vorjahr' : 'Vormonat'
+    };
+  }
+
+  // Jahr: 12 Monatspunkte. Monat: ein Punkt pro Tag.
+  function periodRevenueSeries(range) {
+    const days = range.end - range.start > 40 * 86400000 ? null : Math.round((range.end - range.start) / 86400000);
+    const buckets = days
+      ? Array.from({ length: days }, (_, index) => { const start = addDays(range.start, index); return { start, end: addDays(start, 1), label: `${start.getDate()}.`, title: fmt(start, { weekday: 'short', day: '2-digit', month: '2-digit' }) }; })
+      : Array.from({ length: 12 }, (_, index) => { const start = addMonths(range.start, index); return { start, end: addMonths(start, 1), label: fmt(start, { month: 'short' }), title: fmt(start, { month: 'long', year: 'numeric' }) }; });
+    return buckets.map(bucket => {
+      const appointments = state.appointments.filter(a => new Date(a.starts_at) >= bucket.start && new Date(a.starts_at) < bucket.end);
       return {
-        start,
-        label: fmt(start, { month: 'short', year: months > 12 ? '2-digit' : undefined }),
+        ...bucket,
         revenue: appointments.reduce((sum, appointment) => sum + appointmentRevenue(appointment), 0),
         completed: appointments.filter(a => a.status === 'completed' && !a.is_private).length
       };
     });
+  }
+
+  // Tageswerte eines Monats als Balken (eine Linie mit vielen Nulltagen
+  // wirkt wie Zacken); gleiche Achsen und Klassen wie revenueChart().
+  function revenueBarChart(series) {
+    const width = 760, height = 235, left = 48, right = 12, top = 12, bottom = 32;
+    const plotWidth = width - left - right, plotHeight = height - top - bottom;
+    const maximum = Math.max(100, ...series.map(item => item.revenue));
+    const slot = plotWidth / series.length;
+    const barWidth = Math.max(4, slot * .62);
+    const grid = Array.from({ length: 5 }, (_, index) => {
+      const lineY = top + (index / 4) * plotHeight;
+      const value = maximum * (1 - index / 4);
+      return `<line class="chart-grid-line" x1="${left}" y1="${lineY}" x2="${width - right}" y2="${lineY}"/><text class="chart-axis-label" x="${left - 7}" y="${lineY + 3}" text-anchor="end">${esc(compactMoney(value))}</text>`;
+    }).join('');
+    const bars = series.map((item, index) => {
+      const barHeight = (item.revenue / maximum) * plotHeight;
+      const x = left + slot * index + (slot - barWidth) / 2;
+      return `<rect class="chart-bar" x="${x}" y="${top + plotHeight - barHeight}" width="${barWidth}" height="${Math.max(item.revenue ? 2 : 0, barHeight)}" rx="2" fill="#6e384c"><title>${esc(item.title || item.label)}: ${esc(money(item.revenue))} · ${item.completed} Behandlungen</title></rect>`;
+    }).join('');
+    const labels = series.map((item, index) => index % 5 === 0 || index === series.length - 1 ? `<text class="chart-axis-label" x="${left + slot * (index + .5)}" y="${height - 8}" text-anchor="middle">${esc(item.label)}</text>` : '').join('');
+    return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Umsatz pro Tag">${grid}${bars}${labels}</svg>`;
   }
 
   function revenueChart(series) {
@@ -273,7 +310,7 @@
       return `<line class="chart-grid-line" x1="${left}" y1="${lineY}" x2="${width - right}" y2="${lineY}"/><text class="chart-axis-label" x="${left - 7}" y="${lineY + 3}" text-anchor="end">${esc(compactMoney(value))}</text>`;
     }).join('');
     const labels = series.map((item, index) => index % labelStep === 0 || index === series.length - 1 ? `<text class="chart-axis-label" x="${x(index)}" y="${height - 8}" text-anchor="middle">${esc(item.label)}</text>` : '').join('');
-    const dots = series.map((item, index) => `<circle class="chart-point" cx="${x(index)}" cy="${y(item.revenue)}" r="3.5"><title>${esc(item.label)}: ${esc(money(item.revenue))} · ${item.completed} Behandlungen</title></circle>`).join('');
+    const dots = series.map((item, index) => `<circle class="chart-point" cx="${x(index)}" cy="${y(item.revenue)}" r="3.5" data-chart-index="${index}"><title>${esc(item.title || item.label)}: ${esc(money(item.revenue))} · ${item.completed} Behandlungen</title></circle>`).join('');
     return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Umsatzentwicklung">${grid}<defs><linearGradient id="revenue-area" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#6e384c" stop-opacity=".24"/><stop offset="1" stop-color="#6e384c" stop-opacity=".02"/></linearGradient></defs><path d="${area}" fill="url(#revenue-area)"/><polyline points="${points}" fill="none" stroke="#6e384c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${dots}${labels}</svg>`;
   }
 
@@ -326,13 +363,13 @@
     const now = new Date();
     const today = dayKey(now);
     const currentMonth = monthStart(now);
-    const previousMonth = addMonths(currentMonth, -1);
     const nextMonth = addMonths(currentMonth, 1);
-    const periodStart = addMonths(currentMonth, -(state.analyticsMonths - 1));
+    const range = periodRange();
+    const periodStart = range.start;
     const booked = state.appointments.filter(a => a.status === 'booked');
     const todayAppointments = booked.filter(a => dayKey(a.starts_at) === today).sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
-    const currentMonthAppointments = state.appointments.filter(a => !a.is_private && a.status !== 'cancelled' && new Date(a.starts_at) >= currentMonth && new Date(a.starts_at) < nextMonth);
-    const previousMonthAppointments = state.appointments.filter(a => !a.is_private && a.status !== 'cancelled' && new Date(a.starts_at) >= previousMonth && new Date(a.starts_at) < currentMonth);
+    const currentMonthAppointments = state.appointments.filter(a => !a.is_private && a.status !== 'cancelled' && new Date(a.starts_at) >= range.start && new Date(a.starts_at) < range.end);
+    const previousMonthAppointments = state.appointments.filter(a => !a.is_private && a.status !== 'cancelled' && new Date(a.starts_at) >= range.previousStart && new Date(a.starts_at) < range.start);
     const currentRevenue = currentMonthAppointments.reduce((sum, appointment) => sum + appointmentRevenue(appointment), 0);
     const previousRevenue = previousMonthAppointments.reduce((sum, appointment) => sum + appointmentRevenue(appointment), 0);
     const customerAnalytics = state.customers.map(customer => ({ customer, stats: customerStats(customer) }));
@@ -346,28 +383,40 @@
     const openInvoices = state.invoices.filter(invoice => ['draft', 'sent'].includes(invoice.status));
     const openInvoiceTotal = openInvoices.reduce((sum, invoice) => sum + Number(invoice.amount_chf || 0), 0);
 
-    $('analytics-period-label').textContent = `Auswertung der letzten ${state.analyticsMonths} Monate`;
+    $('analytics-period-label').textContent = `Auswertung ${range.label} · Vergleich mit ${range.previousLabel}`;
+    $('period-label').textContent = range.label;
+    document.querySelectorAll('[data-period-mode]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.periodMode === state.period.mode)));
+    $('period-next').disabled = range.end > now;
+    $('period-today').hidden = range.start <= now && now < range.end;
     $('metrics').innerHTML = [
-      metricCard('Umsatz im Monat', money(currentRevenue), 'abgeschlossene Behandlungen', trend(currentRevenue, previousRevenue)),
-      metricCard('Termine im Monat', currentMonthAppointments.length, `${currentMonthAppointments.filter(a => a.status === 'completed').length} abgeschlossen`, trend(currentMonthAppointments.length, previousMonthAppointments.length)),
+      metricCard(`Umsatz ${range.label}`, money(currentRevenue), 'abgeschlossene Behandlungen', trend(currentRevenue, previousRevenue)),
+      metricCard(`Termine ${range.label}`, currentMonthAppointments.length, `${currentMonthAppointments.filter(a => a.status === 'completed').length} abgeschlossen`, trend(currentMonthAppointments.length, previousMonthAppointments.length)),
       metricCard('Auslastung 30 Tage', `${percent(occupied, capacity)}%`, `${occupied} von ${capacity} Zeitfenstern`),
       metricCard('Kundenbindung', `${percent(repeatCustomers, customersWithHistory.length)}%`, `${repeatCustomers} Wiederkehrende`),
       metricCard('Marketing-Reichweite', `${percent(reachableCustomers, customersWithEmail)}%`, `${reachableCustomers} von ${customersWithEmail} per E-Mail`),
       metricCard('Offene Forderungen', money(openInvoiceTotal), `${openInvoices.length} Rechnungen`)
     ].join('');
 
-    const series = monthlyRevenueSeries(state.analyticsMonths);
+    const series = periodRevenueSeries(range);
     const periodRevenue = series.reduce((sum, item) => sum + item.revenue, 0);
     const periodCompleted = series.reduce((sum, item) => sum + item.completed, 0);
-    $('revenue-chart').innerHTML = revenueChart(series);
-    $('revenue-chart-summary').innerHTML = `<strong>${esc(money(periodRevenue))}</strong><span>${periodCompleted} Behandlungen im Zeitraum</span>`;
+    $('revenue-chart').innerHTML = state.period.mode === 'year' ? revenueChart(series) : revenueBarChart(series);
+    $('revenue-chart-summary').innerHTML = `<strong>${esc(money(periodRevenue))}</strong><span>${periodCompleted} Behandlungen · ${esc(range.label)}</span>`;
+    // In der Jahresansicht springt ein Klick auf einen Monatspunkt in diesen Monat.
+    if (state.period.mode === 'year') {
+      $('revenue-chart').querySelectorAll('[data-chart-index]').forEach(point => {
+        point.classList.add('is-clickable');
+        point.onclick = () => { state.period = { mode: 'month', start: series[Number(point.dataset.chartIndex)].start }; renderOverview(); };
+      });
+    }
 
     const yearStart = new Date(now.getFullYear(), 0, 1);
-    const yearRevenue = state.appointments.filter(a => new Date(a.starts_at) >= yearStart).reduce((sum, appointment) => sum + appointmentRevenue(appointment), 0);
+    const selectedYearStart = new Date(range.start.getFullYear(), 0, 1);
+    const yearRevenue = state.appointments.filter(a => new Date(a.starts_at) >= selectedYearStart && new Date(a.starts_at) < new Date(range.start.getFullYear() + 1, 0, 1)).reduce((sum, appointment) => sum + appointmentRevenue(appointment), 0);
     const averageTicket = periodCompleted ? periodRevenue / periodCompleted : 0;
     const paidInvoices = state.invoices.filter(invoice => invoice.status === 'paid').reduce((sum, invoice) => sum + Number(invoice.amount_chf || 0), 0);
     $('finance-summary').innerHTML = [
-      ['Umsatz laufendes Jahr', money(yearRevenue), ''],
+      [range.start.getFullYear() === now.getFullYear() ? 'Umsatz laufendes Jahr' : `Umsatz ${range.start.getFullYear()}`, money(yearRevenue), ''],
       ['Ø Behandlung', money(averageTicket), ''],
       ['Bezahlte No-Show-Rechnungen', money(paidInvoices), ''],
       ['Noch ausstehend', money(openInvoiceTotal), openInvoiceTotal ? 'is-warning' : '']
@@ -384,7 +433,7 @@
       ['Dieses Jahr', pipelineYear]
     ].map(([label, value]) => metricCard(label, money(value), 'gebucht, noch nicht durchgeführt')).join('');
 
-    const periodAppointments = state.appointments.filter(a => new Date(a.starts_at) >= periodStart && new Date(a.starts_at) <= now && !a.is_private);
+    const periodAppointments = state.appointments.filter(a => new Date(a.starts_at) >= periodStart && new Date(a.starts_at) < range.end && new Date(a.starts_at) <= now && !a.is_private);
     const serviceRows = state.services.map(service => {
       const appointments = periodAppointments.filter(a => a.service_id === service.id && a.status === 'completed');
       const revenue = appointments.reduce((sum, appointment) => sum + appointmentRevenue(appointment), 0);
@@ -424,12 +473,12 @@
       ['↻', 'Reaktivierung', 'Seit über 180 Tagen ohne Besuch', inactive]
     ].map(([icon, title, detail, value]) => `<div class="opportunity"><span class="opportunity-icon">${icon}</span><span><strong>${esc(title)}</strong><span>${esc(detail)}</span></span><b>${value}</b></div>`).join('');
 
-    const newCustomers = state.customers.filter(customer => new Date(customer.created_at) >= periodStart).length;
+    const newCustomers = state.customers.filter(customer => new Date(customer.created_at) >= periodStart && new Date(customer.created_at) < range.end).length;
     const funnelRows = [
       ['Alle Kontakte', state.customers.length],
       ['Mit E-Mail erreichbar', customersWithEmail],
       ['Marketing-Einwilligung', reachableCustomers],
-      [`Neu in ${state.analyticsMonths} Monaten`, newCustomers]
+      [`Neu ${range.label}`, newCustomers]
     ];
     $('marketing-funnel').innerHTML = funnelRows.map(([label, value]) => `<div class="funnel-row"><div class="funnel-fill" style="width:${percent(value, state.customers.length)}%"></div><div class="funnel-copy"><span>${esc(label)}</span><strong>${value}</strong></div></div>`).join('');
 
@@ -2383,7 +2432,19 @@
   $('customer-chat-photo').onchange = function () { $('customer-chat-filename').textContent = this.files[0]?.name || ''; };
   $('customer-search').oninput = event => { state.customerFilter = event.target.value; renderCustomers(); };
   $('customer-segment').onchange = event => { state.customerSegment = event.target.value; renderCustomers(); };
-  $('analytics-period').onchange = event => { state.analyticsMonths = Number(event.target.value) || 12; renderOverview(); };
+  document.querySelectorAll('[data-period-mode]').forEach(button => button.onclick = () => {
+    const mode = button.dataset.periodMode;
+    if (mode === state.period.mode) return;
+    // Beim Wechsel Monat -> Jahr bleibt das Jahr, Jahr -> Monat springt auf
+    // den aktuellen Monat, wenn es das laufende Jahr ist, sonst auf Januar.
+    const year = state.period.start.getFullYear();
+    const now = new Date();
+    state.period = { mode, start: mode === 'year' ? new Date(year, 0, 1) : (year === now.getFullYear() ? monthStart(now) : new Date(year, 0, 1)) };
+    renderOverview();
+  });
+  $('period-prev').onclick = () => { state.period = { ...state.period, start: addMonths(periodRange().start, state.period.mode === 'year' ? -12 : -1) }; renderOverview(); };
+  $('period-next').onclick = () => { state.period = { ...state.period, start: addMonths(periodRange().start, state.period.mode === 'year' ? 12 : 1) }; renderOverview(); };
+  $('period-today').onclick = () => { state.period = { mode: state.period.mode, start: state.period.mode === 'year' ? new Date(new Date().getFullYear(), 0, 1) : monthStart(new Date()) }; renderOverview(); };
   $('customer-import').onclick = () => $('customer-import-file').click();
   $('customer-import-file').onchange = event => { const file = event.target.files?.[0]; if (file) importCustomers(file); event.target.value = ''; };
   document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.addEventListener('click', event => { if (event.target === backdrop) closeModal(backdrop.id); }));

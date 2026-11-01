@@ -37,6 +37,16 @@ button { cursor: pointer; }
 .analytics-toolbar span { color: var(--dash-muted); font-size: .78rem; }
 .analytics-toolbar label { display: flex; align-items: center; gap: .55rem; color: var(--dash-muted); font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
 .analytics-toolbar select { padding: .5rem .7rem; border: 1px solid var(--dash-line); border-radius: 8px; color: var(--dash-ink); background: white; }
+.analytics-toolbar .period-switch { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.period-mode { display: inline-flex; padding: 3px; border: 1px solid var(--dash-line); border-radius: 9px; background: white; }
+.period-mode button { padding: .38rem .8rem; border: 0; border-radius: 6px; background: transparent; color: var(--dash-muted); font-size: .78rem; font-weight: 700; }
+.period-mode button[aria-pressed="true"] { background: var(--dash-wine); color: #fff; }
+.period-nav { display: inline-flex; align-items: center; gap: .2rem; }
+.period-nav button { width: 32px; height: 32px; padding: 0; border: 1px solid var(--dash-line); border-radius: 8px; background: white; color: var(--dash-ink); font-size: 1.1rem; line-height: 1; }
+.period-nav button:disabled { opacity: .35; cursor: not-allowed; }
+.period-nav strong { min-width: 9.5rem; text-align: center; font-size: .9rem; color: var(--dash-ink); }
+.chart-point.is-clickable { cursor: pointer; }
+.chart-point.is-clickable:hover { r: 6; }
 .daily-brief { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; margin-bottom: .8rem; padding: 1.2rem 1.35rem; overflow: hidden; border-radius: 16px; color: #f8eee2; background: linear-gradient(120deg, #2c1f1a 0%, #50302f 65%, #6e384c 100%); box-shadow: 0 15px 40px rgba(52,31,27,.14); }
 .daily-brief .eyebrow { color: #ddb977; font-size: .62rem; font-weight: 750; letter-spacing: .16em; text-transform: uppercase; }
 .daily-brief h2 { margin: .35rem 0 .2rem; color: #fff8ea; font: 500 clamp(1.15rem, 2vw, 1.55rem) 'Playfair Display', serif; }

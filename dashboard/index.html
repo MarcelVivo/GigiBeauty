@@ -7,7 +7,7 @@
   <title>GiGi Beauty | Admin Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261101-4">
+  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261101-5">
 </head>
 <body>
   <div class="login-screen" id="login-screen">
@@ -64,10 +64,12 @@
       <section class="view-panel" data-view-panel="overview">
         <section class="daily-brief"><div><span class="eyebrow">Heute im Fokus</span><h2 id="daily-brief-title">Übersicht wird erstellt.</h2><p id="daily-brief-copy"></p></div><div class="brief-actions" id="daily-brief-actions"></div></section>
         <div class="analytics-toolbar">
-          <div><strong>Business Cockpit</strong><span id="analytics-period-label">Auswertung der letzten 12 Monate</span></div>
-          <label for="analytics-period">Zeitraum
-            <select id="analytics-period"><option value="6">6 Monate</option><option value="12" selected>12 Monate</option><option value="24">24 Monate</option></select>
-          </label>
+          <div><strong>Business Cockpit</strong><span id="analytics-period-label"></span></div>
+          <div class="period-switch">
+            <div class="period-mode" role="group" aria-label="Ansicht"><button type="button" data-period-mode="month" aria-pressed="true">Monat</button><button type="button" data-period-mode="year" aria-pressed="false">Jahr</button></div>
+            <div class="period-nav"><button type="button" id="period-prev" aria-label="Vorheriger Zeitraum">‹</button><strong id="period-label"></strong><button type="button" id="period-next" aria-label="Nächster Zeitraum">›</button></div>
+            <button type="button" class="link-button" id="period-today">Aktuell</button>
+          </div>
         </div>
         <div class="metric-grid" id="metrics"></div>
         <div class="analytics-grid">
@@ -398,7 +400,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../assets/js/supabase-config.js?v=20260808-1"></script>
-  <script src="../assets/js/dashboard.js?v=20261101-4"></script>
+  <script src="../assets/js/dashboard.js?v=20261101-5"></script>
   <script src="../assets/js/password-toggle.js"></script>
 </body>
 </html>
