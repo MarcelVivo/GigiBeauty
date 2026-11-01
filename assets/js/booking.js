@@ -503,9 +503,9 @@
     if (upcoming.length) {
       const next = upcoming[0];
       const nextDate = new Date(next.starts_at);
-      const canCancel = nextDate.getTime() - Date.now() >= 12 * 60 * 60 * 1000;
+      const canCancel = nextDate.getTime() - Date.now() >= 24 * 60 * 60 * 1000;
       const extra = upcoming.slice(1).map(item => {
-        const itemCanCancel = new Date(item.starts_at).getTime() - Date.now() >= 12 * 60 * 60 * 1000;
+        const itemCanCancel = new Date(item.starts_at).getTime() - Date.now() >= 24 * 60 * 60 * 1000;
         return `<div class="acc-row"><time>${formatDate(new Date(item.starts_at), { day: '2-digit', month: '2-digit' })}</time><span class="acc-row-name">${escapeHtml(item.services?.name || 'Behandlung')}<small>${formatDate(new Date(item.starts_at), { hour: '2-digit', minute: '2-digit' })} Uhr</small></span>${itemCanCancel ? `<button class="acc-quiet" type="button" data-cancel-own="${item.id}">Stornieren</button>` : '<small class="acc-row-status">Bitte direkt melden</small>'}</div>`;
       }).join('');
       hero.innerHTML = `<div class="acc-panel account-hero-card">

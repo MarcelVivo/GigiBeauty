@@ -82,7 +82,7 @@ function emailHtml(item: OutboxItem) {
   let content = '';
 
   if (item.kind === 'confirmation') {
-    content = `<p>Dein Termin ist verbindlich reserviert.</p><p><strong>${service}</strong><br>${esc(date)} Uhr</p><p>Du kannst kostenlos bis 12 Stunden vor dem Termin stornieren. Bei Nichterscheinen ohne rechtzeitige Abmeldung wird die vereinbarte Behandlung in Rechnung gestellt.</p>`;
+    content = `<p>Dein Termin ist verbindlich reserviert.</p><p><strong>${service}</strong><br>${esc(date)} Uhr</p><p>Du kannst kostenlos bis 24 Stunden vor dem Termin stornieren. Bei Nichterscheinen ohne rechtzeitige Abmeldung wird die vereinbarte Behandlung in Rechnung gestellt.</p>`;
   } else if (item.kind === 'reminder') {
     content = `<p>Eine kleine Erinnerung an deinen bevorstehenden Termin:</p><p><strong>${service}</strong><br>${esc(date)} Uhr</p><p>Wir freuen uns auf dich!</p>`;
   } else if (item.kind === 'cancellation') {
@@ -93,7 +93,7 @@ function emailHtml(item: OutboxItem) {
       ? `<p>Die Dauer deines Termins wurde angepasst. Dein Termin neu:</p><p><strong>${service}</strong><br>${esc(range)} Uhr</p>`
       : `<p>Dein Termin wurde verschoben. Der neue Termin:</p><p><strong>${service}</strong><br>${esc(range)} Uhr</p>`;
   } else if (item.kind === 'invoice') {
-    content = `<p><strong>Rechnung Nr. ${String(item.payload.invoice_number || '').padStart(5, '0')}</strong></p><p>Da der Termin am ${esc(date)} Uhr ohne eine Abmeldung mindestens 12 Stunden vorher nicht wahrgenommen wurde, wird gemäss unseren AGB der vereinbarte Behandlungspreis berechnet.</p><table role="presentation" width="100%" style="margin:22px 0;border-collapse:collapse"><tr><td style="padding:12px;border-top:1px solid #e1d4c2;border-bottom:1px solid #e1d4c2">Nichterscheinen / reservierter Termin</td><td style="padding:12px;border-top:1px solid #e1d4c2;border-bottom:1px solid #e1d4c2;text-align:right"><strong>CHF ${Number(item.payload.amount_chf || 0).toFixed(2)}</strong></td></tr></table><p>Zahlbar bis ${esc(item.payload.due_at)}. Bitte antworte auf diese E-Mail, um die Zahlungsangaben zu erhalten oder falls du Fragen zur Rechnung hast.</p>`;
+    content = `<p><strong>Rechnung Nr. ${String(item.payload.invoice_number || '').padStart(5, '0')}</strong></p><p>Da der Termin am ${esc(date)} Uhr ohne eine Abmeldung mindestens 24 Stunden vorher nicht wahrgenommen wurde, wird gemäss unseren AGB der vereinbarte Behandlungspreis berechnet.</p><table role="presentation" width="100%" style="margin:22px 0;border-collapse:collapse"><tr><td style="padding:12px;border-top:1px solid #e1d4c2;border-bottom:1px solid #e1d4c2">Nichterscheinen / reservierter Termin</td><td style="padding:12px;border-top:1px solid #e1d4c2;border-bottom:1px solid #e1d4c2;text-align:right"><strong>CHF ${Number(item.payload.amount_chf || 0).toFixed(2)}</strong></td></tr></table><p>Zahlbar bis ${esc(item.payload.due_at)}. Bitte antworte auf diese E-Mail, um die Zahlungsangaben zu erhalten oder falls du Fragen zur Rechnung hast.</p>`;
   } else if (item.kind === 'review') {
     const reviewButton = googleReviewUrl ? `<p><a href="${esc(trackedLink(item, googleReviewUrl))}" style="display:inline-block;padding:13px 20px;background:#6e384c;color:#fff;text-decoration:none;border-radius:7px">GiGi Beauty bewerten</a></p>` : '';
     content = `<p>${esc(item.payload.content || 'Deine Meinung ist uns wichtig. Wenn du zufrieden warst, freuen wir uns über deine Bewertung.')}</p>${reviewButton}`;
