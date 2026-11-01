@@ -7,7 +7,7 @@
   <title>GiGi Beauty | Admin Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261101-9">
+  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261101-10">
 </head>
 <body>
   <div class="login-screen" id="login-screen">
@@ -391,8 +391,9 @@
     <button class="modal-close" type="button" data-close>×</button>
     <h2 id="insight-title"></h2>
     <p class="insight-subtitle" id="insight-subtitle"></p>
+    <div class="insight-actions" id="insight-actions" hidden><button class="primary" type="button" id="insight-action"></button><small id="insight-action-note"></small></div>
+    <div class="form-message" id="insight-message"></div>
     <div class="insight-list" id="insight-list"></div>
-    <div class="insight-actions" id="insight-actions" hidden><small id="insight-action-note"></small><button class="primary" type="button" id="insight-action"></button></div>
   </div></div>
 
   <div class="chart-tooltip" id="chart-tooltip" role="tooltip" hidden><strong id="chart-tooltip-value"></strong><span id="chart-tooltip-label"></span></div>
@@ -418,7 +419,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../assets/js/supabase-config.js?v=20260808-1"></script>
-  <script src="../assets/js/dashboard.js?v=20261101-10"></script>
+  <script src="../assets/js/dashboard.js?v=20261101-11"></script>
   <script src="../assets/js/password-toggle.js"></script>
 </body>
 </html>

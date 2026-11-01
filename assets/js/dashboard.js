@@ -296,7 +296,7 @@
     const ids = list.filter(a => new Date(a.ends_at) <= new Date()).map(a => a.id);
     if (!ids.length || !confirm(`${ids.length} vergangene Termine als «Abgeschlossen» markieren? Die Kundinnen erhalten dabei keine E-Mails.`)) { $('insight-action').disabled = false; return; }
     const { data, error } = await db.rpc('complete_past_appointments', { appointment_ids: ids });
-    if (error) { $('insight-action').disabled = false; toast(error.message); return; }
+    if (error) { $('insight-action').disabled = false; $('insight-message').textContent = `Fehler: ${error.message}`; return; }
     closeModal('insight-modal');
     await loadAll();
     toast(`${data ?? ids.length} Termine als abgeschlossen markiert.`);
@@ -321,6 +321,7 @@
     $('insight-list').innerHTML = rows || '<div class="empty">Keine Einträge in diesem Bereich.</div>';
     // Optionale Sammelaktion unter der Liste (z. B. "alle abschliessen").
     $('insight-actions').hidden = !action || !rows;
+    $('insight-message').textContent = '';
     if (action && rows) {
       $('insight-action').textContent = action.label;
       $('insight-action-note').textContent = action.note || '';
