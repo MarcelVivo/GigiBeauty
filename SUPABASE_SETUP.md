@@ -77,7 +77,7 @@ Fehlgeschlagene Mails werden höchstens fünfmal versucht; Fehler stehen in `ema
 | `cancellation_hours` | 24 | kostenlose Online-Stornierung bis so viele Stunden vorher |
 | `reminder_hours` | 4 | Erinnerung so viele Stunden vorher |
 | `min_lead_hours` | 2 | Online-Buchung frühestens so viele Stunden im Voraus |
-| `max_advance_days` | 90 | Online-Buchung höchstens so viele Tage im Voraus |
+| `max_advance_days` | 180 | Online-Buchung höchstens so viele Tage im Voraus |
 | `max_open_bookings` | 3 | höchstens so viele offene Online-Termine pro Konto |
 | `admin_email` | l.serrano@gmx.ch | Empfängerin der Info-Mails (Buchung, Storno, Verschiebung, Dauer) |
 

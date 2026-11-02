@@ -192,7 +192,7 @@
   function slotStatus(slot) {
     const now = new Date();
     if (slot.start <= now) return 'past';
-    const rules = state.rules || { minLeadHours: 2, maxAdvanceDays: 90 };
+    const rules = state.rules || { minLeadHours: 2, maxAdvanceDays: 180 };
     if (slot.start < new Date(now.getTime() + rules.minLeadHours * 3600000)) return 'soon';
     if (slot.start > new Date(now.getTime() + rules.maxAdvanceDays * 86400000)) return 'later';
     const busy = state.unavailable.some(item => slot.start < new Date(item.ends_at) && slot.end > new Date(item.starts_at));
@@ -218,7 +218,7 @@
     state.priceItems = priceItems || [];
     state.hours = settings?.opening_hours || defaultHours;
     // Gleiche Regeln wie book_appointment() in der Datenbank.
-    state.rules = { minLeadHours: Number(settings?.min_lead_hours ?? 2), maxAdvanceDays: Number(settings?.max_advance_days ?? 90) };
+    state.rules = { minLeadHours: Number(settings?.min_lead_hours ?? 2), maxAdvanceDays: Number(settings?.max_advance_days ?? 180) };
     state.selectedService = initialService();
     pendingServiceSlug = null;
     renderServices();
@@ -312,7 +312,7 @@
     const status = slotStatus(slot);
     const disabled = status !== 'available';
     return `<button class="slot is-${status}" type="button" data-slot="${slot.start.toISOString()}" ${disabled ? 'disabled' : ''}>
-      <span>${slot.label}</span><span>${({ available: 'frei', past: 'vorbei', soon: 'kurzfristig', later: 'noch nicht buchbar' })[status] || 'belegt'}</span>
+      <span>${slot.label}</span><span title="${status === 'later' ? 'Noch nicht buchbar' : ''}">${({ available: 'frei', past: 'vorbei', soon: 'kurzfristig', later: 'später' })[status] || 'belegt'}</span>
     </button>`;
   }
 
