@@ -735,6 +735,37 @@
     setTimeout(() => { message.textContent = ''; }, 2000);
   }
 
+  function openDeleteAccount() {
+    document.getElementById('delete-account-form').reset();
+    document.getElementById('delete-account-submit').disabled = true;
+    document.getElementById('delete-account-message').textContent = '';
+    openModal(document.getElementById('delete-account-modal'));
+  }
+
+  // Die Löschung läuft über die Edge Function delete-account (Daten, Login
+  // und Fotos); danach ist die Sitzung ungültig -> lokal abmelden.
+  async function deleteOwnAccount(event) {
+    event.preventDefault();
+    const message = document.getElementById('delete-account-message');
+    const submit = document.getElementById('delete-account-submit');
+    if (document.getElementById('delete-account-confirm').value.trim().toUpperCase() !== 'LÖSCHEN') return;
+    submit.disabled = true;
+    message.className = 'form-message';
+    message.textContent = 'Dein Konto wird gelöscht …';
+    const { data, error } = await db.functions.invoke('delete-account', { method: 'POST' });
+    if (error || !data?.deleted) {
+      let text = data?.error;
+      try { text = text || (await error?.context?.json())?.error; } catch { /* keine JSON-Antwort */ }
+      message.textContent = text || 'Das Konto konnte nicht gelöscht werden. Bitte versuche es später erneut oder melde dich bei info@gigibeauty.ch.';
+      submit.disabled = false;
+      return;
+    }
+    await db.auth.signOut({ scope: 'local' }).catch(() => {});
+    closeModal(document.getElementById('delete-account-modal'));
+    closeModal(els.accountModal);
+    showToast('Dein Konto wurde gelöscht. Danke für dein Vertrauen.');
+  }
+
   async function cancelOwnAppointment(id) {
     if (!confirm('Diesen Termin verbindlich stornieren?')) return;
     const { error } = await db.rpc('cancel_own_appointment', { appointment_id: id });
@@ -788,6 +819,11 @@
   });
   document.getElementById('my-appointments').addEventListener('click', openAccount);
   document.getElementById('account-newsletter').addEventListener('change', saveNewsletterConsent);
+  document.getElementById('account-delete-open').addEventListener('click', openDeleteAccount);
+  document.getElementById('delete-account-form').addEventListener('submit', deleteOwnAccount);
+  document.getElementById('delete-account-confirm').addEventListener('input', event => {
+    document.getElementById('delete-account-submit').disabled = event.target.value.trim().toUpperCase() !== 'LÖSCHEN';
+  });
   document.getElementById('account-chat-form').addEventListener('submit', sendChatMessage);
   (() => {
     const chatText = document.getElementById('account-chat-text');

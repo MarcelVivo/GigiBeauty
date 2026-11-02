@@ -14,7 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/global.css">
   <link rel="stylesheet" href="../assets/css/pages/nav.css">
-  <link rel="stylesheet" href="../assets/css/pages/booking.css?v=20261101-4">
+  <link rel="stylesheet" href="../assets/css/pages/booking.css?v=20261102-1">
   <link rel="stylesheet" href="../assets/css/pages/beauty-konfigurator.css">
 <meta name="theme-color" content="#211711">
 <!-- PWA / App -->
@@ -211,9 +211,31 @@
               <span class="form-message" id="account-newsletter-message"></span>
             </label>
             <a class="acc-review" href="https://share.google/fqi3emL8ITxyLjpff" target="_blank" rel="noopener">GiGi Beauty bewerten <span aria-hidden="true">★</span></a>
+            <button class="acc-delete-link" type="button" id="account-delete-open">Konto löschen</button>
           </div>
         </div>
       </div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="delete-account-modal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="delete-account-title">
+      <button class="modal-close" type="button" data-close-modal aria-label="Schliessen">×</button>
+      <span class="modal-eyebrow">Mein GiGi Beauty</span>
+      <h2 id="delete-account-title">Konto löschen</h2>
+      <p>Wenn du dein Konto löschst:</p>
+      <ul class="delete-account-list">
+        <li>werden dein Login und deine Kundendaten gelöscht,</li>
+        <li>werden deine kommenden Termine storniert,</li>
+        <li>werden deine Nachrichten und Fotos an Liliane gelöscht,</li>
+        <li>erhältst du keine Newsletter und Erinnerungen mehr.</li>
+      </ul>
+      <p class="delete-account-note">Vergangene Termine bleiben ohne deinen Namen für die Statistik erhalten, Rechnungen aufgrund der gesetzlichen Aufbewahrungspflicht. Das Löschen kann nicht rückgängig gemacht werden.</p>
+      <form class="form-stack" id="delete-account-form">
+        <div class="field"><label for="delete-account-confirm">Zur Bestätigung LÖSCHEN eingeben</label><input id="delete-account-confirm" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>
+        <div class="form-message" id="delete-account-message"></div>
+        <button class="btn btn-danger" type="submit" id="delete-account-submit" disabled>Konto endgültig löschen</button>
+      </form>
     </section>
   </div>
 
@@ -296,7 +318,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
   <script src="../assets/js/supabase-config.js"></script>
   <script src="../assets/js/main.js"></script>
-  <script src="../assets/js/booking.js?v=20261102-2"></script>
+  <script src="../assets/js/booking.js?v=20261102-3"></script>
   <script src="../assets/js/beauty-konfigurator.js?v=20261101-1"></script>
   <script src="../assets/js/password-toggle.js"></script>
   <script>

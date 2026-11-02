@@ -56,8 +56,16 @@ function trackedLink(item: OutboxItem, target: string) {
 // 202611010001_owner_booking_notifications.sql.
 function ownerNoticeHtml(item: OutboxItem) {
   const p = item.payload;
-  const headings: Record<string, string> = { booked: 'Neue Buchung', cancelled: 'Termin storniert', rescheduled: 'Termin verschoben', duration: 'Dauer geändert' };
+  const headings: Record<string, string> = { booked: 'Neue Buchung', cancelled: 'Termin storniert', rescheduled: 'Termin verschoben', duration: 'Dauer geändert', account_deleted: 'Konto gelöscht' };
   const row = (label: string, value: unknown) => value ? `<tr><td style="padding:8px 12px 8px 0;color:#8b7d73;font:13px Arial,sans-serif;vertical-align:top">${label}</td><td style="padding:8px 0;font:15px Arial,sans-serif">${esc(value)}</td></tr>` : '';
+  if (p.event === 'account_deleted') {
+    const cancelled = Number(p.cancelled_count || 0);
+    const rows = [
+      row('Kundin', p.customer_name),
+      row('Stornierte Termine', cancelled ? `${cancelled} (separate Info-Mails)` : 'keine')
+    ].join('');
+    return `<!doctype html><html><body style="margin:0;background:#f4efe8;color:#2a201b;font-family:Georgia,serif"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding:30px 15px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:auto;background:#fffdf9;border:1px solid #e1d4c2"><tr><td style="padding:34px"><p style="margin:0 0 24px;color:#ae813f;letter-spacing:3px;font-size:12px">GiGi BEAUTY · INTERN</p><h1 style="font-weight:normal;font-size:26px">Konto gelöscht</h1><p style="font:15px/1.5 Arial,sans-serif">Die Kundin hat ihr Konto selbst gelöscht. Login, Karteikarte, Chat und Fotos sind entfernt, vergangene Termine bleiben anonymisiert für die Statistik, Rechnungen bleiben erhalten.</p><table role="presentation" cellpadding="0" cellspacing="0">${rows}</table></td></tr></table></td></tr></table></body></html>`;
+  }
   const phone = p.customer_phone ? `<a href="tel:${esc(String(p.customer_phone).replace(/\s+/g, ''))}" style="color:#6e384c">${esc(p.customer_phone)}</a>` : '';
   const email = p.customer_email ? `<a href="mailto:${esc(p.customer_email)}" style="color:#6e384c">${esc(p.customer_email)}</a>` : '';
   const rows = [
