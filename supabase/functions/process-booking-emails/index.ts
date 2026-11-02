@@ -81,6 +81,13 @@ function ownerNoticeHtml(item: OutboxItem) {
   return `<!doctype html><html><body style="margin:0;background:#f4efe8;color:#2a201b;font-family:Georgia,serif"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding:30px 15px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:auto;background:#fffdf9;border:1px solid #e1d4c2"><tr><td style="padding:34px"><p style="margin:0 0 24px;color:#ae813f;letter-spacing:3px;font-size:12px">GiGi BEAUTY · INTERN</p><h1 style="font-weight:normal;font-size:26px">${esc(headings[String(p.event)] || item.subject)}</h1><table role="presentation" cellpadding="0" cellspacing="0">${rows}</table><p style="margin-top:28px"><a href="https://www.gigibeauty.ch/dashboard/" style="display:inline-block;padding:13px 20px;background:#6e384c;color:#fff;text-decoration:none;border-radius:7px">Im Dashboard öffnen</a></p></td></tr></table></td></tr></table></body></html>`;
 }
 
+// «In Kalender eintragen» -> Edge Function calendar (.ics).
+function calendarButton(item: OutboxItem) {
+  const id = item.payload.appointment_id;
+  if (!id) return '';
+  return `<p><a href="${esc(`${supabaseUrl}/functions/v1/calendar?id=${encodeURIComponent(String(id))}`)}" style="display:inline-block;padding:11px 18px;border:1px solid #6e384c;color:#6e384c;text-decoration:none;border-radius:7px;font:14px Arial,sans-serif">In Kalender eintragen</a></p>`;
+}
+
 function emailHtml(item: OutboxItem) {
   if (item.kind === 'owner_notice') return ownerNoticeHtml(item);
   const name = esc(item.recipient_name || 'liebe Kundin');
@@ -90,16 +97,16 @@ function emailHtml(item: OutboxItem) {
   let content = '';
 
   if (item.kind === 'confirmation') {
-    content = `<p>Dein Termin ist verbindlich reserviert.</p><p><strong>${service}</strong><br>${esc(date)} Uhr</p><p>Du kannst kostenlos bis 24 Stunden vor dem Termin stornieren. Bei Nichterscheinen ohne rechtzeitige Abmeldung wird die vereinbarte Behandlung in Rechnung gestellt.</p>`;
+    content = `<p>Dein Termin ist verbindlich reserviert.</p><p><strong>${service}</strong><br>${esc(date)} Uhr</p>${calendarButton(item)}<p>Du kannst kostenlos bis 24 Stunden vor dem Termin stornieren. Bei Nichterscheinen ohne rechtzeitige Abmeldung wird die vereinbarte Behandlung in Rechnung gestellt.</p>`;
   } else if (item.kind === 'reminder') {
-    content = `<p>Eine kleine Erinnerung an deinen bevorstehenden Termin:</p><p><strong>${service}</strong><br>${esc(date)} Uhr</p><p>Wir freuen uns auf dich!</p>`;
+    content = `<p>Eine kleine Erinnerung an deinen bevorstehenden Termin:</p><p><strong>${service}</strong><br>${esc(date)} Uhr</p>${calendarButton(item)}<p>Wir freuen uns auf dich!</p>`;
   } else if (item.kind === 'cancellation') {
     content = `<p>Dein Termin für <strong>${service}</strong> am ${esc(date)} Uhr wurde storniert.</p>`;
   } else if (item.kind === 'rescheduled') {
     const range = item.payload.starts_at ? appointmentRange(item.payload.starts_at, item.payload.ends_at) : '';
     content = item.payload.change === 'duration'
       ? `<p>Die Dauer deines Termins wurde angepasst. Dein Termin neu:</p><p><strong>${service}</strong><br>${esc(range)} Uhr</p>`
-      : `<p>Dein Termin wurde verschoben. Der neue Termin:</p><p><strong>${service}</strong><br>${esc(range)} Uhr</p>`;
+      : `<p>Dein Termin wurde verschoben. Der neue Termin:</p><p><strong>${service}</strong><br>${esc(range)} Uhr</p>${calendarButton(item)}`;
   } else if (item.kind === 'invoice') {
     content = `<p><strong>Rechnung Nr. ${String(item.payload.invoice_number || '').padStart(5, '0')}</strong></p><p>Da der Termin am ${esc(date)} Uhr ohne eine Abmeldung mindestens 24 Stunden vorher nicht wahrgenommen wurde, wird gemäss unseren AGB der vereinbarte Behandlungspreis berechnet.</p><table role="presentation" width="100%" style="margin:22px 0;border-collapse:collapse"><tr><td style="padding:12px;border-top:1px solid #e1d4c2;border-bottom:1px solid #e1d4c2">Nichterscheinen / reservierter Termin</td><td style="padding:12px;border-top:1px solid #e1d4c2;border-bottom:1px solid #e1d4c2;text-align:right"><strong>CHF ${Number(item.payload.amount_chf || 0).toFixed(2)}</strong></td></tr></table><p>Zahlbar bis ${esc(item.payload.due_at)}. Bitte antworte auf diese E-Mail, um die Zahlungsangaben zu erhalten oder falls du Fragen zur Rechnung hast.</p>`;
   } else if (item.kind === 'review') {

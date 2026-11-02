@@ -513,7 +513,7 @@
     document.getElementById('booking-form').reset();
     state.selectedSlot = null;
     await refreshCalendar();
-    showToast('Dein Termin ist bestätigt. Die Bestätigung kommt per E-Mail.');
+    showToast('Dein Termin ist bestätigt. Die Bestätigung mit Kalender-Link kommt per E-Mail.');
   }
 
   const APPOINTMENT_STATUS_LABEL = { booked: 'Gebucht', completed: 'Abgeschlossen', cancelled: 'Storniert', no_show: 'Nicht erschienen' };
@@ -537,6 +537,8 @@
     }));
   }
 
+  const calendarUrl = id => `${CONFIG.url}/functions/v1/calendar?id=${encodeURIComponent(id)}`;
+
   function accountDateTile(date) {
     return `<div class="acc-date" aria-hidden="true">
       <span>${formatDate(date, { month: 'short' }).replace('.', '')}</span>
@@ -553,7 +555,7 @@
       const canCancel = next.can_cancel ?? nextDate.getTime() - Date.now() >= 24 * 60 * 60 * 1000;
       const extra = upcoming.slice(1).map(item => {
         const itemCanCancel = item.can_cancel ?? new Date(item.starts_at).getTime() - Date.now() >= 24 * 60 * 60 * 1000;
-        return `<div class="acc-row"><time>${formatDate(new Date(item.starts_at), { day: '2-digit', month: '2-digit' })}</time><span class="acc-row-name">${escapeHtml(item.services?.name || 'Behandlung')}<small>${formatDate(new Date(item.starts_at), { hour: '2-digit', minute: '2-digit' })} Uhr</small></span>${itemCanCancel ? `<button class="acc-quiet" type="button" data-cancel-own="${item.id}">Stornieren</button>` : '<small class="acc-row-status">Bitte direkt melden</small>'}</div>`;
+        return `<div class="acc-row"><time>${formatDate(new Date(item.starts_at), { day: '2-digit', month: '2-digit' })}</time><span class="acc-row-name">${escapeHtml(item.services?.name || 'Behandlung')}<small>${formatDate(new Date(item.starts_at), { hour: '2-digit', minute: '2-digit' })} Uhr · <a class="acc-cal-link" href="${calendarUrl(item.id)}" target="_blank" rel="noopener">Kalender</a></small></span>${itemCanCancel ? `<button class="acc-quiet" type="button" data-cancel-own="${item.id}">Stornieren</button>` : '<small class="acc-row-status">Bitte direkt melden</small>'}</div>`;
       }).join('');
       hero.innerHTML = `<div class="acc-panel account-hero-card">
         <span class="acc-kicker">Deine nächste Behandlung</span>
@@ -563,6 +565,7 @@
             <h3 class="acc-next-service">${escapeHtml(next.services?.name || 'Behandlung')}</h3>
             <p class="acc-next-when">${formatDate(nextDate, { weekday: 'long', day: 'numeric', month: 'long' })} · ${formatDate(nextDate, { hour: '2-digit', minute: '2-digit' })} Uhr</p>
             <span class="acc-countdown">${appointmentCountdown(next.starts_at)}</span>
+            <a class="acc-cal-link" href="${calendarUrl(next.id)}" target="_blank" rel="noopener">In Kalender eintragen</a>
           </div>
         </div>
         ${canCancel ? `<button class="acc-quiet acc-next-cancel" type="button" data-cancel-own="${next.id}">Termin stornieren</button>` : '<p class="acc-hint acc-next-cancel">Kurzfristige Änderungen bitte direkt mit Liliane besprechen.</p>'}

@@ -1187,6 +1187,8 @@ html.booking-embed body.booking-page {
 .acc-review { color: var(--acc-muted); font-size: .88rem; text-decoration: none; transition: color .2s ease; }
 .acc-review span { color: var(--acc-gold); margin-left: .15rem; }
 .acc-review:hover { color: var(--acc-champagne); }
+.acc-cal-link { display: inline-block; margin-top: .45rem; color: var(--acc-gold); font-size: .82rem; text-decoration: underline; text-underline-offset: .2em; }
+.acc-row-name .acc-cal-link { margin-top: 0; font-size: inherit; }
 .acc-delete-link { padding: 0; border: 0; background: none; color: var(--acc-muted); font: inherit; font-size: .8rem; text-decoration: underline; text-underline-offset: .2em; opacity: .75; cursor: pointer; }
 .acc-delete-link:hover { color: #e8b7ad; opacity: 1; }
 .delete-account-list { margin: .2rem 0 1rem 1.1rem; color: var(--text-muted); font-size: .9rem; line-height: 1.6; }
