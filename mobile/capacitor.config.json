@@ -11,11 +11,13 @@
     "errorPath": "index.html"
   },
   "appendUserAgent": "GiGiBeautyApp",
-  "backgroundColor": "#f4efe8",
+  "backgroundColor": "#211711",
   "ios": {
-    "contentInset": "never"
+    "contentInset": "always",
+    "backgroundColor": "#211711"
   },
   "android": {
-    "allowMixedContent": false
+    "allowMixedContent": false,
+    "backgroundColor": "#211711"
   }
 }
