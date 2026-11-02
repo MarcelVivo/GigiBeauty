@@ -44,6 +44,8 @@ update public.profiles set role = 'admin' where email = 'ADRESSE-VON-LILIANE';
 | `process-booking-emails` | ja | verschickt alles aus `email_outbox` über Resend |
 | `track-marketing` | **nein** (`--no-verify-jwt`) | Öffnungen/Klicks, Abmelden und Newsletter-Bestätigung (beides per Knopf/POST) |
 | `beauty-ai-preview` | ja | KI-Vorschau über OpenAI, nur von `AIP_ALLOWED_ORIGIN`, max. 10 Bilder/Stunde/IP |
+| `delete-account` | ja | Kundin löscht ihr Konto selbst (`delete_own_account_data()`, Fotos im Speicher) |
+| `calendar` | **nein** (`--no-verify-jwt`) | «In Kalender eintragen»: Termin als .ics (nur Behandlung, Zeit, Adresse) |
 
 ```sh
 supabase secrets set \
@@ -57,6 +59,8 @@ supabase secrets set \
 supabase functions deploy process-booking-emails --use-api
 supabase functions deploy track-marketing --use-api --no-verify-jwt
 supabase functions deploy beauty-ai-preview --use-api
+supabase functions deploy delete-account --use-api
+supabase functions deploy calendar --use-api --no-verify-jwt
 ```
 
 Im OpenAI-Konto ein Monatsbudget mit Warnung setzen.
