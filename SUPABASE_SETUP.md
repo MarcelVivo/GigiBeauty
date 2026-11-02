@@ -75,7 +75,7 @@ Fehlgeschlagene Mails werden höchstens fünfmal versucht; Fehler stehen in `ema
 | Spalte | Live-Wert | Bedeutung |
 |---|---|---|
 | `cancellation_hours` | 24 | kostenlose Online-Stornierung bis so viele Stunden vorher |
-| `reminder_hours` | 4 | Erinnerung so viele Stunden vorher |
+| `reminder_hours` | 24 | Erinnerung so viele Stunden vorher (an die E-Mail am Termin, sonst aus der Kundenkartei) |
 | `min_lead_hours` | 2 | Online-Buchung frühestens so viele Stunden im Voraus |
 | `max_advance_days` | 180 | Online-Buchung höchstens so viele Tage im Voraus |
 | `max_open_bookings` | 3 | höchstens so viele offene Online-Termine pro Konto |
