@@ -1,0 +1,21 @@
+{
+  "appId": "ch.gigibeauty.app",
+  "appName": "GiGi Beauty",
+  "webDir": "www",
+  "server": {
+    "url": "https://www.gigibeauty.ch/?app=1",
+    "allowNavigation": [
+      "www.gigibeauty.ch",
+      "gigibeauty.ch"
+    ],
+    "errorPath": "index.html"
+  },
+  "appendUserAgent": "GiGiBeautyApp",
+  "backgroundColor": "#f4efe8",
+  "ios": {
+    "contentInset": "never"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
