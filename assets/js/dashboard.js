@@ -869,7 +869,10 @@
     const gridHeight = (max - min) * CAL_PX_PER_MIN;
     const hourMarks = [];
     for (let m = Math.ceil(min / 60) * 60; m <= max; m += 60) hourMarks.push(m);
-    const gutter = `<div class="admin-time-gutter">${hourMarks.map(m => `<span style="top:${(compact ? 0 : 3.1 * 16) + (m - min) * CAL_PX_PER_MIN}px">${String(Math.floor(m / 60)).padStart(2, '0')}:00</span>`).join('')}</div>`;
+    // Die Zeitleiste hat eine unsichtbare Kopfzeile im selben Aufbau wie die
+    // Tage, damit die Stunden exakt auf den Rasterlinien stehen (die Höhe der
+    // Kopfzeile hängt von der Schrift ab).
+    const gutter = `<div class="admin-time-gutter"><div class="admin-day-head admin-gutter-head" aria-hidden="true"><strong>&nbsp;</strong><span>&nbsp;</span></div><div class="admin-gutter-body">${hourMarks.map(m => `<span style="top:${(m - min) * CAL_PX_PER_MIN}px">${String(Math.floor(m / 60)).padStart(2, '0')}:00</span>`).join('')}</div></div>`;
 
     const dayCols = days.map(date => {
       const key = dayKey(date);
@@ -1155,13 +1158,23 @@
   }
   function closeGapMenu() { $('gap-menu').hidden = true; }
 
-  // Verschieben mit Maus/Trackpad: natives Drag & Drop. Die Vorschau im
-  // Raster zeigt die neue Uhrzeit (an der Stelle, an der die Karte gegriffen
-  // wurde, ausgerichtet) und wird rot, wenn der Platz belegt ist. Halten
-  // über «‹»/«›» wechselt die Woche (bindWeekDragToShift).
+  // Verschieben mit Maus/Trackpad: natives Drag & Drop. Das Abbild, das
+  // der Browser beim Ziehen mitführt, würde genau über der Vorschau liegen
+  // und die neue Uhrzeit verdecken -- es wird durch ein unsichtbares Bild
+  // ersetzt. Sichtbar ist stattdessen eine Vorschau-Karte im Raster (an der
+  // Griffstelle ausgerichtet) mit neuer Uhrzeit und Name, plus Markierung
+  // der Startzeit in der Zeitleiste; rot = Platz belegt. Halten über
+  // «‹»/«›» wechselt die Woche (bindWeekDragToShift).
   let draggedAppointmentId = null;
   let draggedDurationMinutes = 0;
   let draggedGrabOffset = 0;
+  let draggedName = '';
+  const blankDragImage = new Image();
+  blankDragImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+  function clearDragPreview() {
+    document.querySelectorAll('.admin-day.drop-target').forEach(el => el.classList.remove('drop-target'));
+    document.querySelectorAll('.drop-ghost, .drag-time-marker').forEach(el => el.remove());
+  }
 
   function attachCalendarDragHandlers(gridMin, gridMax) {
     document.querySelectorAll('.calendar-event[data-edit-appointment]').forEach(button => {
@@ -1171,15 +1184,16 @@
         const appointment = state.appointments.find(a => a.id === draggedAppointmentId);
         draggedDurationMinutes = appointment ? Math.round((new Date(appointment.ends_at) - new Date(appointment.starts_at)) / 60000) : 90;
         draggedGrabOffset = event.clientY - button.getBoundingClientRect().top;
+        draggedName = appointment?.customer_name || '';
         event.dataTransfer.effectAllowed = 'move';
         event.dataTransfer.setData('text/plain', draggedAppointmentId);
+        if (blankDragImage.complete) event.dataTransfer.setDragImage(blankDragImage, 0, 0);
         button.classList.add('is-dragging');
         closeGapMenu();
       });
       button.addEventListener('dragend', () => {
         button.classList.remove('is-dragging');
-        document.querySelectorAll('.admin-day.drop-target').forEach(el => el.classList.remove('drop-target'));
-        document.querySelectorAll('.drop-ghost').forEach(el => el.remove());
+        clearDragPreview();
         draggedAppointmentId = null;
       });
     });
@@ -1193,13 +1207,26 @@
         const raw = gridMin + (event.clientY - draggedGrabOffset - body.getBoundingClientRect().top) / CAL_PX_PER_MIN;
         const start = Math.max(gridMin, Math.min(gridMax - draggedDurationMinutes, Math.round(raw / CAL_SLOT_MINUTES) * CAL_SLOT_MINUTES));
         const valid = !busyRangesOfDay(day.dataset.date, draggedAppointmentId).some(r => start < r.end && start + draggedDurationMinutes > r.start);
+        // Nur eine Vorschau gleichzeitig (auch beim Wechsel in eine andere Spalte).
+        document.querySelectorAll('.drop-ghost').forEach(el => { if (el.parentElement !== body) el.remove(); });
+        document.querySelectorAll('.admin-day.drop-target').forEach(el => { if (el !== day) el.classList.remove('drop-target'); });
         let ghost = body.querySelector('.drop-ghost');
-        if (!ghost) { ghost = document.createElement('div'); ghost.className = 'drop-ghost'; body.appendChild(ghost); }
+        if (!ghost) { ghost = document.createElement('div'); ghost.className = 'drop-ghost'; ghost.innerHTML = '<time></time><strong></strong>'; body.appendChild(ghost); }
         ghost.style.top = `${(start - gridMin) * CAL_PX_PER_MIN}px`;
         ghost.style.height = `${Math.max(28, draggedDurationMinutes * CAL_PX_PER_MIN)}px`;
         ghost.classList.toggle('is-conflict', !valid);
-        ghost.textContent = valid ? `${clockLabel(start)}–${clockLabel(start + draggedDurationMinutes)}` : `${clockLabel(start)} · belegt`;
+        ghost.querySelector('time').textContent = valid ? `${clockLabel(start)}–${clockLabel(start + draggedDurationMinutes)}` : `${clockLabel(start)} · belegt`;
+        ghost.querySelector('strong').textContent = draggedName;
         ghost.dataset.minutesOfDay = start;
+        // Startzeit zusätzlich links in der Zeitleiste markieren.
+        const gutter = $('admin-calendar').querySelector('.admin-time-gutter');
+        if (gutter) {
+          let marker = gutter.querySelector('.drag-time-marker');
+          if (!marker) { marker = document.createElement('span'); marker.className = 'drag-time-marker'; gutter.appendChild(marker); }
+          marker.style.top = `${body.getBoundingClientRect().top - gutter.getBoundingClientRect().top + (start - gridMin) * CAL_PX_PER_MIN}px`;
+          marker.textContent = clockLabel(start);
+          marker.classList.toggle('is-conflict', !valid);
+        }
         ghost.dataset.valid = valid ? '1' : '';
         event.dataTransfer.dropEffect = valid ? 'move' : 'none';
       });
@@ -1207,14 +1234,14 @@
         if (day.contains(event.relatedTarget)) return;
         day.classList.remove('drop-target');
         body.querySelector('.drop-ghost')?.remove();
+        $('admin-calendar').querySelector('.drag-time-marker')?.remove();
       });
       day.addEventListener('drop', event => {
         event.preventDefault();
         const ghost = body.querySelector('.drop-ghost');
         const minutesOfDay = ghost ? Number(ghost.dataset.minutesOfDay) : null;
         const valid = ghost?.dataset.valid === '1';
-        day.classList.remove('drop-target');
-        ghost?.remove();
+        clearDragPreview();
         if (!draggedAppointmentId || minutesOfDay === null) return;
         const id = draggedAppointmentId;
         draggedAppointmentId = null;

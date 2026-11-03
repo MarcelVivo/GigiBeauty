@@ -301,8 +301,10 @@ tr[data-price-item].drop-after { box-shadow: inset 0 -2px 0 0 var(--dash-wine); 
    Tagesspalte absolut nach Uhrzeit positioniert, damit Drag & Drop nicht nur
    den Tag, sondern auch die genaue Uhrzeit setzen kann. */
 .admin-calendar { display: flex; gap: .6rem; align-items: flex-start; overflow: auto; max-height: 70vh; padding-bottom: .3rem; }
-.admin-time-gutter { position: relative; flex: 0 0 46px; padding-top: 3.1rem; }
-.admin-time-gutter span { position: absolute; left: 0; right: .35rem; transform: translateY(-50%); text-align: right; font-size: .68rem; color: var(--dash-muted); }
+.admin-time-gutter { position: relative; flex: 0 0 46px; }
+.admin-gutter-head { visibility: hidden; border-bottom-color: transparent; }
+.admin-gutter-body { position: relative; }
+.admin-gutter-body span { position: absolute; left: 0; right: .35rem; transform: translateY(-50%); text-align: right; font-size: .68rem; color: var(--dash-muted); }
 .admin-day { flex: 1 1 0; min-width: 130px; display: flex; flex-direction: column; padding: 0; border-radius: 12px; background: #eee8e0; overflow: hidden; }
 .admin-day-head { padding: .65rem; margin-bottom: 0; border-bottom: 1px solid #ddd3c7; text-align: center; }
 .admin-day-head strong { display: block; }
@@ -382,8 +384,13 @@ body.is-moving-appointment, body.is-moving-appointment * { cursor: grabbing !imp
 .gap-menu-options button:hover:not(:disabled), .gap-menu-options button:focus-visible { border-color: var(--dash-wine); color: var(--dash-wine); }
 .gap-menu-options button:disabled { opacity: .35; cursor: not-allowed; }
 .gap-menu small { display: block; margin-top: .5rem; color: var(--dash-muted); font-size: .7rem; }
-.drop-ghost { position: absolute; left: .35rem; right: .35rem; z-index: 3; padding: .3rem .5rem; border-radius: 8px; background: rgba(110,56,76,.14); border: 1.5px dashed var(--dash-wine); color: var(--dash-wine); font-size: .7rem; font-weight: 750; pointer-events: none; }
-.drop-ghost.is-conflict { background: rgba(179,38,30,.12); border-color: #b3261e; color: #b3261e; }
+.drop-ghost { position: absolute; left: .35rem; right: .35rem; z-index: 3; padding: .3rem .5rem; overflow: hidden; border: 2px solid var(--dash-wine); border-left-width: 4px; border-radius: 8px; background: rgba(255,255,255,.96); color: var(--dash-ink); box-shadow: 0 10px 26px rgba(45,34,28,.22); pointer-events: none; }
+.drop-ghost time { display: block; color: var(--dash-wine); font-size: .82rem; font-weight: 800; line-height: 1.2; }
+.drop-ghost strong { display: block; margin-top: .1rem; font-size: .74rem; line-height: 1.2; }
+.drop-ghost.is-conflict { border-color: #b3261e; background: #fbe9e7; }
+.drop-ghost.is-conflict time { color: #b3261e; }
+.drag-time-marker { position: absolute; left: 0; right: .2rem; z-index: 3; padding: .1rem .2rem; transform: translateY(-50%); border-radius: 5px; background: var(--dash-wine); color: white !important; font-size: .66rem; font-weight: 800; text-align: center; pointer-events: none; }
+.drag-time-marker.is-conflict { background: #b3261e; }
 .calendar-event.is-dragging { opacity: .35; }
 .admin-day.drop-target { background: #e4d9cc; }
 #week-prev.drop-target, #week-next.drop-target { box-shadow: 0 0 0 2px var(--dash-wine) inset; }
@@ -652,7 +659,6 @@ tr.is-unread { background: #fdf6e3; font-weight: 650; }
 .admin-calendar.is-day-view { overflow-x: hidden; touch-action: pan-y; padding-top: .7rem; }
 .admin-calendar.is-day-view .admin-day { min-width: 0; }
 .admin-calendar.is-day-view .admin-day-head { display: none; }
-.admin-calendar.is-day-view .admin-time-gutter { padding-top: 0; }
 
 .notify-label { display: flex; align-items: center; gap: .5rem; font-weight: 600; }
 .notify-field small { display: block; margin-top: .25rem; }
