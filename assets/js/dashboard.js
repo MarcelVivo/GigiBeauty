@@ -2479,6 +2479,7 @@
     $('move-date').value = dayKey(start < today ? today : start);
     $('move-outside').checked = false;
     $('move-panel').hidden = false;
+    renderMoveWeeks();
     renderMoveSlots();
     $('move-panel').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
@@ -2523,6 +2524,44 @@
     $('move-slots').querySelectorAll('[data-move-start]').forEach(button => button.onclick = () => {
       const start = new Date(button.dataset.moveStart);
       openResizeConfirm(appointment, start, new Date(start.getTime() + durationMs), 'move');
+    });
+  }
+
+  // Schnellwahl: derselbe Wochentag zur selben Uhrzeit in 1–4 Wochen
+  // (gerechnet ab dem Termin, nicht ab heute). Frei -> Sicherheitsfrage und
+  // verschieben; belegt/geschlossen -> diesen Tag unten mit seinen freien
+  // Zeiten anzeigen.
+  function renderMoveWeeks() {
+    const appointment = state.appointments.find(a => a.id === moveAppointmentId);
+    if (!appointment) return;
+    const oldStart = new Date(appointment.starts_at);
+    const durationMs = new Date(appointment.ends_at) - oldStart;
+    const toMin = value => Number(value.split(':')[0]) * 60 + Number(value.split(':')[1]);
+    const outside = $('move-outside').checked;
+    const options = [1, 2, 3, 4].map(weeks => {
+      const start = addDays(oldStart, 7 * weeks);
+      const end = new Date(start.getTime() + durationMs);
+      const opening = (state.settings?.opening_hours || {})[String(start.getDay())];
+      const startMin = start.getHours() * 60 + start.getMinutes();
+      const endMin = startMin + Math.round(durationMs / 60000);
+      const closed = !outside && (!opening || startMin < toMin(opening[0]) || endMin > toMin(opening[1]));
+      const taken = [...state.appointments.filter(a => a.id !== appointment.id && a.status !== 'cancelled'), ...state.blocks]
+        .some(item => start < new Date(item.ends_at) && end > new Date(item.starts_at));
+      const status = start <= new Date() ? 'vorbei' : taken ? 'belegt' : closed ? 'geschlossen' : '';
+      return { weeks, start, end, status };
+    });
+    $('move-weeks').innerHTML = options.map(option => `<button type="button" class="move-week${option.status ? ' is-unavailable' : ''}" data-move-weeks="${option.weeks}">
+        <span class="move-week-label">+${option.weeks} ${option.weeks === 1 ? 'Woche' : 'Wochen'}</span>
+        <strong>${fmt(option.start, { weekday: 'short', day: '2-digit', month: '2-digit' })}</strong>
+        <span>${fmt(option.start, { hour: '2-digit', minute: '2-digit' })} Uhr</span>
+        <small>${option.status ? `${option.status} · andere Zeit wählen` : 'frei'}</small>
+      </button>`).join('');
+    $('move-weeks').querySelectorAll('[data-move-weeks]').forEach(button => button.onclick = () => {
+      const option = options.find(item => item.weeks === Number(button.dataset.moveWeeks));
+      if (!option.status) { openResizeConfirm(appointment, option.start, option.end, 'move'); return; }
+      $('move-date').value = dayKey(option.start);
+      renderMoveSlots();
+      $('move-day').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     });
   }
 
@@ -3218,7 +3257,7 @@
     if ($('move-panel').hidden) openMovePanel(item); else $('move-panel').hidden = true;
   };
   $('move-date').onchange = renderMoveSlots;
-  $('move-outside').onchange = renderMoveSlots;
+  $('move-outside').onchange = () => { renderMoveWeeks(); renderMoveSlots(); };
   $('move-prev').onclick = () => shiftMoveDate(-1);
   $('move-next').onclick = () => shiftMoveDate(1);
   document.querySelectorAll('[data-move-jump]').forEach(button => button.onclick = () => {
