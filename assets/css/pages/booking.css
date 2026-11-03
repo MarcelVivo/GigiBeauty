@@ -212,11 +212,26 @@
 .calendar-section { min-height: 0; flex: 1 1 auto; display: flex; flex-direction: column; }
 .calendar-section > .step-kicker { flex: 0 0 auto; margin-bottom: .45rem; }
 .calendar-card { min-height: 0; flex: 1 1 auto; display: flex; flex-direction: column; background: rgba(24, 22, 28, .7); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; box-shadow: 0 28px 70px rgba(0,0,0,.22); }
-.calendar-toolbar { flex: 0 0 auto; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: .75rem; padding: .65rem 1rem; border-bottom: 1px solid var(--line); }
-.calendar-nav, .view-switch { display: flex; align-items: center; gap: .5rem; }
-.calendar-nav .icon-button { width: 40px; height: 40px; padding: 0; font-size: 1.1rem; }
-.calendar-title { text-align: center; color: var(--gold-light); font-family: var(--font-serif); font-size: 1.35rem; }
-.view-switch { justify-content: flex-end; }
+/* Kalender-Leiste: oben Ansicht + «Heute», darunter beschriftete Pfeile
+   direkt neben dem Datum und eine Orientierungszeile. */
+.calendar-toolbar { flex: 0 0 auto; display: grid; gap: .55rem; padding: .7rem 1rem .8rem; border-bottom: 1px solid var(--line); }
+.calendar-toolbar-top { display: flex; align-items: center; justify-content: space-between; gap: .6rem; flex-wrap: wrap; }
+.view-switch { display: flex; align-items: center; gap: .4rem; }
+.view-switch-label { margin-right: .15rem; color: var(--text-muted); font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; }
+.small-button:disabled { opacity: .4; cursor: default; }
+.calendar-nav { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: .75rem; }
+.nav-button { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; padding: .55rem 1rem; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--gold-light); font: 600 .74rem/1.1 var(--font-body); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+.nav-button > span[aria-hidden] { font-size: 1.25rem; line-height: 1; }
+.nav-button:hover:not(:disabled) { color: var(--ink); background: var(--gold); border-color: var(--gold); }
+.nav-button:disabled { opacity: .3; cursor: default; }
+#calendar-prev { justify-self: start; }
+#calendar-next { justify-self: end; }
+.calendar-heading { text-align: center; }
+.calendar-title { color: var(--gold-light); font-family: var(--font-serif); font-size: 1.45rem; line-height: 1.15; }
+.calendar-subtitle { margin-top: .2rem; color: var(--text-muted); font-size: .8rem; letter-spacing: .02em; }
+.week-day.is-today .week-day-head { border-bottom-color: var(--gold); }
+.week-day.is-today .week-day-head strong { color: var(--gold); }
+.week-day-head em { display: block; margin-bottom: .1rem; color: var(--gold); font-size: .62rem; font-style: normal; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
 
 .calendar-content { min-height: 0; flex: 1 1 auto; padding: .65rem; overflow: hidden; }
 .calendar-loading { height: 100%; min-height: 180px; display: grid; place-items: center; color: var(--text-muted); letter-spacing: .12em; }
@@ -422,13 +437,17 @@
   }
   .booking-hero p { max-width: 32rem; margin-inline: auto; font-size: 1.02rem; line-height: 1.45; }
   .booking-shell { padding: 0 14px 2.5rem; }
-  .calendar-toolbar { grid-template-columns: 1fr; text-align: center; }
   .booking-topline { margin-bottom: .8rem; }
   .small-button,
   .icon-button,
   .view-button { min-height: 44px; }
-  .calendar-nav, .view-switch { justify-content: center; }
-  .calendar-title { grid-row: 1; font-size: 1.45rem; }
+  .calendar-toolbar-top { justify-content: center; }
+  .view-switch-label { display: none; }
+  .calendar-nav { grid-template-columns: auto 1fr auto; gap: .45rem; }
+  .nav-button { padding: .5rem .75rem; }
+  .nav-button .nav-label { display: none; }
+  .nav-button > span[aria-hidden] { font-size: 1.5rem; }
+  .calendar-title { font-size: 1.3rem; }
   .service-picker { margin: 0 -14px 1rem; }
   .service-picker > .service-grid { padding-inline: 14px; }
   .service-grid {
@@ -458,8 +477,6 @@
   .calendar-section > .step-kicker { margin-bottom: .7rem; }
   .calendar-card { border-radius: 14px; }
   .calendar-toolbar { gap: .7rem; padding: .85rem .75rem; }
-  .calendar-nav { order: 2; }
-  .view-switch { order: 3; }
   .calendar-content { padding: .75rem; overflow: visible; }
   .month-day { min-height: 76px; padding: .35rem; }
   .availability-badge { font-size: 0; margin-top: .3rem; }
@@ -494,7 +511,7 @@
   .service-grid { scroll-padding-inline: 10px; }
   .service-tile { flex-basis: calc(100vw - 52px); min-height: 148px; }
   .view-button { padding-inline: .78rem; }
-  .calendar-nav .small-button { padding-inline: .8rem; }
+  .small-button { padding-inline: .8rem; }
 }
 
 @media (min-width: 721px) and (max-height: 820px) {

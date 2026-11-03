@@ -53,6 +53,7 @@
     priceItemList: document.getElementById('price-item-list'),
     calendar: document.getElementById('calendar-content'),
     calendarTitle: document.getElementById('calendar-title'),
+    calendarSubtitle: document.getElementById('calendar-subtitle'),
     authButton: document.getElementById('auth-button'),
     authModal: document.getElementById('auth-modal'),
     bookingModal: document.getElementById('booking-modal'),
@@ -316,7 +317,40 @@
     if (state.view === 'day') renderDay();
     else if (state.view === 'week') renderWeek();
     else renderMonth();
+    updateCalendarHeader();
     bindSlots();
+  }
+
+  // Orientierung in der Kalender-Leiste: beschriftete Pfeile passend zur
+  // Ansicht, unter dem Datum «Diese Woche» / «in 3 Wochen» usw. und die
+  // Anzahl freier Termine; zurück in die Vergangenheit geht es nicht.
+  function updateCalendarHeader() {
+    const unit = { day: ['Vorheriger Tag', 'Nächster Tag'], week: ['Vorherige Woche', 'Nächste Woche'], month: ['Vorheriger Monat', 'Nächster Monat'] }[state.view];
+    document.getElementById('calendar-prev-label').textContent = unit[0];
+    document.getElementById('calendar-next-label').textContent = unit[1];
+    document.getElementById('calendar-prev').setAttribute('aria-label', unit[0]);
+    document.getElementById('calendar-next').setAttribute('aria-label', unit[1]);
+    const today = startOfDay(new Date());
+    let days, offset, relative;
+    if (state.view === 'day') {
+      days = [startOfDay(state.cursor)];
+      offset = Math.round((days[0] - today) / 86400000);
+      relative = offset === 0 ? 'Heute' : offset === 1 ? 'Morgen' : offset === -1 ? 'Gestern' : offset > 0 ? `in ${offset} Tagen` : `vor ${-offset} Tagen`;
+    } else if (state.view === 'week') {
+      const start = startOfWeek(state.cursor);
+      days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
+      offset = Math.round((start - startOfWeek(today)) / (7 * 86400000));
+      relative = offset === 0 ? 'Diese Woche' : offset === 1 ? 'Nächste Woche' : offset === -1 ? 'Letzte Woche' : offset > 0 ? `in ${offset} Wochen` : `vor ${-offset} Wochen`;
+    } else {
+      const first = new Date(state.cursor.getFullYear(), state.cursor.getMonth(), 1);
+      days = Array.from({ length: new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate() }, (_, i) => addDays(first, i));
+      offset = (first.getFullYear() - today.getFullYear()) * 12 + first.getMonth() - today.getMonth();
+      relative = offset === 0 ? 'Dieser Monat' : offset === 1 ? 'Nächster Monat' : offset > 0 ? `in ${offset} Monaten` : `vor ${-offset} Monaten`;
+    }
+    const free = days.reduce((sum, day) => sum + createSlots(day).filter(slot => slotStatus(slot) === 'available').length, 0);
+    els.calendarSubtitle.textContent = `${relative} · ${free ? `${free} freie${free === 1 ? 'r' : ''} Termin${free === 1 ? '' : 'e'}` : 'keine freien Termine, bitte weiterblättern'}`;
+    document.getElementById('calendar-prev').disabled = offset <= 0;
+    document.getElementById('calendar-today').disabled = offset === 0;
   }
 
   function slotButton(slot) {
@@ -341,7 +375,9 @@
   function renderWeek() {
     const start = startOfWeek(state.cursor);
     const end = addDays(start, 6);
-    els.calendarTitle.textContent = `${formatDate(start, { day: '2-digit', month: 'short' })} bis ${formatDate(end, { day: '2-digit', month: 'short', year: 'numeric' })}`;
+    els.calendarTitle.textContent = start.getMonth() === end.getMonth()
+      ? `${start.getDate()}.–${formatDate(end, { day: 'numeric', month: 'long', year: 'numeric' })}`
+      : `${formatDate(start, { day: 'numeric', month: 'long' })} – ${formatDate(end, { day: 'numeric', month: 'long', year: 'numeric' })}`;
     // Handy: Tage untereinander (CSS), vergangene Tage nur als «vorbei»
     // statt einer Liste ausgegrauter Zeiten.
     const compact = window.matchMedia('(max-width: 720px)').matches;
@@ -352,7 +388,8 @@
       const past = day < today;
       const afternoonNote = day.getDay() === 3 && slots.length && !(compact && past) ? '<div class="closed-day">Mittwoch Nachmittag geschlossen</div>' : '';
       const list = compact && past ? '<div class="closed-day">vorbei</div>' : slots.length ? slots.map(slotButton).join('') : '<div class="closed-day">geschlossen</div>';
-      return `<div class="week-day${past ? ' is-past' : ''}"><div class="week-day-head"><strong>${formatDate(day, { weekday: compact ? 'long' : 'short' })}</strong><span>${formatDate(day, { day: '2-digit', month: '2-digit' })}</span></div>
+      const isToday = day.getTime() === today.getTime();
+      return `<div class="week-day${past ? ' is-past' : ''}${isToday ? ' is-today' : ''}"><div class="week-day-head">${isToday ? '<em>Heute</em>' : ''}<strong>${formatDate(day, { weekday: compact ? 'long' : 'short' })}</strong><span>${formatDate(day, { day: '2-digit', month: '2-digit' })}</span></div>
         <div class="slot-list">${list}${afternoonNote}</div></div>`;
     }).join('')}</div>`;
   }
