@@ -71,6 +71,7 @@ Im OpenAI-Konto ein Monatsbudget mit Warnung setzen.
 |---|---|---|
 | `process-booking-emails-every-5-min` | jede Minute (`* * * * *`) | POST an `/functions/v1/process-booking-emails` mit `Authorization: Bearer PUBLISHABLE_KEY` und `x-process-secret: PROCESS_EMAIL_SECRET` (im Dashboard unter Integrations → Cron anlegen; enthält das Secret und ist deshalb nicht in einer Migration) |
 | `daily-crm-tasks` | täglich 05:00 UTC | `select public.generate_daily_crm_tasks()` (Migration `202611010013`) |
+| `apply-opening-hours-schedule` | stündlich (`7 * * * *`) | übernimmt fällige geplante Öffnungszeiten in `opening_hours` (Migration `202611030002`) |
 
 Fehlgeschlagene Mails werden höchstens fünfmal versucht; Fehler stehen in `email_outbox.last_error`.
 
@@ -83,6 +84,7 @@ Fehlgeschlagene Mails werden höchstens fünfmal versucht; Fehler stehen in `ema
 | `min_lead_hours` | 2 | Online-Buchung frühestens so viele Stunden im Voraus |
 | `max_advance_days` | 180 | Online-Buchung höchstens so viele Tage im Voraus |
 | `max_open_bookings` | 3 | höchstens so viele offene Online-Termine pro Konto |
+| `opening_hours` / `opening_hours_schedule` | aktuell / ab 2027-01-01 neu | aktuelle Zeiten bzw. geplante Änderungen mit Startdatum; massgebend pro Tag ist `opening_hours_on(datum)` |
 | `admin_email` | l.serrano@gmx.ch | Empfängerin der Info-Mails (Buchung, Storno, Verschiebung, Dauer) |
 
 Rechnungen (`invoices.due_at`) sind standardmässig innert 7 Tagen zahlbar.

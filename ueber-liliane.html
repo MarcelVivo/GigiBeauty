@@ -739,6 +739,8 @@
   .footer-newsletter-message.is-success { color: #3f7360; }
 
   .footer-hours { display: grid; grid-template-columns: auto auto; gap: 0.28rem 1.2rem; font-size: 0.9rem; }
+  .footer-hours .footer-hours-next { grid-column: 1 / -1; margin-top: .55rem; font-weight: 700; }
+  .footer-hours .footer-hours-next + span { display: none; }
 
   .footer-icons { display: flex; gap: 0.65rem; margin-top: 0.2rem; }
   .footer-icon-link {
@@ -1037,8 +1039,18 @@
     <div class="footer-col">
       <h3 class="footer-heading">Öffnungszeiten</h3>
       <div class="footer-hours" data-footer-hours>
-        <span>Montag bis Freitag</span><span>09.00 bis 20.30 Uhr</span>
+        <span>Montag bis Dienstag</span><span>09.00 bis 19.30 Uhr</span>
+        <span>Mittwoch</span><span>09.00 bis 13.15 Uhr</span>
+        <span>Donnerstag bis Freitag</span><span>09.00 bis 19.30 Uhr</span>
         <span>Samstag</span><span>09.00 bis 18.00 Uhr</span>
+        <span>Sonntag</span><span>Geschlossen</span>
+        <span class="footer-hours-next">Ab 1. Januar 2027</span><span></span>
+        <span>Montag</span><span>09.00 bis 17.30 Uhr</span>
+        <span>Dienstag</span><span>09.00 bis 19.15 Uhr</span>
+        <span>Mittwoch</span><span>09.00 bis 13.15 Uhr</span>
+        <span>Donnerstag</span><span>09.00 bis 17.30 Uhr</span>
+        <span>Freitag</span><span>09.00 bis 19.15 Uhr</span>
+        <span>Samstag</span><span>09.00 bis 17.30 Uhr</span>
         <span>Sonntag</span><span>Geschlossen</span>
       </div>
     </div>
@@ -1387,11 +1399,24 @@
       }).join('');
     }
 
+    // Geplante Öffnungszeiten (opening_hours_schedule) bis zum Stichtag
+    // unter den aktuellen Zeiten zeigen. Zwei Spalten pro Zeile, damit die
+    // Abwechslung Tag/Zeit im Raster erhalten bleibt.
+    function formatPlannedHoursFooter(schedule) {
+      var now = new Date();
+      var today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+      return (Array.isArray(schedule) ? schedule : []).filter(function (entry) { return entry && entry.from > today && entry.hours; }).map(function (entry) {
+        var parts = entry.from.split('-').map(Number);
+        var label = new Intl.DateTimeFormat('de-CH', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(parts[0], parts[1] - 1, parts[2]));
+        return '<span class="footer-hours-next">Ab ' + label + '</span><span></span>' + formatOpeningHoursFooter(entry.hours);
+      }).join('');
+    }
+
     function normalizePhoneDigits(value) {
       return String(value || '').replace(/[^0-9]/g, '');
     }
 
-    contentDb.from('business_settings').select('public_phone, public_email, address_line1, address_line2, opening_hours').maybeSingle()
+    contentDb.from('business_settings').select('public_phone, public_email, address_line1, address_line2, opening_hours, opening_hours_schedule').maybeSingle()
       .then(function (result) {
         var settings = result.data;
         if (!settings) return;
@@ -1412,7 +1437,7 @@
           });
         }
         if (settings.opening_hours) {
-          document.querySelectorAll('[data-footer-hours]').forEach(function (el) { el.innerHTML = formatOpeningHoursFooter(settings.opening_hours); });
+          document.querySelectorAll('[data-footer-hours]').forEach(function (el) { el.innerHTML = formatOpeningHoursFooter(settings.opening_hours) + formatPlannedHoursFooter(settings.opening_hours_schedule); });
         }
         if (settings.address_line1 || settings.address_line2) {
           var mapQuery = encodeURIComponent([settings.address_line1, settings.address_line2].filter(Boolean).join(', '));

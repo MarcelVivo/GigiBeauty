@@ -22,6 +22,16 @@
 
   const WEEKDAY_LABELS = { '1': 'Montag', '2': 'Dienstag', '3': 'Mittwoch', '4': 'Donnerstag', '5': 'Freitag', '6': 'Samstag', '7': 'Sonntag' };
 
+  // Öffnungszeiten an einem Tag ([von, bis] oder undefined = geschlossen):
+  // geplante Änderungen (opening_hours_schedule) gelten ab ihrem
+  // Startdatum, sonst opening_hours -- gleiche Regel wie opening_hours_on()
+  // in der Datenbank. Schlüssel 1 = Montag … 7 = Sonntag.
+  function openingRangeOn(date) {
+    const key = dayKey(date);
+    const planned = (state.settings?.opening_hours_schedule || []).filter(entry => entry.from <= key).sort((a, b) => (a.from < b.from ? 1 : -1))[0];
+    return (planned?.hours || state.settings?.opening_hours || {})[String(((new Date(date).getDay() + 6) % 7) + 1)];
+  }
+
   function startOfDay(value) { const d = new Date(value); d.setHours(0, 0, 0, 0); return d; }
   function startOfWeek(value) { const d = startOfDay(value); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d; }
   function addDays(value, days) { const d = new Date(value); d.setDate(d.getDate() + days); return d; }
@@ -479,10 +489,9 @@
   }
 
   function availableSlots(from, to) {
-    const hours = state.settings?.opening_hours || {};
     let slots = 0;
     for (let date = startOfDay(from); date < to; date = addDays(date, 1)) {
-      const range = hours[String(date.getDay())];
+      const range = openingRangeOn(date);
       if (!range) continue;
       const minutes = value => Number(value.split(':')[0]) * 60 + Number(value.split(':')[1]);
       slots += Math.max(0, Math.floor((minutes(range[1]) - minutes(range[0])) / 90));
@@ -732,9 +741,8 @@
   // wird. Auf volle Stunden gerundet, plus eine Pufferstunde unten.
   function calendarBounds(days) {
     const toMin = value => Number(value.split(':')[0]) * 60 + Number(value.split(':')[1]);
-    const hours = state.settings?.opening_hours || {};
     let min = null, max = null;
-    Object.values(hours).forEach(range => {
+    days.map(openingRangeOn).forEach(range => {
       if (!range) return;
       const start = toMin(range[0]), end = toMin(range[1]);
       min = min === null ? start : Math.min(min, start);
@@ -815,11 +823,10 @@
   // Woche auf dem Handy: 7 Tage untereinander statt 7 Spalten.
   function renderWeekAgenda() {
     const today = dayKey(new Date());
-    const hours = state.settings?.opening_hours || {};
     $('admin-calendar').innerHTML = `<div class="cal-agenda">${Array.from({ length: 7 }, (_, index) => {
       const date = addDays(state.week, index), key = dayKey(date), items = dayItems(key);
       const appointments = items.filter(i => i.type === 'appointment' && !i.is_private).length;
-      const closed = !hours[String(date.getDay())];
+      const closed = !openingRangeOn(date);
       return `<section class="agenda-day${key === today ? ' is-today' : ''}"><button type="button" class="agenda-head" data-goto-day="${key}"><strong>${esc(fmt(date, { weekday: 'long', day: 'numeric', month: 'long' }))}</strong><span>${appointments ? `${appointments} Termin${appointments === 1 ? '' : 'e'}` : closed ? 'Geschlossen' : 'Frei'} ›</span></button>${items.length ? items.map(agendaItem).join('') : ''}</section>`;
     }).join('')}</div>`;
     bindCalendarListActions($('admin-calendar'));
@@ -2210,6 +2217,17 @@
     const grid = $('opening-hours-grid');
     if (!grid) return;
     const hours = state.settings?.opening_hours || {};
+    // Geplante Änderungen anzeigen (werden am Stichtag automatisch zu den
+    // aktuellen Zeiten, siehe apply_opening_hours_schedule()).
+    let planned = $('opening-hours-planned');
+    if (!planned) { planned = document.createElement('div'); planned.id = 'opening-hours-planned'; planned.className = 'opening-hours-planned'; grid.before(planned); }
+    const schedule = (state.settings?.opening_hours_schedule || []).filter(entry => entry.from > dayKey(new Date()));
+    planned.hidden = !schedule.length;
+    planned.innerHTML = schedule.map(entry => {
+      const [y, m, d] = entry.from.split('-').map(Number);
+      const days = Object.keys(WEEKDAY_LABELS).map(key => `<li><span>${WEEKDAY_LABELS[key]}</span><span>${entry.hours?.[key] ? `${entry.hours[key][0]}–${entry.hours[key][1]}` : 'geschlossen'}</span></li>`).join('');
+      return `<strong>Geplant ab ${esc(fmt(new Date(y, m - 1, d), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))}</strong><ul>${days}</ul><small>Gilt für alle Termine ab diesem Datum, auch für Online-Buchungen, die schon jetzt gemacht werden. Die Felder unten sind die aktuellen Zeiten bis dahin.</small>`;
+    }).join('');
     grid.innerHTML = Object.keys(WEEKDAY_LABELS).map(key => {
       const range = Array.isArray(hours[key]) ? hours[key] : null;
       const isOpen = Boolean(range);
@@ -2485,7 +2503,7 @@
 
   function freeMoveStarts(day, appointment, durationMs) {
     const toMin = value => Number(value.split(':')[0]) * 60 + Number(value.split(':')[1]);
-    const opening = (state.settings?.opening_hours || {})[String(day.getDay())];
+    const opening = openingRangeOn(day);
     const outside = $('move-outside').checked;
     if (!opening && !outside) return null;
     const from = outside ? 7 * 60 : toMin(opening[0]);

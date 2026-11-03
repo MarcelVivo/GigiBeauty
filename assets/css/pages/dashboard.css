@@ -764,3 +764,10 @@ tr.is-unread { background: #fdf6e3; font-weight: 650; }
   .ranking-row .ranking-stat:nth-last-child(-n+2) { display: none; }
   .ranking-customer { min-width: 0; }
 }
+
+.opening-hours-planned { margin-bottom: 1rem; padding: .8rem .9rem; border: 1px solid #e3cf9f; border-left: 3px solid #c9973f; border-radius: 10px; background: #fbf3e2; }
+.opening-hours-planned[hidden] { display: none; }
+.opening-hours-planned strong { display: block; margin-bottom: .4rem; font-size: .88rem; }
+.opening-hours-planned ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: .15rem 1rem; margin: 0 0 .45rem; padding: 0; list-style: none; font-size: .82rem; }
+.opening-hours-planned li { display: flex; justify-content: space-between; gap: .6rem; }
+.opening-hours-planned small { color: var(--dash-muted); font-size: .74rem; }
