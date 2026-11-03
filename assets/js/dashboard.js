@@ -2684,20 +2684,117 @@
     closeModal('appointment-modal'); toast('Termin storniert.'); await loadAll();
   }
 
+  // Zeitraum sperren ohne Datums-/Zeit-Scrollfelder: Art wählen (ganzer
+  // Tag, mehrere Tage, einzelne Stunden), Tage im Monatskalender anklicken
+  // (bei mehreren Tagen erster und letzter Tag), Stunden über zwei Listen
+  // im 15-Minuten-Raster. Die Zusammenfassung zeigt den Zeitraum und warnt
+  // vor bestehenden Terminen darin (die bleiben bestehen und müssen bei
+  // Bedarf separat verschoben/storniert werden).
+  const blockState = { mode: 'day', month: null, start: null, end: null };
+  const parseDayKey = key => { const [y, m, d] = key.split('-').map(Number); return new Date(y, m - 1, d); };
+
   function openBlock() {
-    const start = nextRoundedSlot();
-    $('block-start').value = localInput(start);
-    $('block-end').value = localInput(new Date(start.getTime() + 90 * 60000));
+    const today = startOfDay(new Date());
+    const base = state.calDay && state.calDay >= today ? state.calDay : today;
+    Object.assign(blockState, { mode: 'day', month: new Date(base.getFullYear(), base.getMonth(), 1), start: dayKey(base), end: dayKey(base) });
+    const options = [];
+    for (let minutes = 6 * 60; minutes <= 22 * 60; minutes += CAL_SLOT_MINUTES) options.push(`<option value="${minutes}">${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}</option>`);
+    $('block-from').innerHTML = options.join('');
+    $('block-to').innerHTML = options.join('');
+    $('block-reason').value = 'Nicht verfügbar';
     $('block-message').textContent = '';
+    setBlockMode('day');
     openModal('block-modal');
+  }
+
+  function setBlockMode(mode) {
+    blockState.mode = mode;
+    if (mode !== 'days' && blockState.start) blockState.end = blockState.start;
+    document.querySelectorAll('[data-block-mode]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.blockMode === mode)));
+    $('block-times').hidden = mode !== 'hours';
+    if (mode === 'hours') setDefaultBlockHours();
+    renderBlockDialog();
+  }
+
+  function setDefaultBlockHours() {
+    const toMin = value => Number(value.split(':')[0]) * 60 + Number(value.split(':')[1]);
+    const range = blockState.start ? openingRangeOn(parseDayKey(blockState.start)) : null;
+    $('block-from').value = String(range ? toMin(range[0]) : 12 * 60);
+    $('block-to').value = String(range ? Math.min(22 * 60, toMin(range[0]) + 60) : 13 * 60);
+  }
+
+  function blockRange() {
+    if (!blockState.start || !blockState.end) return null;
+    const first = parseDayKey(blockState.start), last = parseDayKey(blockState.end);
+    if (blockState.mode === 'hours') {
+      const from = Number($('block-from').value), to = Number($('block-to').value);
+      const start = new Date(first); start.setMinutes(from);
+      const end = new Date(first); end.setMinutes(to);
+      return { start, end };
+    }
+    return { start: first, end: addDays(last, 1) };
+  }
+
+  function renderBlockDialog() {
+    const { mode, month, start, end } = blockState;
+    $('block-hint').textContent = mode === 'days'
+      ? (start && !end ? 'Jetzt den letzten Tag anklicken.' : 'Ersten Tag anklicken, dann den letzten Tag.')
+      : mode === 'hours' ? 'Tag anklicken und darunter die Zeit wählen.' : 'Tag anklicken.';
+    $('block-cal-title').textContent = fmt(month, { month: 'long', year: 'numeric' });
+    const today = dayKey(new Date());
+    $('block-cal-prev').disabled = dayKey(month) <= today.slice(0, 8) + '01';
+    const gridStart = startOfWeek(month);
+    const cells = [];
+    for (let date = gridStart; cells.length < 42; date = addDays(date, 1)) {
+      const key = dayKey(date);
+      const outside = date.getMonth() !== month.getMonth();
+      if (outside && cells.length >= 35 && date.getDay() === 1) break;
+      const selected = start && key >= start && key <= (end || start);
+      const appointments = state.appointments.filter(a => a.status !== 'cancelled' && dayKey(a.starts_at) === key).length;
+      const blocked = blocksOnDay(key).length > 0;
+      const classes = ['block-day', outside ? 'is-outside' : '', key === today ? 'is-today' : '', selected ? 'is-selected' : '', key === start ? 'is-start' : '', key === (end || start) ? 'is-end' : '', blocked ? 'is-blocked' : '', !openingRangeOn(date) ? 'is-closed' : ''].filter(Boolean).join(' ');
+      cells.push(`<button type="button" class="${classes}" data-block-day="${key}" ${key < today ? 'disabled' : ''} title="${appointments ? `${appointments} Termin${appointments === 1 ? '' : 'e'}` : blocked ? 'bereits gesperrt' : ''}">${date.getDate()}${appointments ? '<i aria-hidden="true"></i>' : ''}</button>`);
+    }
+    $('block-cal-grid').innerHTML = cells.join('');
+    $('block-cal-grid').querySelectorAll('[data-block-day]').forEach(button => button.onclick = () => pickBlockDay(button.dataset.blockDay));
+    renderBlockSummary();
+  }
+
+  function pickBlockDay(key) {
+    if (blockState.mode !== 'days') Object.assign(blockState, { start: key, end: key });
+    else if (!blockState.start || blockState.end) Object.assign(blockState, { start: key, end: null });
+    else if (key < blockState.start) Object.assign(blockState, { start: key, end: blockState.start });
+    else blockState.end = key;
+    if (blockState.mode === 'hours') setDefaultBlockHours();
+    renderBlockDialog();
+  }
+
+  function renderBlockSummary() {
+    const range = blockRange();
+    const summary = $('block-summary');
+    $('block-submit').disabled = !range || range.end <= range.start;
+    if (!range) { summary.innerHTML = '<span class="block-summary-empty">Noch kein Zeitraum gewählt.</span>'; return; }
+    if (range.end <= range.start) { summary.innerHTML = '<span class="block-summary-warn">«Bis» muss nach «Von» liegen.</span>'; return; }
+    const dateLabel = date => fmt(date, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
+    let text;
+    if (blockState.mode === 'hours') text = `${dateLabel(range.start)}, ${fmt(range.start, { hour: '2-digit', minute: '2-digit' })}–${fmt(range.end, { hour: '2-digit', minute: '2-digit' })} Uhr`;
+    else {
+      const days = Math.round((range.end - range.start) / 86400000);
+      text = days === 1 ? `${dateLabel(range.start)} · ganztags` : `${dateLabel(range.start)} bis ${dateLabel(addDays(range.end, -1))} · ${days} Tage, ganztags`;
+    }
+    const conflicts = state.appointments.filter(a => a.status !== 'cancelled' && new Date(a.starts_at) < range.end && new Date(a.ends_at) > range.start)
+      .sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
+    summary.innerHTML = `<strong>Gesperrt wird:</strong> ${esc(text)}`
+      + (conflicts.length ? `<div class="block-summary-warn">Achtung: ${conflicts.length === 1 ? '1 Termin in diesem Zeitraum bleibt bestehen und muss' : `${conflicts.length} Termine in diesem Zeitraum bleiben bestehen und müssen`} separat verschoben oder storniert werden:<ul>${conflicts.slice(0, 6).map(a => `<li>${esc(fmt(a.starts_at, { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }))} · ${esc(a.customer_name || 'Privat')}</li>`).join('')}${conflicts.length > 6 ? `<li>… und ${conflicts.length - 6} weitere</li>` : ''}</ul></div>` : '');
   }
 
   async function saveBlock(event) {
     event.preventDefault();
-    const start = new Date($('block-start').value);
-    const end = new Date($('block-end').value);
-    if (end <= start) return $('block-message').textContent = 'Das Enddatum muss nach dem Start liegen.';
-    const { error } = await db.from('blocked_times').insert({ starts_at: start.toISOString(), ends_at: end.toISOString(), reason: $('block-reason').value.trim(), created_by: state.user.id });
+    const range = blockRange();
+    if (!range || range.end <= range.start) return $('block-message').textContent = 'Bitte einen gültigen Zeitraum wählen.';
+    $('block-submit').disabled = true;
+    const { error } = await db.from('blocked_times').insert({ starts_at: range.start.toISOString(), ends_at: range.end.toISOString(), reason: $('block-reason').value.trim() || 'Nicht verfügbar', created_by: state.user.id });
+    $('block-submit').disabled = false;
     if (error) return $('block-message').textContent = error.message;
     closeModal('block-modal'); toast('Zeitraum gesperrt.'); await loadAll();
   }
@@ -3258,6 +3355,12 @@
   $('customer-new-appointment').onclick = () => { const ref = $('customer-id').value; closeModal('customer-modal'); openAppointment(null, { customerId: ref }); };
   $('delete-appointment').onclick = cancelAppointment;
   $('block-form').onsubmit = saveBlock;
+  document.querySelectorAll('[data-block-mode]').forEach(button => button.onclick = () => setBlockMode(button.dataset.blockMode));
+  document.querySelectorAll('[data-block-reason]').forEach(button => button.onclick = () => { $('block-reason').value = button.dataset.blockReason; });
+  $('block-cal-prev').onclick = () => { blockState.month = new Date(blockState.month.getFullYear(), blockState.month.getMonth() - 1, 1); renderBlockDialog(); };
+  $('block-cal-next').onclick = () => { blockState.month = new Date(blockState.month.getFullYear(), blockState.month.getMonth() + 1, 1); renderBlockDialog(); };
+  $('block-from').onchange = renderBlockSummary;
+  $('block-to').onchange = renderBlockSummary;
   $('campaign-form').onsubmit = saveCampaign;
   $('customer-form').onsubmit = saveCustomer;
   $('waitlist-form').onsubmit = saveWaitlist;

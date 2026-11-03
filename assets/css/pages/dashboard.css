@@ -771,3 +771,38 @@ tr.is-unread { background: #fdf6e3; font-weight: 650; }
 .opening-hours-planned ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: .15rem 1rem; margin: 0 0 .45rem; padding: 0; list-style: none; font-size: .82rem; }
 .opening-hours-planned li { display: flex; justify-content: space-between; gap: .6rem; }
 .opening-hours-planned small { color: var(--dash-muted); font-size: .74rem; }
+
+/* Zeitraum sperren: Art-Knöpfe, Monatskalender zum Anklicken, Stunden-Listen. */
+.block-modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: .35rem; margin: .4rem 0 .6rem; }
+.block-modes button { min-height: 44px; padding: .45rem .4rem; border: 1px solid var(--dash-line); border-radius: 10px; background: white; color: var(--dash-ink); font-size: .84rem; font-weight: 700; cursor: pointer; }
+.block-modes button[aria-pressed="true"] { border-color: var(--dash-wine); background: var(--dash-wine); color: white; }
+.block-hint { margin: 0 0 .5rem; color: var(--dash-muted); font-size: .8rem; }
+.block-cal { padding: .7rem; border: 1px solid var(--dash-line); border-radius: 12px; background: #faf7f2; }
+.block-cal-head { display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; margin-bottom: .4rem; }
+.block-cal-head button { height: 40px; border: 1px solid var(--dash-line); border-radius: 9px; background: white; color: var(--dash-ink); font-size: 1.2rem; cursor: pointer; }
+.block-cal-head button:disabled { opacity: .35; cursor: default; }
+.block-cal-head strong { text-align: center; font-size: .95rem; }
+.block-cal-weekdays, .block-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.block-cal-weekdays span { padding: .2rem 0; color: var(--dash-muted); font-size: .7rem; font-weight: 700; text-align: center; }
+.block-day { position: relative; height: 40px; border: 1px solid transparent; border-radius: 8px; background: white; color: var(--dash-ink); font-size: .86rem; font-weight: 650; cursor: pointer; }
+.block-day:hover:not(:disabled) { border-color: var(--dash-wine); }
+.block-day:disabled { opacity: .3; cursor: default; }
+.block-day.is-outside { opacity: .45; }
+.block-day.is-closed { color: var(--dash-muted); }
+.block-day.is-today { border-color: var(--dash-gold); }
+.block-day.is-blocked { background: repeating-linear-gradient(135deg, #e2ded9 0 4px, #f1eeea 4px 8px); }
+.block-day.is-selected { background: rgba(110,56,76,.16); color: var(--dash-wine); }
+.block-day.is-start, .block-day.is-end { background: var(--dash-wine); color: white; opacity: 1; }
+.block-day i { position: absolute; left: 50%; bottom: 4px; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: #c9973f; }
+.block-times { display: flex; flex-wrap: wrap; gap: .6rem 1rem; margin-top: .7rem; }
+.block-times[hidden] { display: none; }
+.block-times label { display: flex; align-items: center; gap: .45rem; font-size: .88rem; font-weight: 650; }
+.block-times select { min-height: 44px; padding: 0 .7rem; border: 1px solid var(--dash-line); border-radius: 9px; background: white; font-size: 16px; }
+.block-reason-field { margin-top: .8rem; }
+.block-reasons { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .4rem; }
+.block-reasons button { padding: .35rem .65rem; border: 1px solid var(--dash-line); border-radius: 999px; background: white; color: var(--dash-ink); font-size: .76rem; font-weight: 650; cursor: pointer; }
+.block-reasons button:hover { border-color: var(--dash-wine); color: var(--dash-wine); }
+.block-summary { margin-top: .8rem; padding: .65rem .8rem; border-radius: 10px; background: #f3eee8; font-size: .86rem; }
+.block-summary-empty { color: var(--dash-muted); }
+.block-summary-warn { margin-top: .35rem; color: #9b3a22; font-size: .8rem; }
+.block-summary-warn ul { margin: .25rem 0 0 1rem; padding: 0; }

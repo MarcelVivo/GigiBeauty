@@ -7,7 +7,7 @@
   <title>GiGi Beauty | Admin Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261103-9">
+  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261103-10">
 <meta name="theme-color" content="#261b17">
 <!-- PWA / App -->
 <link rel="manifest" href="/dashboard/manifest.webmanifest">
@@ -247,14 +247,29 @@
     <div class="modal-actions"><button class="danger" id="delete-appointment" type="button" hidden>Termin stornieren</button><button class="secondary" id="move-appointment" type="button" hidden>Termin verschieben</button><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit">Speichern</button></div></div>
   </form></div>
 
-  <div class="modal-backdrop" id="block-modal" hidden><form class="modal" id="block-form">
+  <div class="modal-backdrop" id="block-modal" hidden><form class="modal block-modal" id="block-form">
     <button class="modal-close" type="button" data-close>×</button><h2>Zeitraum sperren</h2>
-    <div class="form-grid">
-      <div class="field"><label for="block-start">Von</label><input id="block-start" type="datetime-local" required></div>
-      <div class="field"><label for="block-end">Bis</label><input id="block-end" type="datetime-local" required></div>
-      <div class="field full"><label for="block-reason">Grund</label><input id="block-reason" value="Nicht verfügbar" required></div>
-    </div><div class="form-message" id="block-message"></div>
-    <div class="modal-actions"><div></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit">Sperren</button></div></div>
+    <div class="block-modes" role="group" aria-label="Art der Sperre">
+      <button type="button" data-block-mode="day">Ganzer Tag</button>
+      <button type="button" data-block-mode="days">Mehrere Tage</button>
+      <button type="button" data-block-mode="hours">Einzelne Stunden</button>
+    </div>
+    <p class="block-hint" id="block-hint"></p>
+    <div class="block-cal">
+      <div class="block-cal-head"><button type="button" id="block-cal-prev" aria-label="Vorheriger Monat">‹</button><strong id="block-cal-title"></strong><button type="button" id="block-cal-next" aria-label="Nächster Monat">›</button></div>
+      <div class="block-cal-weekdays" aria-hidden="true"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div>
+      <div class="block-cal-grid" id="block-cal-grid"></div>
+    </div>
+    <div class="block-times" id="block-times" hidden>
+      <label>Von <select id="block-from"></select></label>
+      <label>bis <select id="block-to"></select></label>
+    </div>
+    <div class="field block-reason-field"><label for="block-reason">Grund</label><input id="block-reason" value="Nicht verfügbar" required>
+      <div class="block-reasons"><button type="button" data-block-reason="Ferien">Ferien</button><button type="button" data-block-reason="Feiertag">Feiertag</button><button type="button" data-block-reason="Geschäft geschlossen">Geschäft geschlossen</button><button type="button" data-block-reason="Weiterbildung">Weiterbildung</button><button type="button" data-block-reason="Krank">Krank</button><button type="button" data-block-reason="Privat">Privat</button></div>
+    </div>
+    <div class="block-summary" id="block-summary"></div>
+    <div class="form-message" id="block-message"></div>
+    <div class="modal-actions"><div></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit" id="block-submit">Sperren</button></div></div>
   </form></div>
 
   <div class="modal-backdrop" id="campaign-modal" hidden><form class="modal" id="campaign-form">
@@ -446,7 +461,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
   <script src="../assets/js/supabase-config.js?v=20260808-1"></script>
-  <script src="../assets/js/dashboard.js?v=20261103-9"></script>
+  <script src="../assets/js/dashboard.js?v=20261103-10"></script>
   <script src="../assets/js/password-toggle.js"></script>
 </body>
 </html>
