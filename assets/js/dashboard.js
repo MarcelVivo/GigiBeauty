@@ -1171,9 +1171,11 @@
   let draggedName = '';
   const blankDragImage = new Image();
   blankDragImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-  function clearDragPreview() {
+  // Nach dem Ablegen bleibt die Vorschau (is-pending) sichtbar, bis die
+  // Sicherheitsfrage beantwortet ist; renderCalendar() räumt sie danach weg.
+  function clearDragPreview(keepPending = true) {
     document.querySelectorAll('.admin-day.drop-target').forEach(el => el.classList.remove('drop-target'));
-    document.querySelectorAll('.drop-ghost, .drag-time-marker').forEach(el => el.remove());
+    document.querySelectorAll('.drop-ghost, .drag-time-marker').forEach(el => { if (!(keepPending && el.classList.contains('is-pending'))) el.remove(); });
   }
 
   function attachCalendarDragHandlers(gridMin, gridMax) {
@@ -1241,12 +1243,17 @@
         const ghost = body.querySelector('.drop-ghost');
         const minutesOfDay = ghost ? Number(ghost.dataset.minutesOfDay) : null;
         const valid = ghost?.dataset.valid === '1';
-        clearDragPreview();
-        if (!draggedAppointmentId || minutesOfDay === null) return;
         const id = draggedAppointmentId;
         draggedAppointmentId = null;
-        if (!valid) { toast('Dort ist bereits ein Termin oder eine Sperrzeit.'); return; }
-        rescheduleAppointment(id, day.dataset.date, minutesOfDay);
+        if (!id || minutesOfDay === null || !valid) {
+          clearDragPreview(false);
+          if (id && minutesOfDay !== null) toast('Dort ist bereits ein Termin oder eine Sperrzeit.');
+          return;
+        }
+        ghost.classList.add('is-pending');
+        $('admin-calendar').querySelector('.drag-time-marker')?.classList.add('is-pending');
+        clearDragPreview();
+        confirmReschedule(id, day.dataset.date, minutesOfDay);
       });
     });
   }
@@ -1355,9 +1362,9 @@
     const unchanged = m.dateKey === dayKey(old) && m.minutes === old.getHours() * 60 + old.getMinutes();
     if (cancelled || m.minutes === null || unchanged) { renderCalendar(); return; }
     if (!m.valid) { renderCalendar(); toast('Dort ist bereits ein Termin oder eine Sperrzeit.'); return; }
-    m.card.classList.remove('is-moving', 'is-conflict');
-    m.card.classList.add('is-saving');
-    rescheduleAppointment(m.appointment.id, m.dateKey, m.minutes);
+    // Karte bleibt an der neuen Stelle stehen, bis die Sicherheitsfrage
+    // beantwortet ist (Abbrechen -> renderCalendar() setzt sie zurück).
+    confirmReschedule(m.appointment.id, m.dateKey, m.minutes);
   }
 
   // Einmalige Bindung am document (siehe oben).
@@ -1387,34 +1394,25 @@
     document.addEventListener('keydown', event => { if (event.key === 'Escape' && moveState) finishMove(true); });
   }
 
-  // Zieht einen Termin auf Tag+Uhrzeit (15-Minuten-Raster): Kollisionen
-  // werden clientseitig geprüft (dieselbe Formel wie booking.js
-  // slotStatus()), die DB-Exclusion-Constraint appointments_no_overlap
-  // bleibt das eigentliche Sicherheitsnetz. Die Änderung wird sofort
-  // gespeichert (kein Bestätigungsschritt, der jede Verschiebung ausbremst)
-  // -- stattdessen zeigt das Flyout-Menü danach IMMER "Rückgängig" (1 Klick
-  // stellt die alte Zeit wieder her) und, falls möglich, den optionalen
-  // Mailversand. Der verschobene Termin pulsiert kurz, damit man ihn auf
-  // Anhieb wiederfindet.
-  async function rescheduleAppointment(appointmentId, dateKey, minutesOfDay) {
+  // Abgelegter Termin (Maus oder Finger) auf Tag+Uhrzeit im 15-Minuten-
+  // Raster: zuerst die Sicherheitsfrage mit bisheriger und neuer Zeit/Dauer
+  // (openResizeConfirm 'move'), erst nach OK wird gespeichert, inkl.
+  // Info-Mails. Kollisionen werden vorher clientseitig geprüft, die
+  // DB-Exclusion-Constraint appointments_no_overlap bleibt das
+  // eigentliche Sicherheitsnetz.
+  function confirmReschedule(appointmentId, dateKey, minutesOfDay) {
     const appointment = state.appointments.find(a => a.id === appointmentId);
-    if (!appointment || !dateKey || minutesOfDay == null) return;
+    if (!appointment || !dateKey || minutesOfDay == null) { renderCalendar(); return; }
     const oldStart = new Date(appointment.starts_at);
-    const oldEnd = new Date(appointment.ends_at);
     const [year, month, day] = dateKey.split('-').map(Number);
     const newStart = new Date(year, month - 1, day, 0, 0, 0, 0);
     newStart.setMinutes(minutesOfDay);
-    if (newStart.getTime() === oldStart.getTime()) return;
-    const newEnd = new Date(newStart.getTime() + (oldEnd - oldStart));
+    if (newStart.getTime() === oldStart.getTime()) { renderCalendar(); return; }
+    const newEnd = new Date(newStart.getTime() + (new Date(appointment.ends_at) - oldStart));
     const conflict = state.appointments.some(a => a.id !== appointmentId && a.status !== 'cancelled' && newStart < new Date(a.ends_at) && newEnd > new Date(a.starts_at))
       || state.blocks.some(b => newStart < new Date(b.ends_at) && newEnd > new Date(b.starts_at));
     if (conflict) { renderCalendar(); toast('Termin kollidiert mit einem bestehenden Termin oder einer Sperrzeit.'); return; }
-    const result = await db.from('appointments').update({ starts_at: newStart.toISOString(), ends_at: newEnd.toISOString() }).eq('id', appointmentId);
-    if (result.error) { renderCalendar(); toast(result.error.message); return; }
-    await loadAll();
-    pulseAppointment(appointmentId);
-    const canEmail = appointment.status === 'booked' && !appointment.is_private && !!appointment.customer_email;
-    offerRescheduleEmail(appointmentId, oldStart, oldEnd, newStart, canEmail);
+    openResizeConfirm(appointment, newStart, newEnd, 'move');
   }
 
   function pulseAppointment(appointmentId) {
@@ -1448,11 +1446,11 @@
     });
   }
 
-  // Flyout nach jedem erfolgreichen Verschieben eines Termins (Drag & Drop
-  // oder manuelle Bearbeitung im Dialog): erscheint IMMER, unabhängig davon,
+  // Flyout nach dem Verschieben eines Termins über die manuelle Bearbeitung
+  // im Dialog (Startzeit geändert): erscheint IMMER, unabhängig davon,
   // ob eine E-Mail-Adresse hinterlegt ist -- "Rückgängig" macht die alte
   // Zeit mit einem Klick wieder her (die Verschiebung selbst ist ja längst
-  // gespeichert, siehe rescheduleAppointment()), "Bestätigungsmail senden"
+  // gespeichert), "Bestätigungsmail senden"
   // erscheint nur, wenn die Kundin überhaupt per Mail erreichbar ist. Der
   // eigentliche Versand läuft über die bestehende email_outbox/Resend-
   // Pipeline (RPC queue_reschedule_email, siehe Migration).

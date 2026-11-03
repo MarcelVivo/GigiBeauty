@@ -388,6 +388,7 @@ body.is-moving-appointment, body.is-moving-appointment * { cursor: grabbing !imp
 .drop-ghost time { display: block; color: var(--dash-wine); font-size: .82rem; font-weight: 800; line-height: 1.2; }
 .drop-ghost strong { display: block; margin-top: .1rem; font-size: .74rem; line-height: 1.2; }
 .drop-ghost.is-conflict { border-color: #b3261e; background: #fbe9e7; }
+.drop-ghost.is-pending { animation: calendarEventPulse 1.2s ease-in-out infinite; }
 .drop-ghost.is-conflict time { color: #b3261e; }
 .drag-time-marker { position: absolute; left: 0; right: .2rem; z-index: 3; padding: .1rem .2rem; transform: translateY(-50%); border-radius: 5px; background: var(--dash-wine); color: white !important; font-size: .66rem; font-weight: 800; text-align: center; pointer-events: none; }
 .drag-time-marker.is-conflict { background: #b3261e; }
