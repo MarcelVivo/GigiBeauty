@@ -910,7 +910,14 @@
         const handles = event.status === 'booked' ? '<span class="cal-resize is-top" data-resize="top" title="Ziehen zum Verlängern/Verkürzen"></span><span class="cal-resize is-bottom" data-resize="bottom" title="Ziehen zum Verlängern/Verkürzen"></span>' : '';
         return `<button class="calendar-event ${appointmentOriginClass(origin)} status-${event.status}" title="${esc(labelStatus(event.status))}" type="button" draggable="${isTouchDevice() ? 'false' : 'true'}" style="${style}" data-edit-appointment="${event.id}" data-movable>${time}<strong>${esc(event.customer_name)}</strong>${detail}${handles}</button>`;
       }).join('');
-      return `<section class="admin-day" data-date="${key}"><div class="admin-day-head"><strong>${fmt(date, { weekday: 'short' })}</strong><span>${fmt(date, { day: '2-digit', month: '2-digit' })}</span></div><div class="admin-day-body" style="height:${gridHeight}px">${body}</div></section>`;
+      // Öffnungszeit des Tages als weisses Band (freie Zeitfenster); der Rest
+      // der Spalte ist dunkelgrau (ausserhalb der Öffnungszeiten/geschlossen).
+      // Das Band verschiebt sein Raster, damit die Linien durchgehend liegen.
+      const opening = openingRangeOn(date);
+      const clockMin = value => Number(value.split(':')[0]) * 60 + Number(value.split(':')[1]);
+      const openFrom = opening ? Math.max(min, clockMin(opening[0])) : 0, openTo = opening ? Math.min(max, clockMin(opening[1])) : 0;
+      const openBand = openTo > openFrom ? `<div class="open-hours" aria-hidden="true" style="top:${(openFrom - min) * CAL_PX_PER_MIN}px;height:${(openTo - openFrom) * CAL_PX_PER_MIN}px;background-position:0 -${(openFrom - min) * CAL_PX_PER_MIN}px"></div>` : '';
+      return `<section class="admin-day" data-date="${key}"><div class="admin-day-head"><strong>${fmt(date, { weekday: 'short' })}</strong><span>${fmt(date, { day: '2-digit', month: '2-digit' })}</span></div><div class="admin-day-body" style="height:${gridHeight}px">${openBand}${body}</div></section>`;
     }).join('');
 
     $('admin-calendar').innerHTML = gutter + dayCols;

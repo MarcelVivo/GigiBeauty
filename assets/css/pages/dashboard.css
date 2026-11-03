@@ -311,15 +311,24 @@ tr[data-price-item].drop-after { box-shadow: inset 0 -2px 0 0 var(--dash-wine); 
 /* Raster (CAL_PX_PER_MIN 1.2 => 72px/Std.): volle Stunde kräftig, halbe
    Stunde mittel, Viertelstunden fein -- Termine rasten beim Ziehen und
    Anlegen auf genau diese Linien ein. */
-.admin-day-body { position: relative; background-image:
+/* Farben: weiss = Öffnungszeit (freie Zeitfenster), dunkelgrau =
+   ausserhalb der Öffnungszeiten, geschlossene Tage und Sperren, beige =
+   gebuchte Termine. */
+.admin-day-body { position: relative; background-color: #7a736d; background-image:
+  repeating-linear-gradient(to bottom, rgba(255,255,255,.2) 0, rgba(255,255,255,.2) 1px, transparent 1px, transparent 72px),
+  repeating-linear-gradient(to bottom, transparent 0, transparent 36px, rgba(255,255,255,.1) 36px, rgba(255,255,255,.1) 37px, transparent 37px, transparent 72px),
+  repeating-linear-gradient(to bottom, transparent 0, transparent 18px, rgba(255,255,255,.06) 18px, rgba(255,255,255,.06) 19px, transparent 19px, transparent 36px); }
+.open-hours { position: absolute; left: 0; right: 0; background-color: #fff; background-image:
   repeating-linear-gradient(to bottom, #d3c6b6 0, #d3c6b6 1px, transparent 1px, transparent 72px),
-  repeating-linear-gradient(to bottom, transparent 0, transparent 36px, #e0d6ca 36px, #e0d6ca 37px, transparent 37px, transparent 72px),
-  repeating-linear-gradient(to bottom, transparent 0, transparent 18px, #e9e2d9 18px, #e9e2d9 19px, transparent 19px, transparent 36px); }
+  repeating-linear-gradient(to bottom, transparent 0, transparent 36px, #e4dbd0 36px, #e4dbd0 37px, transparent 37px, transparent 72px),
+  repeating-linear-gradient(to bottom, transparent 0, transparent 18px, #efe9e2 18px, #efe9e2 19px, transparent 19px, transparent 36px);
+  pointer-events: none; }
 .calendar-event { position: absolute; left: .35rem; right: .35rem; width: auto; margin-bottom: 0; padding: .3rem .5rem; border: 0; border-left: 3px solid var(--dash-wine); border-radius: 8px; color: var(--dash-ink); background: white; text-align: left; overflow: hidden; box-shadow: 0 3px 10px rgba(45,34,28,.05); }
 .calendar-event.is-private { border-color: #71849b; background: #f3f6f9; }
 .calendar-event.is-online { border-color: var(--dash-wine); background: white; }
 .calendar-event.is-admin-entered { border-color: #c9973f; background: #fbf3e2; }
-.calendar-event.is-block { border-color: #9a918c; color: var(--dash-muted); background: #e2ded9; }
+.calendar-event.is-block { left: 0; right: 0; border-radius: 0; border-color: #3f3a36; color: #f3efeb; background: #5c5651; box-shadow: none; }
+.calendar-event.is-block small, .calendar-event.is-block time { color: #ded7d0; }
 .calendar-event time { display: block; font-size: .68rem; font-weight: 750; line-height: 1.2; }
 .calendar-event strong { display: block; margin: .1rem 0; font-size: .74rem; line-height: 1.2; }
 .calendar-event small { display: block; color: var(--dash-muted); line-height: 1.2; }
