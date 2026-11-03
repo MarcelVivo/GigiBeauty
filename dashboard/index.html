@@ -7,7 +7,7 @@
   <title>GiGi Beauty | Admin Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261103-6">
+  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261103-7">
 <meta name="theme-color" content="#261b17">
 <!-- PWA / App -->
 <link rel="manifest" href="/dashboard/manifest.webmanifest">
@@ -237,13 +237,10 @@
     </div>
     <div class="move-panel" id="move-panel" hidden>
       <div class="move-head"><strong>Termin verschieben</strong><span id="move-duration"></span></div>
-      <p class="move-section-label">Gleiche Uhrzeit, spätere Woche</p>
-      <div class="move-weeks" id="move-weeks"></div>
-      <p class="move-section-label">Oder anderen Tag und Zeit wählen</p>
-      <div class="move-nav"><button type="button" id="move-prev" aria-label="Vorheriger Tag">‹</button><input type="date" id="move-date" aria-label="Datum"><button type="button" id="move-next" aria-label="Nächster Tag">›</button></div>
-      <div class="move-quick"><button type="button" data-move-jump="0">Heute</button><button type="button" data-move-jump="1">Morgen</button></div>
-      <p class="move-day" id="move-day"></p>
-      <div class="move-slots" id="move-slots" role="listbox" aria-label="Freie Zeiten"></div>
+      <div class="move-weeknav"><button type="button" id="move-prev" aria-label="Vorherige Woche">‹</button><strong id="move-week-title"></strong><button type="button" id="move-next" aria-label="Nächste Woche">›</button></div>
+      <div class="move-quick" id="move-quick"></div>
+      <p class="move-hint">Freie Zeit anklicken, bestätigen, fertig.</p>
+      <div class="move-days" id="move-days" aria-label="Freie Zeiten"></div>
       <label class="move-outside"><input type="checkbox" id="move-outside"> Auch Zeiten ausserhalb der Öffnungszeiten zeigen</label>
     </div>
     <div class="form-message" id="appointment-message"></div>
@@ -449,7 +446,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
   <script src="../assets/js/supabase-config.js?v=20260808-1"></script>
-  <script src="../assets/js/dashboard.js?v=20261103-6"></script>
+  <script src="../assets/js/dashboard.js?v=20261103-7"></script>
   <script src="../assets/js/password-toggle.js"></script>
 </body>
 </html>

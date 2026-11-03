@@ -714,24 +714,24 @@ tr.is-unread { background: #fdf6e3; font-weight: 650; }
 .move-head { display: flex; justify-content: space-between; align-items: baseline; gap: .6rem; margin-bottom: .6rem; }
 .move-head strong { font-size: .95rem; }
 .move-head span { color: var(--dash-muted); font-size: .78rem; }
-.move-section-label { margin: .2rem 0 .45rem; color: var(--dash-muted); font-size: .72rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; }
-.move-weeks { display: grid; grid-template-columns: repeat(4, 1fr); gap: .4rem; margin-bottom: .9rem; }
-.move-week { display: flex; flex-direction: column; align-items: flex-start; gap: .1rem; min-height: 44px; padding: .55rem .6rem; border: 1px solid var(--dash-line); border-left: 3px solid var(--dash-wine); border-radius: 9px; background: white; color: var(--dash-ink); text-align: left; cursor: pointer; }
-.move-week:hover, .move-week:focus-visible { border-color: var(--dash-wine); box-shadow: 0 4px 12px rgba(110,56,76,.14); }
-.move-week-label { color: var(--dash-wine); font-size: .7rem; font-weight: 800; }
-.move-week strong { font-size: .9rem; }
-.move-week span { font-size: .82rem; }
-.move-week small { color: #3f7a4a; font-size: .7rem; font-weight: 700; }
-.move-week.is-unavailable { border-left-color: #b9aea4; background: #f4efe9; }
-.move-week.is-unavailable small { color: #b3261e; font-weight: 600; }
-@media (max-width: 720px) { .move-weeks { grid-template-columns: 1fr 1fr; } }
-.move-nav { display: grid; grid-template-columns: 44px 1fr 44px; gap: .4rem; }
-.move-nav button { height: 44px; border: 1px solid var(--dash-line); border-radius: 9px; background: white; color: var(--dash-ink); font-size: 1.25rem; }
-.move-nav input { min-width: 0; height: 44px; padding: 0 .7rem; border: 1px solid var(--dash-line); border-radius: 9px; background: white; color: var(--dash-ink); font-size: 16px; }
+.move-weeknav { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: .4rem; }
+.move-weeknav button { height: 44px; border: 1px solid var(--dash-line); border-radius: 9px; background: white; color: var(--dash-ink); font-size: 1.25rem; }
+.move-weeknav button:disabled { opacity: .35; }
+.move-weeknav strong { text-align: center; font-size: .92rem; }
+.move-quick button.is-active { border-color: var(--dash-wine); background: var(--dash-wine); color: white; }
+.move-hint { margin: .6rem 0 .4rem; color: var(--dash-muted); font-size: .76rem; }
+.move-days { display: grid; gap: .55rem; max-height: 340px; overflow-y: auto; padding-right: .2rem; }
+.move-dayrow { display: grid; grid-template-columns: 92px 1fr; gap: .5rem; align-items: start; padding-top: .45rem; border-top: 1px solid var(--dash-line); }
+.move-dayrow:first-child { border-top: 0; padding-top: 0; }
+.move-dayrow > strong { padding-top: .7rem; font-size: .82rem; }
+.move-dayrow.is-full > strong { color: var(--dash-muted); }
+.move-dayrow .move-slots { max-height: none; overflow: visible; grid-template-columns: repeat(auto-fill, minmax(54px, 1fr)); gap: .3rem; }
+.move-dayrow .move-slot { min-height: 34px; font-size: .8rem; border-radius: 7px; }
+@media (hover: none) { .move-dayrow .move-slot { min-height: 40px; } }
+@media (max-width: 720px) { .move-dayrow { grid-template-columns: 1fr; gap: .3rem; } .move-dayrow > strong { padding-top: 0; } }
 .move-quick { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .5rem; }
 .move-quick button { padding: .4rem .7rem; border: 1px solid var(--dash-line); border-radius: 999px; background: white; color: var(--dash-ink); font-size: .78rem; font-weight: 650; }
-.move-day { margin: .7rem 0 .45rem; color: var(--dash-muted); font-size: .8rem; }
-.move-slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: .4rem; max-height: 260px; overflow-y: auto; }
+.move-slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: .35rem; }
 .move-slot { min-height: 44px; border: 1px solid var(--dash-line); border-radius: 9px; background: white; color: var(--dash-ink); font-weight: 700; font-size: .88rem; }
 .move-slot:hover, .move-slot:focus-visible { border-color: var(--dash-wine); color: var(--dash-wine); }
 .move-slot.is-current { border-style: dashed; color: var(--dash-muted); cursor: default; }

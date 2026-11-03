@@ -2465,41 +2465,31 @@
     $(`${prefix}-customer-open`).onclick = () => { const ref = $(`${prefix}-customer-ref`).value; if (ref) { closeModal(modalId); openCustomer(ref); } };
   }
 
-  // Verschieben per Tippen (Handy/Tablet, aber auch am Computer): im
-  // Termin-Fenster einen Tag wählen, freie Startzeiten im 15-Minuten-Raster
-  // antippen. Frei = innerhalb der Öffnungszeiten (abschaltbar), nicht in
-  // der Vergangenheit, keine Überschneidung mit anderen Terminen oder
-  // Sperrzeiten bei gleicher Dauer. Danach dieselbe Sicherheitsfrage und
-  // dieselben Info-Mails wie beim Verlängern (openResizeConfirm 'move').
+  // Verschieben per Klick/Tippen (Handy, Tablet und Computer): im
+  // Termin-Fenster wochenweise blättern (‹ › oder «+1 Woche» … «+4 Wochen»,
+  // gerechnet ab der Woche des Termins); je Tag erscheinen alle freien
+  // Startzeiten im 15-Minuten-Raster, egal zu welcher Uhrzeit. Frei =
+  // innerhalb der Öffnungszeiten (abschaltbar), nicht in der Vergangenheit,
+  // keine Überschneidung mit anderen Terminen oder Sperrzeiten bei gleicher
+  // Dauer. Danach dieselbe Sicherheitsfrage und dieselben Info-Mails wie
+  // beim Verlängern (openResizeConfirm 'move').
   let moveAppointmentId = null;
+  let moveWeek = null;
   function openMovePanel(appointment) {
     moveAppointmentId = appointment.id;
     const start = new Date(appointment.starts_at);
-    const today = startOfDay(new Date());
-    $('move-date').value = dayKey(start < today ? today : start);
+    moveWeek = startOfWeek(start < new Date() ? new Date() : start);
     $('move-outside').checked = false;
     $('move-panel').hidden = false;
-    renderMoveWeeks();
-    renderMoveSlots();
+    renderMovePanel();
     $('move-panel').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
-  function renderMoveSlots() {
-    const appointment = state.appointments.find(a => a.id === moveAppointmentId);
-    if (!appointment || !$('move-date').value) return;
-    const durationMs = new Date(appointment.ends_at) - new Date(appointment.starts_at);
-    $('move-duration').textContent = durationLabel(Math.round(durationMs / 60000));
-    const [year, month, dayOfMonth] = $('move-date').value.split('-').map(Number);
-    const day = new Date(year, month - 1, dayOfMonth, 0, 0, 0, 0);
-    const at = minutes => { const d = new Date(day); d.setMinutes(minutes); return d; };
+  function freeMoveStarts(day, appointment, durationMs) {
     const toMin = value => Number(value.split(':')[0]) * 60 + Number(value.split(':')[1]);
     const opening = (state.settings?.opening_hours || {})[String(day.getDay())];
     const outside = $('move-outside').checked;
-    $('move-day').textContent = `${fmt(day, { weekday: 'long', day: 'numeric', month: 'long' })}${opening ? ` · geöffnet ${opening[0]}–${opening[1]}` : ' · geschlossen'}`;
-    if (!opening && !outside) {
-      $('move-slots').innerHTML = '<p class="move-empty">An diesem Tag ist geschlossen. Anderen Tag wählen oder «ausserhalb der Öffnungszeiten» aktivieren.</p>';
-      return;
-    }
+    if (!opening && !outside) return null;
     const from = outside ? 7 * 60 : toMin(opening[0]);
     const until = outside ? 22 * 60 : toMin(opening[1]);
     const now = new Date();
@@ -2507,68 +2497,50 @@
       ...state.appointments.filter(a => a.id !== appointment.id && a.status !== 'cancelled'),
       ...state.blocks
     ].map(item => [new Date(item.starts_at), new Date(item.ends_at)]);
-    const currentStart = new Date(appointment.starts_at).getTime();
-    const slots = [];
+    const starts = [];
     for (let minutes = from; minutes * 60000 + durationMs <= until * 60000; minutes += CAL_SLOT_MINUTES) {
-      const start = at(minutes), end = new Date(start.getTime() + durationMs);
-      if (start <= now) continue;
-      if (busy.some(([s, e]) => start < e && end > s)) continue;
-      slots.push(start);
+      const start = new Date(day); start.setMinutes(minutes);
+      const end = new Date(start.getTime() + durationMs);
+      if (start <= now || busy.some(([s, e]) => start < e && end > s)) continue;
+      starts.push(start);
     }
-    $('move-slots').innerHTML = slots.length
-      ? slots.map(start => {
-        const isCurrent = start.getTime() === currentStart;
-        return `<button type="button" role="option" class="move-slot${isCurrent ? ' is-current' : ''}" data-move-start="${start.toISOString()}" ${isCurrent ? 'disabled title="Aktuelle Zeit"' : ''}>${fmt(start, { hour: '2-digit', minute: '2-digit' })}</button>`;
-      }).join('')
-      : '<p class="move-empty">Keine freie Zeit mit dieser Dauer an diesem Tag.</p>';
-    $('move-slots').querySelectorAll('[data-move-start]').forEach(button => button.onclick = () => {
+    return starts;
+  }
+
+  function renderMovePanel() {
+    const appointment = state.appointments.find(a => a.id === moveAppointmentId);
+    if (!appointment || !moveWeek) return;
+    const oldStart = new Date(appointment.starts_at);
+    const durationMs = new Date(appointment.ends_at) - oldStart;
+    const appointmentWeek = startOfWeek(oldStart);
+    const thisWeek = startOfWeek(new Date());
+    $('move-duration').textContent = `Dauer ${durationLabel(Math.round(durationMs / 60000))}`;
+    $('move-week-title').textContent = `${fmt(moveWeek, { day: '2-digit', month: 'short' })} – ${fmt(addDays(moveWeek, 6), { day: '2-digit', month: 'short', year: 'numeric' })}`;
+    $('move-prev').disabled = moveWeek <= thisWeek;
+    $('move-quick').innerHTML = [0, 1, 2, 3, 4].map(weeks => {
+      const week = addDays(appointmentWeek, 7 * weeks);
+      if (week < thisWeek) return '';
+      const active = week.getTime() === moveWeek.getTime();
+      return `<button type="button" data-move-week="${weeks}"${active ? ' class="is-active" aria-pressed="true"' : ''}>${weeks ? `+${weeks} ${weeks === 1 ? 'Woche' : 'Wochen'}` : 'Termin-Woche'}</button>`;
+    }).join('');
+    $('move-quick').querySelectorAll('[data-move-week]').forEach(button => button.onclick = () => {
+      moveWeek = addDays(appointmentWeek, 7 * Number(button.dataset.moveWeek));
+      renderMovePanel();
+    });
+    const days = Array.from({ length: 7 }, (_, index) => addDays(moveWeek, index)).map(day => {
+      const starts = freeMoveStarts(day, appointment, durationMs);
+      if (starts === null) return '';
+      const label = fmt(day, { weekday: 'short', day: '2-digit', month: '2-digit' });
+      const slots = starts.length
+        ? starts.map(start => `<button type="button" class="move-slot" data-move-start="${start.toISOString()}">${fmt(start, { hour: '2-digit', minute: '2-digit' })}</button>`).join('')
+        : '<span class="move-empty">ausgebucht</span>';
+      return `<div class="move-dayrow${starts.length ? '' : ' is-full'}"><strong>${label}</strong><div class="move-slots">${slots}</div></div>`;
+    }).join('');
+    $('move-days').innerHTML = days || '<p class="move-empty">In dieser Woche ist geschlossen.</p>';
+    $('move-days').querySelectorAll('[data-move-start]').forEach(button => button.onclick = () => {
       const start = new Date(button.dataset.moveStart);
       openResizeConfirm(appointment, start, new Date(start.getTime() + durationMs), 'move');
     });
-  }
-
-  // Schnellwahl: derselbe Wochentag zur selben Uhrzeit in 1–4 Wochen
-  // (gerechnet ab dem Termin, nicht ab heute). Frei -> Sicherheitsfrage und
-  // verschieben; belegt/geschlossen -> diesen Tag unten mit seinen freien
-  // Zeiten anzeigen.
-  function renderMoveWeeks() {
-    const appointment = state.appointments.find(a => a.id === moveAppointmentId);
-    if (!appointment) return;
-    const oldStart = new Date(appointment.starts_at);
-    const durationMs = new Date(appointment.ends_at) - oldStart;
-    const toMin = value => Number(value.split(':')[0]) * 60 + Number(value.split(':')[1]);
-    const outside = $('move-outside').checked;
-    const options = [1, 2, 3, 4].map(weeks => {
-      const start = addDays(oldStart, 7 * weeks);
-      const end = new Date(start.getTime() + durationMs);
-      const opening = (state.settings?.opening_hours || {})[String(start.getDay())];
-      const startMin = start.getHours() * 60 + start.getMinutes();
-      const endMin = startMin + Math.round(durationMs / 60000);
-      const closed = !outside && (!opening || startMin < toMin(opening[0]) || endMin > toMin(opening[1]));
-      const taken = [...state.appointments.filter(a => a.id !== appointment.id && a.status !== 'cancelled'), ...state.blocks]
-        .some(item => start < new Date(item.ends_at) && end > new Date(item.starts_at));
-      const status = start <= new Date() ? 'vorbei' : taken ? 'belegt' : closed ? 'geschlossen' : '';
-      return { weeks, start, end, status };
-    });
-    $('move-weeks').innerHTML = options.map(option => `<button type="button" class="move-week${option.status ? ' is-unavailable' : ''}" data-move-weeks="${option.weeks}">
-        <span class="move-week-label">+${option.weeks} ${option.weeks === 1 ? 'Woche' : 'Wochen'}</span>
-        <strong>${fmt(option.start, { weekday: 'short', day: '2-digit', month: '2-digit' })}</strong>
-        <span>${fmt(option.start, { hour: '2-digit', minute: '2-digit' })} Uhr</span>
-        <small>${option.status ? `${option.status} · andere Zeit wählen` : 'frei'}</small>
-      </button>`).join('');
-    $('move-weeks').querySelectorAll('[data-move-weeks]').forEach(button => button.onclick = () => {
-      const option = options.find(item => item.weeks === Number(button.dataset.moveWeeks));
-      if (!option.status) { openResizeConfirm(appointment, option.start, option.end, 'move'); return; }
-      $('move-date').value = dayKey(option.start);
-      renderMoveSlots();
-      $('move-day').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    });
-  }
-
-  function shiftMoveDate(days) {
-    const [year, month, dayOfMonth] = $('move-date').value.split('-').map(Number);
-    $('move-date').value = dayKey(addDays(new Date(year, month - 1, dayOfMonth), days));
-    renderMoveSlots();
   }
 
   function openAppointment(id = null, preset = null) {
@@ -2596,6 +2568,7 @@
     $('move-appointment').hidden = !item || item.status !== 'booked';
     $('move-panel').hidden = true;
     moveAppointmentId = null;
+    moveWeek = null;
     $('appointment-message').textContent = '';
     togglePrivateFields();
     openModal('appointment-modal');
@@ -3256,14 +3229,9 @@
     if (!item) return;
     if ($('move-panel').hidden) openMovePanel(item); else $('move-panel').hidden = true;
   };
-  $('move-date').onchange = renderMoveSlots;
-  $('move-outside').onchange = () => { renderMoveWeeks(); renderMoveSlots(); };
-  $('move-prev').onclick = () => shiftMoveDate(-1);
-  $('move-next').onclick = () => shiftMoveDate(1);
-  document.querySelectorAll('[data-move-jump]').forEach(button => button.onclick = () => {
-    $('move-date').value = dayKey(addDays(startOfDay(new Date()), Number(button.dataset.moveJump)));
-    renderMoveSlots();
-  });
+  $('move-outside').onchange = renderMovePanel;
+  $('move-prev').onclick = () => { moveWeek = addDays(moveWeek, -7); renderMovePanel(); };
+  $('move-next').onclick = () => { moveWeek = addDays(moveWeek, 7); renderMovePanel(); };
   bindCustomerPicker('waitlist', 'waitlist-modal');
   $('customer-delete').onclick = openCustomerDelete;
   $('customer-delete-form').onsubmit = deleteCustomerPermanently;
