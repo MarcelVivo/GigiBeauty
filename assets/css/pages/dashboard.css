@@ -373,11 +373,11 @@ body.is-moving-appointment, body.is-moving-appointment * { cursor: grabbing !imp
 .resize-confirm-times div:last-child strong { color: var(--dash-wine); }
 .resize-confirm-note { margin: 0; color: var(--dash-muted); font-size: .82rem; line-height: 1.45; }
 #week-prev, #week-next { font-size: 1.05rem; line-height: 1; }
-.gap-menu { position: fixed; z-index: 80; width: 270px; padding: .75rem .8rem .7rem; border: 1px solid var(--dash-line); border-radius: 12px; background: var(--dash-card); box-shadow: 0 14px 34px rgba(42,33,28,.2); }
+.gap-menu { position: fixed; z-index: 80; width: 300px; padding: .75rem .8rem .7rem; border: 1px solid var(--dash-line); border-radius: 12px; background: var(--dash-card); box-shadow: 0 14px 34px rgba(42,33,28,.2); }
 .gap-menu[hidden] { display: none; }
 .gap-menu strong { display: block; margin-bottom: .15rem; font-size: .82rem; color: var(--dash-ink); }
 .gap-menu-label { display: block; margin-bottom: .55rem; color: var(--dash-muted); font-size: .72rem; }
-.gap-menu-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: .35rem; }
+.gap-menu-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: .35rem; }
 .gap-menu-options button { margin: 0; white-space: nowrap; padding: .5rem .3rem; border: 1px solid var(--dash-line); border-radius: 8px; background: white; color: var(--dash-ink); font-size: .78rem; font-weight: 650; cursor: pointer; }
 .gap-menu-options button:hover:not(:disabled), .gap-menu-options button:focus-visible { border-color: var(--dash-wine); color: var(--dash-wine); }
 .gap-menu-options button:disabled { opacity: .35; cursor: not-allowed; }
