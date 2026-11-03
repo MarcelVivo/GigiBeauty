@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendPush, type PushMessage } from './push.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -173,6 +174,39 @@ async function alreadyBookedSincePreview(item: OutboxItem) {
   return Boolean(data && data.length);
 }
 
+// Kurzfassung der E-Mail als Push an die App (nur Termin-, Chat- und
+// Admin-Meldungen, kein Marketing).
+function pushMessage(item: OutboxItem): PushMessage | null {
+  const account = 'https://www.gigibeauty.ch/pages/booking.html?auth=1';
+  const when = item.payload.starts_at ? new Intl.DateTimeFormat('de-CH', {
+    timeZone: 'Europe/Zurich', weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+  }).format(new Date(String(item.payload.starts_at))) : '';
+  const detail = [String(item.payload.service || 'Behandlung'), when].filter(Boolean).join(' · ');
+  if (item.kind === 'confirmation') return { title: 'Termin bestätigt', body: detail, url: account };
+  if (item.kind === 'reminder') return { title: 'Erinnerung: dein Termin morgen', body: detail, url: account };
+  if (item.kind === 'rescheduled') return { title: 'Termin geändert', body: detail, url: account };
+  if (item.kind === 'cancellation') return { title: 'Termin storniert', body: detail, url: account };
+  if (item.kind === 'chat_reply') {
+    const preview = String(item.payload.preview || '').trim();
+    return {
+      title: item.payload.category === 'result' ? 'Neues Behandlungsfoto für dich' : 'Neue Nachricht von Liliane',
+      body: preview ? (preview.length > 120 ? `${preview.slice(0, 120)} …` : preview) : 'Öffne die App, um sie anzusehen.',
+      url: String(item.payload.account_url || account)
+    };
+  }
+  if (item.kind === 'owner_notice') return { title: 'GiGi Beauty', body: item.subject, url: 'https://www.gigibeauty.ch/dashboard/' };
+  return null;
+}
+
+async function pushFor(item: OutboxItem) {
+  const message = pushMessage(item);
+  if (!message) return;
+  const { data } = item.kind === 'owner_notice'
+    ? await db.from('profiles').select('id').eq('role', 'admin')
+    : await db.from('profiles').select('id').ilike('email', item.recipient_email);
+  await sendPush(db, (data || []).map((row) => row.id), message);
+}
+
 Deno.serve(async (request) => {
   if (request.method !== 'POST') return new Response('Method not allowed', { status: 405 });
   if (cronSecret && request.headers.get('x-process-secret') !== cronSecret) return new Response('Forbidden', { status: 403 });
@@ -202,6 +236,7 @@ Deno.serve(async (request) => {
       if (!response.ok) throw new Error(`Resend ${response.status}: ${await response.text()}`);
       await db.from('email_outbox').update({ processed_at: new Date().toISOString(), processing_at: null, last_error: null }).eq('id', item.id);
       await db.from('customer_communications').update({ status: 'sent', occurred_at: new Date().toISOString() }).eq('email_outbox_id', item.id);
+      await pushFor(item).catch((error) => console.error('Push', error));
       if (['campaign', 'review', 'rebooking', 'winback', 'birthday', 'ai_preview_followup'].includes(item.kind)) {
         const { data: customer } = await db.from('customers').select('id').ilike('email', item.recipient_email).maybeSingle();
         await db.from('marketing_events').insert({ customer_id: customer?.id || null, campaign_id: item.payload.campaign_id || null, event_type: 'sent', source: item.kind, medium: 'email', metadata: { email_outbox_id: item.id } });

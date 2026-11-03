@@ -14,10 +14,20 @@
   "backgroundColor": "#211711",
   "ios": {
     "contentInset": "always",
-    "backgroundColor": "#211711"
+    "backgroundColor": "#211711",
+    "appendUserAgent": "GiGiBeautyApp push"
   },
   "android": {
     "allowMixedContent": false,
     "backgroundColor": "#211711"
+  },
+  "plugins": {
+    "PushNotifications": {
+      "presentationOptions": [
+        "badge",
+        "sound",
+        "alert"
+      ]
+    }
   }
 }

@@ -63,6 +63,18 @@ supabase functions deploy delete-account --use-api
 supabase functions deploy calendar --use-api --no-verify-jwt
 ```
 
+**Push in der App (optional):** `process-booking-emails` schickt zu Bestätigung,
+Erinnerung, Verschiebung, Storno und Chat-Antwort zusätzlich einen Push an die
+App der Kundin, bei `owner_notice` an die Geräte der Admins (Tabelle
+`push_devices`, gefüllt von `assets/js/app-push.js`). Ohne diese Secrets wird
+nur gemailt:
+
+```sh
+supabase secrets set \
+  APNS_KEY_ID=... APNS_TEAM_ID=... APNS_KEY_P8="$(cat AuthKey_XXXX.p8)" \
+  FIREBASE_SERVICE_ACCOUNT="$(cat firebase-service-account.json)"
+```
+
 Im OpenAI-Konto ein Monatsbudget mit Warnung setzen.
 
 ## 4. Zeitgesteuerte Jobs (pg_cron)
