@@ -7,7 +7,7 @@
   <title>GiGi Beauty | Admin Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261103-1">
+  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261103-2">
 <meta name="theme-color" content="#261b17">
 <!-- PWA / App -->
 <link rel="manifest" href="/dashboard/manifest.webmanifest">
@@ -429,9 +429,23 @@
       <button class="primary" type="button" id="reschedule-flyout-send">Bestätigungsmail senden</button>
     </div>
   </div>
+  <div class="gap-menu" id="gap-menu" hidden role="menu" aria-labelledby="gap-menu-title">
+    <strong id="gap-menu-title"></strong>
+    <span class="gap-menu-label">Wie lange dauert der Termin?</span>
+    <div class="gap-menu-options">
+      <button type="button" role="menuitem" data-gap-minutes="15">15 Min.</button>
+      <button type="button" role="menuitem" data-gap-minutes="30">30 Min.</button>
+      <button type="button" role="menuitem" data-gap-minutes="45">45 Min.</button>
+      <button type="button" role="menuitem" data-gap-minutes="60">1 Std.</button>
+      <button type="button" role="menuitem" data-gap-minutes="90">1 Std. 30</button>
+      <button type="button" role="menuitem" data-gap-minutes="120">2 Std.</button>
+    </div>
+    <small id="gap-menu-hint"></small>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
   <script src="../assets/js/supabase-config.js?v=20260808-1"></script>
-  <script src="../assets/js/dashboard.js?v=20261103-1"></script>
+  <script src="../assets/js/dashboard.js?v=20261103-2"></script>
   <script src="../assets/js/password-toggle.js"></script>
 </body>
 </html>

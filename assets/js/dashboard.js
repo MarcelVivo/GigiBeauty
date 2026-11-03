@@ -898,7 +898,7 @@
         const origin = appointmentOrigin(event);
         const detail = compact ? '' : `<small>${esc(event.services?.name || 'Privat')}</small><span class="calendar-event-origin">${esc(appointmentOriginLabel(origin))}</span>`;
         const handles = event.status === 'booked' ? '<span class="cal-resize is-top" data-resize="top" title="Ziehen zum Verlängern/Verkürzen"></span><span class="cal-resize is-bottom" data-resize="bottom" title="Ziehen zum Verlängern/Verkürzen"></span>' : '';
-        return `<button class="calendar-event ${appointmentOriginClass(origin)} status-${event.status}" title="${esc(labelStatus(event.status))}" type="button" style="${style}" data-edit-appointment="${event.id}"${event.status === 'booked' ? ' data-movable' : ''}>${time}<strong>${esc(event.customer_name)}</strong>${detail}${handles}</button>`;
+        return `<button class="calendar-event ${appointmentOriginClass(origin)} status-${event.status}" title="${esc(labelStatus(event.status))}" type="button" draggable="${isTouchDevice() ? 'false' : 'true'}" style="${style}" data-edit-appointment="${event.id}" data-movable>${time}<strong>${esc(event.customer_name)}</strong>${detail}${handles}</button>`;
       }).join('');
       return `<section class="admin-day" data-date="${key}"><div class="admin-day-head"><strong>${fmt(date, { weekday: 'short' })}</strong><span>${fmt(date, { day: '2-digit', month: '2-digit' })}</span></div><div class="admin-day-body" style="height:${gridHeight}px">${body}</div></section>`;
     }).join('');
@@ -907,6 +907,7 @@
     document.querySelectorAll('[data-edit-appointment]').forEach(button => button.onclick = () => { if (!suppressCalendarClick) openAppointment(button.dataset.editAppointment); });
     document.querySelectorAll('[data-delete-block]').forEach(button => button.onclick = () => removeBlock(button.dataset.deleteBlock));
     calendarGrid = { min, max };
+    attachCalendarDragHandlers(min, max);
     attachCalendarMoveHandlers();
     attachCalendarResizeHandlers(min, max);
     attachCalendarGapHandlers(min, max);
@@ -987,6 +988,7 @@
           ? Math.max(gridMin, endMin - 240, ...busy.filter(r => r.end <= startMin).map(r => r.end))
           : Math.min(gridMax, startMin + 240, ...busy.filter(r => r.start >= endMin).map(r => r.start));
         resizeState = { appointment, card, edge, startMin, endMin, limit, originY: clientY, newStart: startMin, newEnd: endMin, pointerId };
+        card.draggable = false;
         card.classList.add('is-resizing');
         // Capture kann in einzelnen (Android-)WebViews fehlschlagen; Ziehen
         // funktioniert dann trotzdem, solange der Finger auf dem Griff bleibt.
@@ -1036,6 +1038,7 @@
         if (!r || r.pointerId !== event.pointerId) return;
         resizeState = null;
         r.card.classList.remove('is-resizing');
+        r.card.draggable = !isTouchDevice();
         // Der Klick nach dem Loslassen soll nicht den Bearbeiten-Dialog öffnen.
         suppressCalendarClick = true;
         setTimeout(() => { suppressCalendarClick = false; }, 60);
@@ -1090,11 +1093,12 @@
     toast(mailError ? `${done}, Kundinnen-Mail fehlgeschlagen: ${mailError.message}` : canEmail ? `${done}. Info-Mails an Kundin und dich sind eingeplant.` : `${done}. Info-Mail an dich ist eingeplant.`);
   }
 
-  // Klick in eine freie Fläche: Termin-Dialog direkt mit Tag und
-  // angeklickter Viertelstunde. Dauer = Standarddauer der Behandlung,
-  // gekürzt auf die Lücke bis zum nächsten Termin/zur nächsten Sperrzeit.
-  // Mit der Maus zeigt eine Vorschau («+ 10:15»), welche Viertelstunde ein
-  // Klick trifft.
+  // Klick in eine freie Fläche: kleines Fenster, in dem Liliane zuerst
+  // die Dauer wählt (15 Min. bis 2 Std.) ab der angeklickten Viertelstunde;
+  // Dauern, die nicht bis zum nächsten Termin/zur nächsten Sperrzeit
+  // passen, sind deaktiviert. Danach öffnet sich der Termin-Dialog mit Tag,
+  // Uhrzeit und Dauer. Mit der Maus zeigt eine Vorschau («+ 10:15»), welche
+  // Viertelstunde ein Klick trifft.
   const clockLabel = minutes => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
   function freeSlotAt(dateKey, body, clientY, gridMin, gridMax) {
     const offset = (clientY - body.getBoundingClientRect().top) / CAL_PX_PER_MIN;
@@ -1126,22 +1130,105 @@
         const slot = freeSlotAt(day.dataset.date, body, event.clientY, gridMin, gridMax);
         if (!slot) return;
         hover.hidden = true;
-        const [year, month, dayOfMonth] = day.dataset.date.split('-').map(Number);
-        const start = new Date(year, month - 1, dayOfMonth, 0, 0, 0, 0);
-        start.setMinutes(slot.start);
-        const standard = defaultDurationMinutes(state.services[0]?.id || '', '');
-        openAppointment(null, { start, duration: Math.max(CAL_SLOT_MINUTES, Math.min(standard, slot.gapEnd - slot.start)) });
+        openGapMenu(day.dataset.date, slot.start, slot.gapEnd, event.clientX, event.clientY);
       });
     });
   }
 
-  // Verschieben: Die Terminkarte folgt Maus bzw. Finger live im
-  // 15-Minuten-Raster, auch auf andere Tage der Ansicht; die Zeit auf der
-  // Karte zeigt laufend die neue Uhrzeit, rot = Platz belegt. Maus: Ziehen
-  // ab 5 px Bewegung (ein normaler Klick öffnet weiterhin den Dialog).
-  // Finger: nach 350 ms ruhigem Halten (sonst ist es Scrollen). Hält man
-  // die Karte über «‹»/«›», wechselt die Ansicht nach kurzer Zeit -- so
-  // lässt sich ein Termin auch in eine andere Woche ziehen. Die Karte wird
+  function openGapMenu(dateKey, startMin, gapEndMin, x, y) {
+    const menu = $('gap-menu');
+    const [year, month, dayOfMonth] = dateKey.split('-').map(Number);
+    const at = minutes => { const d = new Date(year, month - 1, dayOfMonth, 0, 0, 0, 0); d.setMinutes(minutes); return d; };
+    const start = at(startMin);
+    $('gap-menu-title').textContent = `${fmt(start, { weekday: 'short', day: '2-digit', month: '2-digit' })} · ${fmt(start, { hour: '2-digit', minute: '2-digit' })} Uhr`;
+    $('gap-menu-hint').textContent = `Frei bis ${fmt(at(gapEndMin), { hour: '2-digit', minute: '2-digit' })} Uhr (${durationLabel(gapEndMin - startMin)})`;
+    menu.querySelectorAll('[data-gap-minutes]').forEach(button => {
+      const minutes = Number(button.dataset.gapMinutes);
+      button.disabled = minutes > gapEndMin - startMin;
+      button.onclick = () => { closeGapMenu(); openAppointment(null, { start, duration: minutes }); };
+    });
+    menu.hidden = false;
+    const rect = menu.getBoundingClientRect();
+    menu.style.left = `${Math.max(8, Math.min(x, window.innerWidth - rect.width - 8))}px`;
+    menu.style.top = `${Math.max(8, Math.min(y, window.innerHeight - rect.height - 8))}px`;
+    menu.querySelector('[data-gap-minutes]:not(:disabled)')?.focus();
+  }
+  function closeGapMenu() { $('gap-menu').hidden = true; }
+
+  // Verschieben mit Maus/Trackpad: natives Drag & Drop. Die Vorschau im
+  // Raster zeigt die neue Uhrzeit (an der Stelle, an der die Karte gegriffen
+  // wurde, ausgerichtet) und wird rot, wenn der Platz belegt ist. Halten
+  // über «‹»/«›» wechselt die Woche (bindWeekDragToShift).
+  let draggedAppointmentId = null;
+  let draggedDurationMinutes = 0;
+  let draggedGrabOffset = 0;
+
+  function attachCalendarDragHandlers(gridMin, gridMax) {
+    document.querySelectorAll('.calendar-event[data-edit-appointment]').forEach(button => {
+      button.addEventListener('dragstart', event => {
+        if (resizeState) { event.preventDefault(); return; }
+        draggedAppointmentId = button.dataset.editAppointment;
+        const appointment = state.appointments.find(a => a.id === draggedAppointmentId);
+        draggedDurationMinutes = appointment ? Math.round((new Date(appointment.ends_at) - new Date(appointment.starts_at)) / 60000) : 90;
+        draggedGrabOffset = event.clientY - button.getBoundingClientRect().top;
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', draggedAppointmentId);
+        button.classList.add('is-dragging');
+        closeGapMenu();
+      });
+      button.addEventListener('dragend', () => {
+        button.classList.remove('is-dragging');
+        document.querySelectorAll('.admin-day.drop-target').forEach(el => el.classList.remove('drop-target'));
+        document.querySelectorAll('.drop-ghost').forEach(el => el.remove());
+        draggedAppointmentId = null;
+      });
+    });
+    document.querySelectorAll('.admin-day').forEach(day => {
+      const body = day.querySelector('.admin-day-body');
+      if (!body) return;
+      day.addEventListener('dragover', event => {
+        if (!draggedAppointmentId) return;
+        event.preventDefault();
+        day.classList.add('drop-target');
+        const raw = gridMin + (event.clientY - draggedGrabOffset - body.getBoundingClientRect().top) / CAL_PX_PER_MIN;
+        const start = Math.max(gridMin, Math.min(gridMax - draggedDurationMinutes, Math.round(raw / CAL_SLOT_MINUTES) * CAL_SLOT_MINUTES));
+        const valid = !busyRangesOfDay(day.dataset.date, draggedAppointmentId).some(r => start < r.end && start + draggedDurationMinutes > r.start);
+        let ghost = body.querySelector('.drop-ghost');
+        if (!ghost) { ghost = document.createElement('div'); ghost.className = 'drop-ghost'; body.appendChild(ghost); }
+        ghost.style.top = `${(start - gridMin) * CAL_PX_PER_MIN}px`;
+        ghost.style.height = `${Math.max(28, draggedDurationMinutes * CAL_PX_PER_MIN)}px`;
+        ghost.classList.toggle('is-conflict', !valid);
+        ghost.textContent = valid ? `${clockLabel(start)}–${clockLabel(start + draggedDurationMinutes)}` : `${clockLabel(start)} · belegt`;
+        ghost.dataset.minutesOfDay = start;
+        ghost.dataset.valid = valid ? '1' : '';
+        event.dataTransfer.dropEffect = valid ? 'move' : 'none';
+      });
+      day.addEventListener('dragleave', event => {
+        if (day.contains(event.relatedTarget)) return;
+        day.classList.remove('drop-target');
+        body.querySelector('.drop-ghost')?.remove();
+      });
+      day.addEventListener('drop', event => {
+        event.preventDefault();
+        const ghost = body.querySelector('.drop-ghost');
+        const minutesOfDay = ghost ? Number(ghost.dataset.minutesOfDay) : null;
+        const valid = ghost?.dataset.valid === '1';
+        day.classList.remove('drop-target');
+        ghost?.remove();
+        if (!draggedAppointmentId || minutesOfDay === null) return;
+        const id = draggedAppointmentId;
+        draggedAppointmentId = null;
+        if (!valid) { toast('Dort ist bereits ein Termin oder eine Sperrzeit.'); return; }
+        rescheduleAppointment(id, day.dataset.date, minutesOfDay);
+      });
+    });
+  }
+
+  // Verschieben mit dem Finger (Handy/Tablet; natives Drag & Drop gibt es
+  // dort nicht): nach 350 ms ruhigem Halten folgt die Terminkarte dem
+  // Finger live im 15-Minuten-Raster, auch auf andere Tage der Ansicht; die
+  // Zeit auf der Karte zeigt laufend die neue Uhrzeit, rot = Platz belegt.
+  // Hält man die Karte über «‹»/«›», wechselt die Ansicht nach kurzer Zeit. Die Karte wird
   // dabei aus ihrem HTML neu erzeugt, weil renderCalendar() die Spalten neu
   // aufbaut; die Pointer-Listener hängen deshalb am document.
   let calendarGrid = { min: 0, max: 24 * 60 };
@@ -1151,12 +1238,11 @@
   function attachCalendarMoveHandlers() {
     document.querySelectorAll('.calendar-event[data-movable]').forEach(card => {
       card.addEventListener('pointerdown', event => {
-        if (event.button !== 0 || event.target.closest('[data-resize]') || resizeState || moveState) return;
+        if (event.pointerType === 'mouse' || event.button !== 0 || event.target.closest('[data-resize]') || resizeState || moveState) return;
         const appointment = state.appointments.find(a => a.id === card.dataset.editAppointment);
         if (!appointment) return;
         const pending = { appointment, card, pointerId: event.pointerId, type: event.pointerType, x: event.clientX, y: event.clientY, grabOffset: event.clientY - card.getBoundingClientRect().top };
         pendingMove = pending;
-        if (event.pointerType === 'mouse') return;
         card.classList.add('is-arming');
         pending.timer = setTimeout(() => {
           card.classList.remove('is-arming');
@@ -1252,9 +1338,7 @@
     const calendar = $('admin-calendar');
     document.addEventListener('pointermove', event => {
       if (pendingMove && pendingMove.pointerId === event.pointerId) {
-        const distance = Math.hypot(event.clientX - pendingMove.x, event.clientY - pendingMove.y);
-        if (pendingMove.type === 'mouse' && distance > 5) { const pending = pendingMove; pendingMove = null; beginMove(pending); }
-        else if (pendingMove.type !== 'mouse' && distance > 8) cancelPendingMove();
+        if (Math.hypot(event.clientX - pendingMove.x, event.clientY - pendingMove.y) > 8) cancelPendingMove();
       }
       if (!moveState || moveState.pointerId !== event.pointerId) return;
       // Am oberen/unteren Rand des Kalenders mitscrollen.
@@ -1311,6 +1395,30 @@
     if (!el) return;
     el.classList.add('is-just-moved');
     setTimeout(() => el.classList.remove('is-just-moved'), 3000);
+  }
+
+  // Hält der Admin die Terminkarte beim Ziehen über "←"/"→" (Wochenwechsel),
+  // springt der Kalender nach kurzer Verzögerung eine Woche weiter/zurück,
+  // ohne den Drag abzubrechen -- so lässt sich ein Termin auch auf eine
+  // andere Woche verschieben. Einmalige Bindung (die Buttons selbst werden
+  // bei renderCalendar() nicht neu erzeugt, anders als die Terminkarten).
+  let weekDragHoldTimer = null;
+  function bindWeekDragToShift() {
+    [$('week-prev'), $('week-next')].forEach(button => {
+      button.addEventListener('dragover', event => {
+        if (!draggedAppointmentId) return;
+        event.preventDefault();
+        button.classList.add('drop-target');
+        if (weekDragHoldTimer) return;
+        weekDragHoldTimer = setTimeout(() => { weekDragHoldTimer = null; button.click(); }, 650);
+      });
+      button.addEventListener('dragleave', () => {
+        button.classList.remove('drop-target');
+        clearTimeout(weekDragHoldTimer);
+        weekDragHoldTimer = null;
+      });
+      button.addEventListener('drop', event => event.preventDefault());
+    });
   }
 
   // Flyout nach jedem erfolgreichen Verschieben eines Termins (Drag & Drop
@@ -3025,6 +3133,7 @@
     window.addEventListener('resize', () => { const now = isCompactCalendar(); if (now !== wasCompact && state.user) { wasCompact = now; renderCalendar(); } });
   })();
   bindCalendarMove();
+  bindWeekDragToShift();
   bindOverviewInteractions();
   // Tabellen werden auf dem Handy als Karten dargestellt (CSS, max-width
   // 720px); dafür trägt jede Zelle ihre Spaltenüberschrift als data-label.
@@ -3065,8 +3174,11 @@
   $('appointment-service').onchange = () => { fillPriceItemSelect($('appointment-service').value); fillDurationSelect(defaultDurationMinutes($('appointment-service').value, '')); };
   $('appointment-price-item').onchange = () => fillDurationSelect(defaultDurationMinutes($('appointment-service').value, $('appointment-price-item').value));
   $('resize-confirm-modal').addEventListener('click', event => { if (event.target === event.currentTarget) renderCalendar(); });
+  document.addEventListener('pointerdown', event => { if (!$('gap-menu').hidden && !$('gap-menu').contains(event.target)) closeGapMenu(); });
+  $('admin-calendar').addEventListener('scroll', closeGapMenu);
   document.addEventListener('keydown', event => {
     if (event.key !== 'Escape') return;
+    if (!$('gap-menu').hidden) { closeGapMenu(); return; }
     if (!$('resize-confirm-modal').hidden) { cancelResize(); return; }
     const open = [...document.querySelectorAll('.modal-backdrop')].filter(m => !m.hidden);
     if (open.length) closeModal(open[open.length - 1].id);
