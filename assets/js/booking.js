@@ -243,6 +243,11 @@
       if (state.user) openAccount(); else openModal(els.authModal);
     }
     await refreshCalendar();
+    // Direktlink zum Kalender (gigibeauty.ch/kalender, ?kalender=1 oder
+    // #kalender, z. B. aus Instagram): ohne Scrollen beim Kalender landen.
+    if (location.hash === '#kalender' || new URLSearchParams(location.search).has('kalender')) {
+      requestAnimationFrame(() => document.getElementById('kalender')?.scrollIntoView({ block: 'start', behavior: 'auto' }));
+    }
   }
 
   function renderServices(scrollBehavior = 'auto') {

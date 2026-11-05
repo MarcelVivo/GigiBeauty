@@ -209,7 +209,7 @@
 .service-tile.is-selected { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(212,175,106,.18), 0 18px 45px rgba(0,0,0,.24); }
 .service-tile.is-selected::before { content: '✓'; position: absolute; top: .65rem; right: .65rem; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; color: var(--ink); background: var(--gold); font-weight: 700; }
 
-.calendar-section { min-height: 0; flex: 1 1 auto; display: flex; flex-direction: column; }
+.calendar-section { scroll-margin-top: calc(var(--nav-height, 64px) + .5rem); min-height: 0; flex: 1 1 auto; display: flex; flex-direction: column; }
 .calendar-section > .step-kicker { flex: 0 0 auto; margin-bottom: .45rem; }
 .calendar-card { min-height: 0; flex: 1 1 auto; display: flex; flex-direction: column; background: rgba(24, 22, 28, .7); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; box-shadow: 0 28px 70px rgba(0,0,0,.22); }
 /* Kalender-Leiste: oben Ansicht + «Heute», darunter beschriftete Pfeile

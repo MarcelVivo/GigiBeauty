@@ -22,6 +22,16 @@
       "permanent": true
     },
     {
+      "source": "/(kalender|terminkalender)",
+      "destination": "/pages/booking.html?kalender=1",
+      "permanent": false
+    },
+    {
+      "source": "/(kalender|terminkalender)/",
+      "destination": "/pages/booking.html?kalender=1",
+      "permanent": false
+    },
+    {
       "source": "/(termin|termine|buchen|booking|online-buchen|termin-buchen)",
       "destination": "/pages/booking.html",
       "permanent": true
