@@ -798,7 +798,7 @@
   // Ein Termin/eine Sperre als Listenzeile (Wochenliste auf dem Handy).
   function agendaItem(item) {
     const time = `${fmt(item.starts_at, { hour: '2-digit', minute: '2-digit' })}–${fmt(item.ends_at, { hour: '2-digit', minute: '2-digit' })}`;
-    if (item.type === 'block') return `<button type="button" class="agenda-item is-block" data-delete-block="${item.id}"><time>${time}</time><span><strong>Gesperrt</strong><small>${esc(item.reason || '')}</small></span></button>`;
+    if (item.type === 'block') return `<button type="button" class="agenda-item is-block" data-delete-block="${item.id}" title="Antippen, um diese Sperre aufzuheben"><time>${time}</time><span><strong>Gesperrt</strong><small>${esc(item.reason || '')}</small><span class="block-unlock-hint">Antippen zum Entsperren</span></span></button>`;
     const origin = appointmentOrigin(item);
     return `<button type="button" class="agenda-item ${appointmentOriginClass(origin)} status-${item.status}" title="${esc(labelStatus(item.status))}" data-edit-appointment="${item.id}"><time>${time}</time><span><strong>${esc(item.customer_name)}</strong><small>${esc(item.services?.name || 'Privat')}</small></span></button>`;
   }
@@ -902,8 +902,8 @@
         // einen Klick entfernt.
         const compact = height < 96;
         if (event.type === 'block') {
-          const detail = compact ? '' : `<small>${esc(event.reason)}</small>`;
-          return `<button class="calendar-event is-block" type="button" style="${style}" data-delete-block="${event.id}">${time}<strong>Gesperrt</strong>${detail}</button>`;
+          const detail = compact ? '' : `<small>${esc(event.reason)}</small><span class="block-unlock-hint">Antippen zum Entsperren</span>`;
+          return `<button class="calendar-event is-block" type="button" style="${style}" data-delete-block="${event.id}" title="Antippen, um diese Sperre aufzuheben">${time}<strong>Gesperrt</strong>${detail}</button>`;
         }
         const origin = appointmentOrigin(event);
         const detail = compact ? '' : `<small>${esc(event.services?.name || 'Privat')}</small><span class="calendar-event-origin">${esc(appointmentOriginLabel(origin))}</span>`;
@@ -2807,7 +2807,11 @@
   }
 
   async function removeBlock(id) {
-    if (!confirm('Diese Kalendersperre aufheben?')) return;
+    const block = state.blocks.find(b => String(b.id) === String(id));
+    const label = block ? (dayKey(block.starts_at) === dayKey(new Date(new Date(block.ends_at) - 1))
+      ? `${fmt(block.starts_at, { weekday: 'short', day: '2-digit', month: '2-digit' })}, ${fmt(block.starts_at, { hour: '2-digit', minute: '2-digit' })}–${fmt(block.ends_at, { hour: '2-digit', minute: '2-digit' })} Uhr`
+      : `${fmt(block.starts_at, { day: '2-digit', month: '2-digit', year: 'numeric' })} bis ${fmt(new Date(new Date(block.ends_at) - 1), { day: '2-digit', month: '2-digit', year: 'numeric' })}`) : '';
+    if (!confirm(`Sperre aufheben${label ? ` (${label})` : ''}? Die Zeit ist danach wieder buchbar.`)) return;
     const { error } = await db.from('blocked_times').delete().eq('id', id);
     if (error) return toast(error.message);
     toast('Sperre aufgehoben.'); await loadAll();

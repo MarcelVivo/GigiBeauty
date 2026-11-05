@@ -329,6 +329,8 @@ tr[data-price-item].drop-after { box-shadow: inset 0 -2px 0 0 var(--dash-wine); 
 .calendar-event.is-admin-entered { border-color: #c9973f; background: #fbf3e2; }
 .calendar-event.is-block { left: 0; right: 0; border-radius: 0; border-color: #3f3a36; color: #f3efeb; background: #5c5651; box-shadow: none; }
 .calendar-event.is-block small, .calendar-event.is-block time { color: #ded7d0; }
+.calendar-event.is-block:hover, .calendar-event.is-block:focus-visible { background: #6b645e; }
+.block-unlock-hint { display: block; margin-top: 2px; font-size: .62rem; text-decoration: underline; opacity: .85; }
 .calendar-event time { display: block; font-size: .68rem; font-weight: 750; line-height: 1.2; }
 .calendar-event strong { display: block; margin: .1rem 0; font-size: .74rem; line-height: 1.2; }
 .calendar-event small { display: block; color: var(--dash-muted); line-height: 1.2; }
