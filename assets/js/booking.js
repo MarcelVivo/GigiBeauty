@@ -200,13 +200,13 @@
     return slots;
   }
 
-  function slotStatus(slot) {
+  function slotStatus(slot, unavailable = state.unavailable) {
     const now = new Date();
     if (slot.start <= now) return 'past';
     const rules = state.rules || { minLeadHours: 2, maxAdvanceDays: 180 };
     if (slot.start < new Date(now.getTime() + rules.minLeadHours * 3600000)) return 'soon';
     if (slot.start > new Date(now.getTime() + rules.maxAdvanceDays * 86400000)) return 'later';
-    const busy = state.unavailable.some(item => slot.start < new Date(item.ends_at) && slot.end > new Date(item.starts_at));
+    const busy = unavailable.some(item => slot.start < new Date(item.ends_at) && slot.end > new Date(item.starts_at));
     return busy ? 'unavailable' : 'available';
   }
 
@@ -351,6 +351,51 @@
     els.calendarSubtitle.textContent = `${relative} · ${free ? `${free} freie${free === 1 ? 'r' : ''} Termin${free === 1 ? '' : 'e'}` : 'keine freien Termine, bitte weiterblättern'}`;
     document.getElementById('calendar-prev').disabled = offset <= 0;
     document.getElementById('calendar-today').disabled = offset === 0;
+    const nextFree = document.getElementById('calendar-next-free');
+    nextFree.hidden = !state.selectedService;
+    if (state.selectedService) nextFree.title = `Nächster freier Termin für ${state.selectedPriceItem?.name || state.selectedService.name}`;
+  }
+
+  // «Nächster freier Termin»: sucht ab jetzt in Blöcken von sechs Wochen bis
+  // zum Buchungshorizont den ersten freien Slot für die gewählte Behandlung
+  // (deren Dauer zählt), springt dorthin und hebt den Slot hervor.
+  async function showNextFree() {
+    if (!state.selectedService) return showToast('Bitte zuerst eine Behandlung wählen.');
+    const button = document.getElementById('calendar-next-free');
+    const label = button.innerHTML;
+    button.disabled = true;
+    button.textContent = 'Suche …';
+    try {
+      const rules = state.rules || { minLeadHours: 2, maxAdvanceDays: 180 };
+      const limit = addDays(startOfDay(new Date()), rules.maxAdvanceDays + 1);
+      let found = null;
+      for (let from = startOfDay(new Date()); from < limit && !found; from = addDays(from, 42)) {
+        const to = addDays(from, 42) < limit ? addDays(from, 42) : limit;
+        let unavailable = [];
+        if (db) {
+          const { data, error } = await db.rpc('get_unavailable_slots', { range_start: from.toISOString(), range_end: to.toISOString() });
+          if (error) { showToast(`Die freien Termine konnten nicht geladen werden: ${error.message}`); return; }
+          unavailable = data || [];
+        }
+        for (let day = from; day < to && !found; day = addDays(day, 1)) {
+          found = createSlots(day).find(slot => slotStatus(slot, unavailable) === 'available') || null;
+        }
+      }
+      if (!found) { showToast('In den nächsten Monaten ist für diese Behandlung leider kein Termin mehr frei.'); return; }
+      if (state.view === 'month') state.view = 'week';
+      state.cursor = startOfDay(found.start);
+      await refreshCalendar();
+      const slotButton = els.calendar.querySelector(`[data-slot="${found.start.toISOString()}"]`);
+      if (slotButton) {
+        slotButton.classList.add('is-next-free');
+        slotButton.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        slotButton.focus({ preventScroll: true });
+      }
+      showToast(`Nächster freier Termin: ${formatDate(found.start, { weekday: 'long', day: '2-digit', month: 'long' })}, ${found.label} Uhr`);
+    } finally {
+      button.disabled = false;
+      button.innerHTML = label;
+    }
   }
 
   function slotButton(slot) {
@@ -846,6 +891,7 @@
 
   document.getElementById('calendar-prev').addEventListener('click', () => { state.cursor = state.view === 'day' ? addDays(state.cursor, -1) : state.view === 'week' ? addDays(state.cursor, -7) : addMonths(state.cursor, -1); refreshCalendar(); });
   document.getElementById('calendar-next').addEventListener('click', () => { state.cursor = state.view === 'day' ? addDays(state.cursor, 1) : state.view === 'week' ? addDays(state.cursor, 7) : addMonths(state.cursor, 1); refreshCalendar(); });
+  document.getElementById('calendar-next-free').addEventListener('click', showNextFree);
   document.getElementById('calendar-today').addEventListener('click', () => { state.cursor = startOfDay(new Date()); refreshCalendar(); });
   document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => { state.view = button.dataset.view; refreshCalendar(); }));
   document.querySelectorAll('[data-auth-mode]').forEach(button => button.addEventListener('click', () => setAuthMode(button.dataset.authMode)));

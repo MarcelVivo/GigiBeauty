@@ -14,7 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/global.css">
   <link rel="stylesheet" href="../assets/css/pages/nav.css">
-  <link rel="stylesheet" href="../assets/css/pages/booking.css?v=20261103-1">
+  <link rel="stylesheet" href="../assets/css/pages/booking.css?v=20261105-1">
   <link rel="stylesheet" href="../assets/css/pages/beauty-konfigurator.css">
 <meta name="theme-color" content="#211711">
 <!-- PWA / App -->
@@ -70,12 +70,14 @@
         <div class="calendar-toolbar">
           <div class="calendar-toolbar-top">
             <div class="view-switch" role="group" aria-label="Kalenderansicht">
-              <span class="view-switch-label">Ansicht</span>
               <button class="view-button" data-view="day" type="button">Tag</button>
               <button class="view-button is-active" data-view="week" type="button">Woche</button>
               <button class="view-button" data-view="month" type="button">Monat</button>
             </div>
-            <button class="small-button" id="calendar-today" type="button">Heute</button>
+            <div class="calendar-quick">
+              <button class="small-button" id="calendar-today" type="button">Heute</button>
+              <button class="small-button next-free-button" id="calendar-next-free" type="button" hidden><span aria-hidden="true">✦</span> Nächster freier Termin</button>
+            </div>
           </div>
           <div class="calendar-nav">
             <button class="nav-button" id="calendar-prev" type="button"><span aria-hidden="true">‹</span><span class="nav-label" id="calendar-prev-label">Vorherige Woche</span></button>
@@ -325,7 +327,7 @@
   <script src="../assets/js/supabase-config.js"></script>
   <script src="../assets/js/app-push.js?v=20261103-1" defer></script>
   <script src="../assets/js/main.js"></script>
-  <script src="../assets/js/booking.js?v=20261103-2"></script>
+  <script src="../assets/js/booking.js?v=20261105-1"></script>
   <script src="../assets/js/beauty-konfigurator.js?v=20261101-1"></script>
   <script src="../assets/js/password-toggle.js"></script>
   <script>
