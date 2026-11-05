@@ -40,6 +40,7 @@
     unavailable: [],
     hours: defaultHours,
     hoursSchedule: [],
+    hoursExceptions: {},
     user: null,
     profile: null,
     customerId: null,
@@ -183,6 +184,8 @@
   // Startdatum, sonst die aktuellen Zeiten.
   function hoursForDay(day) {
     const key = dateKey(day);
+    // Sonderöffnung/zusätzlich geschlossen an einzelnen Tagen (null = zu).
+    if (Object.prototype.hasOwnProperty.call(state.hoursExceptions, key)) return state.hoursExceptions[key] || undefined;
     const planned = state.hoursSchedule.filter(entry => entry.from <= key).sort((a, b) => (a.from < b.from ? 1 : -1))[0];
     return (planned?.hours || state.hours)[((day.getDay() + 6) % 7) + 1];
   }
@@ -229,6 +232,7 @@
     state.priceItems = priceItems || [];
     state.hours = settings?.opening_hours || defaultHours;
     state.hoursSchedule = Array.isArray(settings?.opening_hours_schedule) ? settings.opening_hours_schedule : [];
+    state.hoursExceptions = settings?.opening_hours_exceptions && typeof settings.opening_hours_exceptions === 'object' ? settings.opening_hours_exceptions : {};
     // Gleiche Regeln wie book_appointment() in der Datenbank.
     state.rules = { minLeadHours: Number(settings?.min_lead_hours ?? 2), maxAdvanceDays: Number(settings?.max_advance_days ?? 180) };
     state.selectedService = initialService();

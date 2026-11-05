@@ -28,6 +28,8 @@
   // in der Datenbank. Schlüssel 1 = Montag … 7 = Sonntag.
   function openingRangeOn(date) {
     const key = dayKey(date);
+    const exceptions = state.settings?.opening_hours_exceptions || {};
+    if (Object.prototype.hasOwnProperty.call(exceptions, key)) return exceptions[key] || undefined;
     const planned = (state.settings?.opening_hours_schedule || []).filter(entry => entry.from <= key).sort((a, b) => (a.from < b.from ? 1 : -1))[0];
     return (planned?.hours || state.settings?.opening_hours || {})[String(((new Date(date).getDay() + 6) % 7) + 1)];
   }
