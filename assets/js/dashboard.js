@@ -2765,6 +2765,7 @@
     $('block-cal-grid').innerHTML = cells.join('');
     $('block-cal-grid').querySelectorAll('[data-block-day]').forEach(button => button.onclick = () => pickBlockDay(button.dataset.blockDay));
     renderBlockSummary();
+    renderExistingBlocks();
   }
 
   function pickBlockDay(key) {
@@ -2795,6 +2796,29 @@
       + (conflicts.length ? `<div class="block-summary-warn">Achtung: ${conflicts.length === 1 ? '1 Termin in diesem Zeitraum bleibt bestehen und muss' : `${conflicts.length} Termine in diesem Zeitraum bleiben bestehen und müssen`} separat verschoben oder storniert werden:<ul>${conflicts.slice(0, 6).map(a => `<li>${esc(fmt(a.starts_at, { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }))} · ${esc(a.customer_name || 'Privat')}</li>`).join('')}${conflicts.length > 6 ? `<li>… und ${conflicts.length - 6} weitere</li>` : ''}</ul></div>` : '');
   }
 
+  // Liste der aktuellen und kommenden Sperren mit «Entsperren»-Knopf. Ein
+  // angetippter, schon gesperrter Tag hebt seine Sperren in der Liste hervor.
+  function blockLabel(block) {
+    const lastMoment = new Date(new Date(block.ends_at) - 1);
+    if (dayKey(block.starts_at) !== dayKey(lastMoment)) return `${fmt(block.starts_at, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })} bis ${fmt(lastMoment, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })}`;
+    const start = new Date(block.starts_at), end = new Date(block.ends_at);
+    const wholeDay = start.getHours() === 0 && start.getMinutes() === 0 && (end - start) >= 86400000 - 60000;
+    return `${fmt(block.starts_at, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })}, ${wholeDay ? 'ganzer Tag' : `${fmt(block.starts_at, { hour: '2-digit', minute: '2-digit' })}–${fmt(block.ends_at, { hour: '2-digit', minute: '2-digit' })} Uhr`}`;
+  }
+
+  function renderExistingBlocks() {
+    const root = $('block-existing');
+    if (!root) return;
+    const now = new Date();
+    const picked = blockState.start ? blocksOnDay(blockState.start).map(b => String(b.id)) : [];
+    const list = state.blocks.filter(b => new Date(b.ends_at) > now).sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
+    root.innerHTML = `<h3>Bestehende Sperren</h3>` + (list.length
+      ? `<ul>${list.map(b => `<li class="${picked.includes(String(b.id)) ? 'is-picked' : ''}"><span><strong>${esc(blockLabel(b))}</strong><small>${esc(b.reason || '')}</small></span><button type="button" class="secondary" data-unblock="${b.id}">Entsperren</button></li>`).join('')}</ul>`
+      : '<p class="block-summary-empty">Keine Sperren eingetragen.</p>');
+    root.querySelectorAll('[data-unblock]').forEach(button => button.onclick = () => removeBlock(button.dataset.unblock));
+    root.querySelector('li.is-picked')?.scrollIntoView({ block: 'nearest' });
+  }
+
   async function saveBlock(event) {
     event.preventDefault();
     const range = blockRange();
@@ -2815,6 +2839,7 @@
     const { error } = await db.from('blocked_times').delete().eq('id', id);
     if (error) return toast(error.message);
     toast('Sperre aufgehoben.'); await loadAll();
+    if (!$('block-modal').hidden) renderBlockDialog();
   }
 
   async function updateInvoice(id, status) {

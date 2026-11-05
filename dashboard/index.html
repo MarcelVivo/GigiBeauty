@@ -7,7 +7,7 @@
   <title>GiGi Beauty | Admin Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261105-1">
+  <link rel="stylesheet" href="../assets/css/pages/dashboard.css?v=20261105-2">
 <meta name="theme-color" content="#261b17">
 <!-- PWA / App -->
 <link rel="manifest" href="/dashboard/manifest.webmanifest">
@@ -117,7 +117,7 @@
       <section class="view-panel" data-view-panel="calendar" hidden>
         <div class="toolbar">
           <div class="toolbar-group"><button class="secondary" id="week-prev" title="Vorherige Woche" aria-label="Vorherige Woche">←</button><button class="secondary" id="week-today">Heute</button><button class="secondary" id="week-next" title="Nächste Woche" aria-label="Nächste Woche">→</button><span class="date-title" id="week-title"></span></div>
-          <div class="toolbar-group"><button class="secondary" id="add-block">Zeitraum sperren</button><button class="primary" id="add-appointment">+ Termin</button></div>
+          <div class="toolbar-group"><button class="secondary" id="add-block">Sperren / Entsperren</button><button class="primary" id="add-appointment">+ Termin</button></div>
         </div>
         <div class="cal-view-switch" role="group" aria-label="Ansicht"><button type="button" data-cal-view="day" aria-pressed="false">Tag</button><button type="button" data-cal-view="week" aria-pressed="false">Woche</button><button type="button" data-cal-view="month" aria-pressed="false">Monat</button></div>
         <div class="day-strip" id="calendar-day-strip" hidden></div>
@@ -248,7 +248,7 @@
   </form></div>
 
   <div class="modal-backdrop" id="block-modal" hidden><form class="modal block-modal" id="block-form">
-    <button class="modal-close" type="button" data-close>×</button><h2>Zeitraum sperren</h2>
+    <button class="modal-close" type="button" data-close>×</button><h2>Zeitraum sperren oder entsperren</h2>
     <div class="block-modes" role="group" aria-label="Art der Sperre">
       <button type="button" data-block-mode="day">Ganzer Tag</button>
       <button type="button" data-block-mode="days">Mehrere Tage</button>
@@ -270,6 +270,7 @@
     <div class="block-summary" id="block-summary"></div>
     <div class="form-message" id="block-message"></div>
     <div class="modal-actions"><div></div><div class="right-actions"><button class="secondary" type="button" data-close>Abbrechen</button><button class="primary" type="submit" id="block-submit">Sperren</button></div></div>
+    <div class="block-existing" id="block-existing"></div>
   </form></div>
 
   <div class="modal-backdrop" id="campaign-modal" hidden><form class="modal" id="campaign-form">
@@ -462,7 +463,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
   <script src="../assets/js/supabase-config.js?v=20260808-1"></script>
   <script src="../assets/js/app-push.js?v=20261103-1" defer></script>
-  <script src="../assets/js/dashboard.js?v=20261105-1"></script>
+  <script src="../assets/js/dashboard.js?v=20261105-2"></script>
   <script src="../assets/js/password-toggle.js"></script>
 </body>
 </html>
