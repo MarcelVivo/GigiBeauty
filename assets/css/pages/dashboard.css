@@ -112,10 +112,10 @@ button { cursor: pointer; }
 .brief-button strong { color: #ddb977; font: 500 1.25rem 'Playfair Display', serif; }
 .brief-button span { margin-top: .15rem; font-size: .58rem; }
 .metric-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: .8rem; }
-.metric { position: relative; min-width: 0; padding: 1.05rem; overflow: hidden; border: 1px solid var(--dash-line); border-radius: 14px; background: var(--dash-card); box-shadow: 0 8px 25px rgba(55,40,30,.035); }
+.metric { position: relative; container-type: inline-size; min-width: 0; padding: 1.05rem; overflow: hidden; border: 1px solid var(--dash-line); border-radius: 14px; background: var(--dash-card); box-shadow: 0 8px 25px rgba(55,40,30,.035); }
 .metric::after { content: ''; position: absolute; width: 58px; height: 58px; right: -18px; bottom: -24px; border-radius: 50%; background: rgba(174,129,63,.1); }
 .metric span { color: var(--dash-muted); font-size: .76rem; text-transform: uppercase; letter-spacing: .08em; }
-.metric strong { display: block; margin-top: .45rem; font: 500 clamp(1.35rem, 2vw, 1.85rem) 'Playfair Display', serif; white-space: nowrap; }
+.metric strong { display: block; margin-top: .45rem; font: 500 clamp(1.35rem, 2vw, 1.85rem) 'Playfair Display', serif; font-size: clamp(1rem, 15cqi, 1.85rem); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .metric-foot { display: flex; align-items: center; justify-content: space-between; gap: .4rem; margin-top: .45rem; color: var(--dash-muted); font-size: .66rem; }
 .trend { flex: 0 0 auto; padding: .18rem .35rem; border-radius: 999px; font-style: normal; font-weight: 750; }
 .trend.up { color: #286146; background: #e7f3eb; }
@@ -577,7 +577,7 @@ tr.is-unread { background: #fdf6e3; font-weight: 650; }
   .topbar { align-items: flex-start; }
   .topbar p { display: none; }
   .metric-grid { grid-template-columns: 1fr 1fr; }
-  .metric strong { font-size: 1.5rem; }
+  .metric strong { font-size: clamp(1rem, 15cqi, 1.5rem); }
   .analytics-toolbar { align-items: flex-start; }
   .analytics-toolbar > div { display: grid; gap: .2rem; }
   .donut-layout { grid-template-columns: 115px 1fr; }

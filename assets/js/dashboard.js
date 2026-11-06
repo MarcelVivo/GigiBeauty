@@ -286,7 +286,9 @@
   }
 
   function metricCard(label, value, detail, change = null, attrs = '') {
-    return `<article class="metric${attrs ? ' is-interactive' : ''}"${attrs}><span>${esc(label)}</span><strong>${esc(value)}</strong><div class="metric-foot"><small>${esc(detail)}</small>${change ? `<em class="trend ${change.className}">${esc(change.text)}</em>` : ''}</div></article>`;
+    // Runde Franken ohne «.00», damit der Betrag in die Kachel passt.
+    const shown = typeof value === 'string' ? value.replace(/\.00$/, '') : value;
+    return `<article class="metric${attrs ? ' is-interactive' : ''}"${attrs}><span>${esc(label)}</span><strong title="${esc(value)}">${esc(shown)}</strong><div class="metric-foot"><small>${esc(detail)}</small>${change ? `<em class="trend ${change.className}">${esc(change.text)}</em>` : ''}</div></article>`;
   }
 
   // Interaktive Übersicht: jedes anklickbare Diagramm-Element trägt
