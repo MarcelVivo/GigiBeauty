@@ -273,8 +273,24 @@
   }
 
   function appointmentRevenue(appointment) {
-    return appointment.status === 'completed' && !appointment.is_private ? Number(appointment.amount_chf ?? appointment.services?.price_chf ?? 0) : 0;
+    return appointment.status === 'completed' && countsInStats(appointment) ? Number(appointment.amount_chf ?? appointment.services?.price_chf ?? 0) : 0;
   }
+
+  // Kundinnen mit «Behandlungen kostenlos» (customers.no_charge): ihre
+  // Termine bleiben im Kalender und in der Auslastung, zählen aber weder im
+  // Umsatz noch in der Statistik -- genau wie private Termine.
+  let noChargeCache = { source: null, ids: new Set(), profiles: new Set(), emails: new Set() };
+  function isNoChargeAppointment(a) {
+    if (noChargeCache.source !== state.customers) {
+      const free = state.customers.filter(c => c.no_charge);
+      noChargeCache = { source: state.customers, ids: new Set(free.map(c => c.id)), profiles: new Set(free.map(c => c.profile_id).filter(Boolean)), emails: new Set(free.map(c => c.email?.toLowerCase()).filter(Boolean)) };
+    }
+    if (!noChargeCache.ids.size) return false;
+    return (a.customer_ref_id && noChargeCache.ids.has(a.customer_ref_id))
+      || (a.customer_id && noChargeCache.profiles.has(a.customer_id))
+      || (a.customer_email && noChargeCache.emails.has(a.customer_email.toLowerCase()));
+  }
+  function countsInStats(a) { return !a.is_private && !isNoChargeAppointment(a); }
 
 
   function trend(current, previous, positiveIsGood = true) {
@@ -416,7 +432,7 @@
       ? Array.from({ length: days }, (_, index) => { const start = addDays(range.start, index); return { start, end: addDays(start, 1), label: `${start.getDate()}.`, title: fmt(start, { weekday: 'short', day: '2-digit', month: '2-digit' }) }; })
       : Array.from({ length: 12 }, (_, index) => { const start = addMonths(range.start, index); return { start, end: addMonths(start, 1), label: fmt(start, { month: 'short' }), title: fmt(start, { month: 'long', year: 'numeric' }) }; });
     return buckets.map(bucket => {
-      const appointments = state.appointments.filter(a => !a.is_private && new Date(a.starts_at) >= bucket.start && new Date(a.starts_at) < bucket.end);
+      const appointments = state.appointments.filter(a => countsInStats(a) && new Date(a.starts_at) >= bucket.start && new Date(a.starts_at) < bucket.end);
       const now = new Date();
       const value = list => list.reduce((sum, a) => sum + Number(a.amount_chf ?? a.services?.price_chf ?? 0), 0);
       const open = appointments.filter(a => a.status === 'booked' && new Date(a.starts_at) < now);
@@ -530,8 +546,8 @@
     const periodStart = range.start;
     const booked = state.appointments.filter(a => a.status === 'booked');
     const todayAppointments = booked.filter(a => dayKey(a.starts_at) === today).sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
-    const currentMonthAppointments = state.appointments.filter(a => !a.is_private && a.status !== 'cancelled' && new Date(a.starts_at) >= range.start && new Date(a.starts_at) < range.end);
-    const previousMonthAppointments = state.appointments.filter(a => !a.is_private && a.status !== 'cancelled' && new Date(a.starts_at) >= range.previousStart && new Date(a.starts_at) < range.start);
+    const currentMonthAppointments = state.appointments.filter(a => countsInStats(a) && a.status !== 'cancelled' && new Date(a.starts_at) >= range.start && new Date(a.starts_at) < range.end);
+    const previousMonthAppointments = state.appointments.filter(a => countsInStats(a) && a.status !== 'cancelled' && new Date(a.starts_at) >= range.previousStart && new Date(a.starts_at) < range.start);
     const currentRevenue = currentMonthAppointments.reduce((sum, appointment) => sum + appointmentRevenue(appointment), 0);
     const previousRevenue = previousMonthAppointments.reduce((sum, appointment) => sum + appointmentRevenue(appointment), 0);
     const customerAnalytics = state.customers.map(customer => ({ customer, stats: customerStats(customer) }));
@@ -547,7 +563,7 @@
 
     // Hinweis ganz oben, unabhängig vom gewählten Zeitraum: alle vergangenen
     // Termine, die noch auf "Gebucht" stehen (zählen sonst nirgends).
-    const allOverdue = booked.filter(a => !a.is_private && new Date(a.ends_at) <= now);
+    const allOverdue = booked.filter(a => countsInStats(a) && new Date(a.ends_at) <= now);
     const overdueValue = allOverdue.reduce((sum, a) => sum + Number(a.amount_chf ?? a.services?.price_chf ?? 0), 0);
     $('overdue-banner').hidden = !allOverdue.length;
     $('overdue-banner').innerHTML = allOverdue.length
@@ -566,7 +582,7 @@
     $('period-next').disabled = range.start.getFullYear() >= now.getFullYear() + 3;
     $('period-today').hidden = range.start <= now && now < range.end;
     const completedInRange = currentMonthAppointments.filter(a => a.status === 'completed');
-    const bookedNext30 = booked.filter(a => !a.is_private && new Date(a.starts_at) >= startOfDay(now) && new Date(a.starts_at) < capacityEnd);
+    const bookedNext30 = booked.filter(a => countsInStats(a) && new Date(a.starts_at) >= startOfDay(now) && new Date(a.starts_at) < capacityEnd);
     $('metrics').innerHTML = [
       metricCard(`Umsatz ${range.label}`, money(currentRevenue), 'abgeschlossene Behandlungen', trend(currentRevenue, previousRevenue),
         interactive(() => openInsight({ title: `Umsatz ${range.label}`, appointments: completedInRange }), money(currentRevenue), `${range.previousLabel}: ${money(previousRevenue)} · Klick für Details`)),
@@ -586,7 +602,7 @@
     const periodRevenue = series.reduce((sum, item) => sum + item.revenue, 0);
     const periodCompleted = series.reduce((sum, item) => sum + item.completed, 0);
     const sumOf = key => series.reduce((sum, item) => sum + item[key], 0);
-    const dayAppointments = item => state.appointments.filter(a => !a.is_private && a.status !== 'cancelled' && new Date(a.starts_at) >= item.start && new Date(a.starts_at) < item.end);
+    const dayAppointments = item => state.appointments.filter(a => countsInStats(a) && a.status !== 'cancelled' && new Date(a.starts_at) >= item.start && new Date(a.starts_at) < item.end);
     const breakdown = item => REVENUE_SERIES.filter(part => item[part.key]).map(part => `${part.label} ${money(item[part.key])}`).join(' · ') || 'Kein Umsatz';
     const isYear = state.period.mode === 'year';
     const chartWidth = Math.max(300, Math.round($('revenue-chart').clientWidth || 760));
@@ -615,7 +631,7 @@
     // "liegt in der Vergangenheit, Status nie nachgetragen" (zählt sonst
     // nirgends als Umsatz).
     const bookedValue = list => list.reduce((sum, a) => sum + Number(a.amount_chf ?? a.services?.price_chf ?? 0), 0);
-    const bookedInRange = booked.filter(a => !a.is_private && new Date(a.starts_at) >= range.start && new Date(a.starts_at) < range.end);
+    const bookedInRange = booked.filter(a => countsInStats(a) && new Date(a.starts_at) >= range.start && new Date(a.starts_at) < range.end);
     const bookedUpcoming = bookedInRange.filter(a => new Date(a.starts_at) >= now);
     const bookedOverdue = bookedInRange.filter(a => new Date(a.starts_at) < now);
     const expectedTotal = currentRevenue + bookedValue(bookedInRange);
@@ -630,7 +646,7 @@
         interactive(() => openInsight({ title: `Erwartet ${range.label}`, appointments: [...completedInRange, ...bookedInRange] }), money(expectedTotal), `${money(currentRevenue)} abgeschlossen + ${money(bookedValue(bookedInRange))} gebucht`))
     ].join('');
 
-    const periodAppointments = state.appointments.filter(a => new Date(a.starts_at) >= periodStart && new Date(a.starts_at) < range.end && new Date(a.starts_at) <= now && !a.is_private);
+    const periodAppointments = state.appointments.filter(a => new Date(a.starts_at) >= periodStart && new Date(a.starts_at) < range.end && new Date(a.starts_at) <= now && countsInStats(a));
     const serviceRows = state.services.map(service => {
       const appointments = periodAppointments.filter(a => a.service_id === service.id && a.status === 'completed');
       const revenue = appointments.reduce((sum, appointment) => sum + appointmentRevenue(appointment), 0);
@@ -1681,7 +1697,7 @@
         : stats.last ? `Zuletzt ${esc(fmt(stats.last, { day: '2-digit', month: '2-digit' }))}` : '–';
       const contactPermission = p.do_not_contact ? '<span class="contact-state is-blocked">Gesperrt</span>' : p.marketing_consent && p.email ? '<span class="contact-state is-active">✓ E-Mail</span>' : p.marketing_consent ? '<span class="contact-state">Ohne E-Mail</span>' : '<span class="contact-state">Nur Service</span>';
       const rowHint = `${p.profile_id ? 'Login aktiv' : 'Kein Login'}${p.registration_invited_at ? ' · Eingeladen ' + esc(fmt(p.registration_invited_at, { day: '2-digit', month: '2-digit' })) : ''}`;
-      return `<tr data-edit-customer="${p.id}" class="customer-row" title="${rowHint}"><td><strong class="customer-name">${esc(p.full_name)}</strong><span class="customer-contact">${esc(p.email || p.phone || 'Kein Kontakt')}</span></td><td><span class="segment segment-${stats.segment.key}">${esc(stats.segment.label)}</span></td><td><strong>${esc(money(stats.revenue))}</strong><span class="customer-meta">${stats.totalBookings} Termine</span></td><td>${upcoming}</td><td>${contactPermission}</td></tr>`;
+      return `<tr data-edit-customer="${p.id}" class="customer-row" title="${rowHint}"><td><strong class="customer-name">${esc(p.full_name)}</strong><span class="customer-contact">${esc(p.email || p.phone || 'Kein Kontakt')}</span></td><td><span class="segment segment-${stats.segment.key}">${esc(stats.segment.label)}</span>${p.no_charge ? '<span class="customer-meta">Kostenlos</span>' : ''}</td><td><strong>${esc(money(stats.revenue))}</strong><span class="customer-meta">${stats.totalBookings} Termine</span></td><td>${upcoming}</td><td>${contactPermission}</td></tr>`;
     }).join('') : '<tr><td colspan="5" class="empty">Keine Kunden gefunden.</td></tr>';
     document.querySelectorAll('[data-edit-customer]').forEach(row => row.onclick = () => openCustomer(row.dataset.editCustomer));
   }
@@ -2891,6 +2907,7 @@
     $('customer-consent-source').value = customer.marketing_consent_source || '';
     $('customer-consent-version').value = customer.marketing_consent_version || '';
     $('customer-do-not-contact').checked = customer.do_not_contact;
+    $('customer-no-charge').checked = Boolean(customer.no_charge);
     $('customer-notes').value = customer.notes || '';
     $('customer-marketing').checked = customer.marketing_consent;
     const actualPayments = state.payments.filter(payment => payment.customer_id === customer.id || (payment.appointments?.customer_email && customer.email && payment.appointments.customer_email.toLowerCase() === customer.email.toLowerCase())).filter(payment => payment.status === 'completed').reduce((sum, payment) => sum + Number(payment.amount_chf || 0), 0);
@@ -3030,7 +3047,7 @@
     event.preventDefault();
     const customerId = $('customer-id').value;
     const email = $('customer-email').value.trim().toLowerCase() || null;
-    const { error } = await db.from('customers').update({ full_name: $('customer-name').value.trim(), email, phone: $('customer-phone').value.trim() || null, language: $('customer-language').value.trim() || null, birth_date: $('customer-birth-date').value || null, acquisition_source: $('customer-source').value || null, preferred_service_id: $('customer-preferred-service').value || null, tags: $('customer-tags').value.split(',').map(tag => tag.trim()).filter(Boolean), marketing_consent_source: $('customer-consent-source').value.trim() || null, marketing_consent_version: $('customer-consent-version').value.trim() || null, do_not_contact: $('customer-do-not-contact').checked, notes: $('customer-notes').value.trim() || null, marketing_consent: $('customer-marketing').checked }).eq('id', customerId);
+    const { error } = await db.from('customers').update({ full_name: $('customer-name').value.trim(), email, phone: $('customer-phone').value.trim() || null, language: $('customer-language').value.trim() || null, birth_date: $('customer-birth-date').value || null, acquisition_source: $('customer-source').value || null, preferred_service_id: $('customer-preferred-service').value || null, tags: $('customer-tags').value.split(',').map(tag => tag.trim()).filter(Boolean), marketing_consent_source: $('customer-consent-source').value.trim() || null, marketing_consent_version: $('customer-consent-version').value.trim() || null, do_not_contact: $('customer-do-not-contact').checked, no_charge: $('customer-no-charge').checked, notes: $('customer-notes').value.trim() || null, marketing_consent: $('customer-marketing').checked }).eq('id', customerId);
     if (error) return $('customer-message').textContent = error.message;
     if (email) await db.from('crm_tasks').update({ status: 'done', completed_at: new Date().toISOString(), completed_by: state.user.id }).eq('customer_id', customerId).eq('task_type', 'missing_email').eq('status', 'open');
     closeModal('customer-modal'); toast('Kundenprofil gespeichert.'); await loadAll();
