@@ -7,10 +7,15 @@
 // OPENAI_API_KEY here is a GigiBeauty-only Supabase secret.
 
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-const ALLOWED_ORIGIN = Deno.env.get('AIP_ALLOWED_ORIGIN') || '*';
+// AIP_ALLOWED_ORIGIN: eine oder mehrere Herkünfte (kommagetrennt) oder '*'.
+// Die App (Capacitor) ist immer erlaubt: iOS capacitor://localhost, Android https://localhost.
+const APP_ORIGINS = ['capacitor://localhost', 'https://localhost'];
+const ALLOWED = (Deno.env.get('AIP_ALLOWED_ORIGIN') || '*').split(',').map((o) => o.trim()).filter(Boolean);
+const ANY_ORIGIN = ALLOWED.includes('*');
+const ALLOWED_ORIGINS = ANY_ORIGIN ? [] : [...ALLOWED, ...APP_ORIGINS];
+const originAllowed = (origin: string | null) => ANY_ORIGIN || (!!origin && ALLOWED_ORIGINS.includes(origin));
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'authorization, apikey, content-type'
 };
@@ -97,10 +102,20 @@ function rateLimited(ip: string) {
   return false;
 }
 
+// CORS-Herkunft pro Anfrage setzen (mehrere erlaubte Herkünfte möglich).
 Deno.serve(async (request) => {
+  const origin = request.headers.get('origin');
+  const response = await handle(request);
+  const headers = new Headers(response.headers);
+  headers.set('Access-Control-Allow-Origin', ANY_ORIGIN ? '*' : (originAllowed(origin) ? origin! : ALLOWED_ORIGINS[0]));
+  headers.set('Vary', 'Origin');
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+});
+
+async function handle(request: Request): Promise<Response> {
   if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   if (request.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
-  if (ALLOWED_ORIGIN !== '*' && request.headers.get('origin') !== ALLOWED_ORIGIN) return json({ error: 'origin_not_allowed' }, 403);
+  if (!originAllowed(request.headers.get('origin'))) return json({ error: 'origin_not_allowed' }, 403);
   const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown';
   if (rateLimited(ip)) return json({ error: 'rate_limited', message: 'Zu viele Vorschauen in kurzer Zeit. Bitte versuche es in einer Stunde erneut.' }, 429);
   if (!OPENAI_API_KEY) return json({ error: 'OPENAI_API_KEY is missing' }, 500);
@@ -164,4 +179,4 @@ Deno.serve(async (request) => {
   if (!generatedImage) return json({ error: 'generation_failed' }, 502);
 
   return json({ generatedImage });
-});
+}
