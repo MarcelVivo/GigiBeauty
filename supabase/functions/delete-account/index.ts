@@ -6,7 +6,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const allowedOrigins = ['https://www.gigibeauty.ch', 'https://gigibeauty.ch'];
+// App (Capacitor): iOS lädt von capacitor://localhost, Android von https://localhost.
+const allowedOrigins = ['https://www.gigibeauty.ch', 'https://gigibeauty.ch', 'capacitor://localhost', 'https://localhost'];
 const db = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
 
 function corsHeaders(origin: string | null) {
